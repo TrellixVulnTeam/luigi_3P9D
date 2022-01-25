@@ -7,7 +7,7 @@ nom_variable2 = "hello"
 
 # liste = [1, 2, 3]
 
-if nom_variable1 = 11 - 1
+if nom_variable1 = 11 - 1 and true
     print("Cas 1")
 elif nom_variable2 = "hello"
     print("Cas 2")
