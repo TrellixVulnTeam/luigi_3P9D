@@ -7,24 +7,29 @@ nom_variable2 = "hello"
 
 # liste = [1, 2, 3]
 
-if nom_variable = 10
-    # Truc
-elif nom_variable = 20
-    # Truc 2
+if nom_variable1 = 11 - 1
+    print("Cas 1")
+elif nom_variable2 = "hello"
+    print("Cas 2")
 else
-    # Sinon
+    print("Cas 3")
+end
+
+func somme(x, y)
+    return x + y
 end
 
 func print_somme(x, y)
-    print(x + y)
+    print(somme(x, y))
 end
 
 func soyons_fous()
-    print("Soyons fous")
+    print("Soyons fou" + "s")
 end
 
 print("Hello world")
-print_somme(1, 2)
+print_somme(1 - (12 + 9), 2 * 19)
+soyons_fous()
 
 # for item in [4, 5, 6]
 #     print(item) # Doit afficher 4, puis 5, puis 6

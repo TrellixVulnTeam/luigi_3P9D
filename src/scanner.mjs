@@ -78,9 +78,14 @@ export function scan(code) {
                     frag == 'and' ||
                     frag == 'for' ||
                     frag == 'in' ||
-                    frag == 'print' ||
-                    frag == 'func') {
+                    frag == 'func' ||
+                    frag == 'return' ||
+                    frag == 'null') {
                 tokens.push(token(line, frag));
+            } else if (frag == 'true') {
+                tokens.push(token(line, 'boolean', true));
+            } else if (frag == 'false') {
+                tokens.push(token(line, 'boolean', false));
             } else {
                 tokens.push(token(line, 'identifier', frag));
             }
