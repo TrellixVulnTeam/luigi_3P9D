@@ -11,12 +11,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see https://www.gnu.org/licenses/.
 
-import { inspect } from 'util';
-import { argv } from 'process';
-import { readFileSync } from 'fs';
+import * as process from 'process';
+import * as fs from 'fs';
 import { scan, parse, run } from '../lib/luigi.mjs';
 
-let code = readFileSync(argv[2]).toString('utf-8');
+let code = fs.readFileSync(process.argv[2]).toString('utf-8');
 
 let tokens = scan(code);
 let functions = parse(tokens);
