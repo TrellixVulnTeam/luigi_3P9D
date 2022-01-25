@@ -1,0 +1,35 @@
+nom_variable1 = 10
+nom_variable2 = "hello"
+
+# Opérateurs arithmétiques : +, -, *, /
+# Opérateurs logiques : =, >, <, <=, >=
+# Combinateurs : or, and
+
+# liste = [1, 2, 3]
+
+if nom_variable = 10
+    # Truc
+elif nom_variable = 20
+    # Truc 2
+else
+    # Sinon
+end
+
+func print_somme(x, y)
+    print(x + y)
+end
+
+func soyons_fous()
+    print("Soyons fous")
+end
+
+print("Hello world")
+print_somme(1, 2)
+
+# for item in [4, 5, 6]
+#     print(item) # Doit afficher 4, puis 5, puis 6
+# end
+
+# Lexer / scanneur:
+# But : passer du text brut à une liste de tokens (items), avec chacun un type (chaine, nombre, =, <) et éventuellement une valeur
+# [nom(nom_variable1), =, nombre(10), fin_de_ligne, nom(nom_variable2), =, chaine("hello"), ...]
