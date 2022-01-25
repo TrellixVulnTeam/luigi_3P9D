@@ -15,9 +15,26 @@ import * as process from 'process';
 import * as fs from 'fs';
 import { scan, parse, run } from '../lib/luigi.mjs';
 
-let code = fs.readFileSync(process.argv[2]).toString('utf-8');
+function main() {
+    if (process.argv.length < 3) {
+        print_usage();
+        return;
+    }
 
-let tokens = scan(code);
-let functions = parse(tokens);
+    try {
+        let code = fs.readFileSync(process.argv[2]).toString('utf-8');
 
-run(functions);
+        let tokens = scan(code);
+        let functions = parse(tokens);
+
+        run(functions);
+    } catch (err) {
+        console.log(err.message);
+    }
+}
+main();
+
+function print_usage() {
+    let usage = `Usage: luigi <script>`;
+    console.log(usage);
+}
