@@ -5,7 +5,8 @@ nom_variable2 = "hello"
 # Opérateurs logiques : =, >, <, <=, >=
 # Combinateurs : or, and
 
-# liste = [1, 2, 3]
+liste = [1, 2, 3]
+log(liste)
 
 if nom_variable1 = 11 - 1 and true
     log("Cas 1")
