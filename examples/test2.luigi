@@ -1,5 +1,0 @@
-nom_variable0 = 8
-nom_variable2 = "hello"
-
-nom_variable1 = 10 + 5 * (nom_variable0 - 9)
-log(nom_variable1 + 6)
