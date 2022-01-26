@@ -2,10 +2,10 @@
   "name": "luigi",
   "version": "0.0.0",
   "description": "",
-  "main": "luigi.mjs",
+  "main": "lib/luigi.mjs",
   "bin": {
-     "luigi": "bin/luigi.mjs"
-   },
+    "luigi": "bin/luigi.mjs"
+  },
   "author": "",
   "license": "AGPL-3.0",
   "dependencies": {
