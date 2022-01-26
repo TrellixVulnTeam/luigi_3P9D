@@ -7,5 +7,8 @@
      "luigi": "bin/luigi.mjs"
    },
   "author": "",
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "raylib": "^0.8.1"
+  }
 }
