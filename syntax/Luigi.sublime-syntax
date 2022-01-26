@@ -1,0 +1,48 @@
+%YAML 1.2
+---
+name: Luigi
+file_extensions: [luigi]
+scope: source.luigi
+
+contexts:
+  main:
+    - match: \#.*
+      scope: comment.line.luigi
+    - match: \b(if|elif|else|end|return|in|for|while)\b
+      scope: keyword.control.luigi
+    - match: \bfunc\b
+      scope: keyword.control.luigi
+      push: function
+    - match: (<=?|>=?|and|or|[*\/+\-=])
+      scope: keyword.operator.luigi
+    - match: '"'
+      push: string
+    - match: \(
+      push: brackets
+    - match: \)
+      scope: invalid.illegal.luigi
+    - match: \b(true|false|null)\b
+      scope: constant.language.luigi
+    - match: \b[0-9_]+\b
+      scope: constant.numeric.luigi
+    - match: \b([[:alpha:]_][[:alnum:]_]*) *\(\b
+      captures:
+      1: variable.function.luigi
+      push: brackets
+
+  function:
+    - match: \b[[:alpha:]_][[:alnum:]_]*\b
+      scope: entity.name.function.luigi
+      pop: true
+
+  brackets:
+    - match: \)
+      pop: true
+    - include: main
+
+  string:
+    - meta_scope: string.quoted.double.luigi
+    - match: \\.
+      scope: constant.character.escape.luigi
+    - match: '"'
+      pop: true
