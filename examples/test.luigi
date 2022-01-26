@@ -8,11 +8,11 @@ nom_variable2 = "hello"
 # liste = [1, 2, 3]
 
 if nom_variable1 = 11 - 1 and true
-    print("Cas 1")
+    log("Cas 1")
 elif nom_variable2 = "hello"
-    print("Cas 2")
+    log("Cas 2")
 else
-    print("Cas 3")
+    log("Cas 3")
 end
 
 func somme(x, y)
@@ -20,19 +20,19 @@ func somme(x, y)
 end
 
 func print_somme(x, y)
-    print(somme(x, y))
+    log(somme(x, y))
 end
 
 func soyons_fous()
-    print("Soyons fou" + "s")
+    log("Soyons fou" + "s")
 end
 
-print("Hello world")
+log("Hello world")
 print_somme(1 - (12 + 9), 2 * 19)
 soyons_fous()
 
 # for item in [4, 5, 6]
-#     print(item) # Doit afficher 4, puis 5, puis 6
+#     log(item) # Doit afficher 4, puis 5, puis 6
 # end
 
 # Lexer / scanneur:
