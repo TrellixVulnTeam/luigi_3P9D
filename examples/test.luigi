@@ -5,10 +5,16 @@ nom_variable2 = "hello"
 # Opérateurs logiques : =, >, <, <=, >=
 # Combinateurs : or, and
 
-liste = [1, 2, 3]
-log(liste)
+func inv(idx)
+    return - idx
+end
 
-if nom_variable1 = 11 - 1 and true
+liste = [.1, 2.2,
+         3.3, 4.4]
+log(liste)
+log(liste[inv(---1)])
+
+if nom_variable1 = 11 - 1
     log("Cas 1")
 elif nom_variable2 = "hello"
     log("Cas 2")
@@ -32,8 +38,14 @@ log("Hello world")
 print_somme(1 - (12 + 9), 2 * 19)
 soyons_fous()
 
-# for item in [4, 5, 6]
-#     log(item) # Doit afficher 4, puis 5, puis 6
+# for item in liste
+#     log(item)
+# end
+# for item in []
+#     log(item)
+# end
+# for item in [2, 3, "hello"]
+#     log(item)
 # end
 
 # Lexer / scanneur:
