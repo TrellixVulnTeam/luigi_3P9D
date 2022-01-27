@@ -13,7 +13,7 @@
 
 import * as process from 'process';
 import * as fs from 'fs';
-import * as luigi from '../lib/luigi.mjs';
+import * as luigi from '../lib/index.mjs';
 
 function main() {
     if (process.argv.length < 3) {
@@ -23,11 +23,7 @@ function main() {
 
     try {
         let code = fs.readFileSync(process.argv[2]).toString('utf-8');
-
-        let tokens = luigi.scan(code);
-        let functions = luigi.parse(tokens);
-
-        luigi.run(functions);
+        luigi.run(code);
     } catch (err) {
         console.log(err.message);
     }

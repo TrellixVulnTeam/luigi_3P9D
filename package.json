@@ -2,7 +2,7 @@
   "name": "luigi",
   "version": "0.0.0",
   "description": "",
-  "main": "lib/luigi.mjs",
+  "main": "lib/index.mjs",
   "bin": {
     "luigi": "bin/luigi.mjs"
   },
