@@ -13,7 +13,7 @@ func cycle_color()
     if color >= len(COLORS) then color = 0
 end
 
-while render_window()
+while update_window()
     size = get_window_size()
 
     text = size[0] + "x" + size[1]
