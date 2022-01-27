@@ -16,7 +16,7 @@ end
 while render_window()
     size = get_window_size()
 
-    text =  "" + size[0] + "x" + size[1]
+    text = size[0] + "x" + size[1]
     box = draw_text(x, y, COLORS[color], text)
 
     if vx = 1 and x >= size[0] - box[0]
