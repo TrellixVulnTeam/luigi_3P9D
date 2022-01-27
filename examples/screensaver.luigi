@@ -14,7 +14,7 @@ func cycle_color()
     if color >= len(COLORS) then color = 0
 end
 
-while update_window()
+while update_window("black")
     size = get_window_size()
 
     text = size[0] + "x" + size[1]
