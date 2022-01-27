@@ -11,7 +11,7 @@ color = 0
 
 func cycle_color()
     color = color + 1
-    if color >= len(COLORS) then color = 0
+    if color >= length(COLORS) then color = 0
 end
 
 while run_window("black")
