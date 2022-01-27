@@ -1,20 +1,40 @@
 open_window("Screensaver")
 
+COLORS = ["red", "yellow", "green"]
+
 x = 10
 y = 10
 vx = 1
 vy = 1
+color = 0
+
+func cycle_color()
+    color = color + 1
+    if color >= len(COLORS) then color = 0
+end
 
 while render_window()
     size = get_window_size()
 
     text =  "" + size[0] + "x" + size[1]
-    box = draw_text(x, y, "red", text)
+    box = draw_text(x, y, COLORS[color], text)
 
-    if vx = 1 and x >= size[0] - box[0] then vx = -1
-    if vx = -1 and x <= 0 then vx = 1
-    if vy = 1 and y >= size[1] - box[1] then vy = -1
-    if vy = -1 and y <= 0 then vy = 1
+    if vx = 1 and x >= size[0] - box[0]
+        vx = -1
+        cycle_color()
+    end
+    if vx = -1 and x <= 0
+        vx = 1
+        cycle_color()
+    end
+    if vy = 1 and y >= size[1] - box[1]
+        vy = -1
+        cycle_color()
+    end
+    if vy = -1 and y <= 0
+        vy = 1
+        cycle_color()
+    end
 
     x = x + vx * 2
     y = y + vy * 2
