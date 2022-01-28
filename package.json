@@ -4,7 +4,7 @@
   "description": "",
   "main": "lib/index.mjs",
   "bin": {
-    "luigi": "bin/luigi.mjs"
+    "luigi": "luigi.mjs"
   },
   "author": "",
   "license": "AGPL-3.0",

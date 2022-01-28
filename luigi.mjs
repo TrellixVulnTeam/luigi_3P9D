@@ -13,7 +13,7 @@
 
 import * as process from 'process';
 import * as fs from 'fs';
-import * as luigi from '../lib/index.mjs';
+import * as luigi from './lib/index.mjs';
 
 function main() {
     if (process.argv.length < 3) {
