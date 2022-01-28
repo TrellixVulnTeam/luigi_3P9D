@@ -13,7 +13,7 @@ contexts:
     - match: \bfunc\b
       scope: keyword.control.luigi
       push: function
-    - match: (<=?|>=?|[*\/+\-=])
+    - match: (<=?|>=?|!=?|[*\/+\-=])
       scope: keyword.operator.luigi
     - match: \b(and|or|not)\b
       scope: keyword.operator.luigi
