@@ -18,7 +18,9 @@ contexts:
     - match: \b(and|or|not)\b
       scope: keyword.operator.luigi
     - match: '"'
-      push: string
+      push: string1
+    - match: "'"
+      push: string2
     - match: \(
       push: brackets
     - match: \)
@@ -42,9 +44,15 @@ contexts:
       pop: true
     - include: main
 
-  string:
+  string1:
     - meta_scope: string.quoted.double.luigi
     - match: \\.
       scope: constant.character.escape.luigi
     - match: '"'
+      pop: true
+  string2:
+    - meta_scope: string.quoted.simple.luigi
+    - match: \\.
+      scope: constant.character.escape.luigi
+    - match: "'"
       pop: true
