@@ -1,4 +1,4 @@
-open_window("Migthy Screensaver")
+open_window("Mighty Screensaver")
 
 COLORS = ["red", "yellow", "green"]
 
