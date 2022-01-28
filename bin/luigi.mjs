@@ -25,7 +25,7 @@ function main() {
         let code = fs.readFileSync(process.argv[2]).toString('utf-8');
         luigi.run(code);
     } catch (err) {
-        console.log(err.message);
+        console.error(err.message);
     }
 }
 main();
