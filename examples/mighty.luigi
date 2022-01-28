@@ -3,10 +3,8 @@ open_window("Migthy Screensaver")
 COLORS = ["red", "yellow", "green"]
 
 size = get_window_size()
-x = size[0] / 2
-y = size[1] / 2
-vx = 1
-vy = 1
+pos = { x = size.width / 2, y = size.height / 2 }
+speed = { x = 1, y = 1 }
 color = 0
 
 func cycle_color()
@@ -17,26 +15,26 @@ end
 while run_window("black")
     size = get_window_size()
 
-    text = size[0] + "x" + size[1]
-    box = draw_text(x, y, 5, COLORS[color], text)
+    text = size.width + "x" + size.height
+    box = draw_text(pos.x, pos.y, { align = 5, color = COLORS[color] }, text)
 
-    if vx = 1 and x >= size[0] - box[0] / 2
-        vx = -1
+    if speed.x = 1 and pos.x >= size.width - box.width / 2
+        speed.x = -1
         cycle_color()
     end
-    if vx = -1 and x <= box[0] / 2
-        vx = 1
+    if speed.x = -1 and pos.x <= box.width / 2
+        speed.x = 1
         cycle_color()
     end
-    if vy = 1 and y >= size[1] - box[1] / 2
-        vy = -1
+    if speed.y = 1 and pos.y >= size.height - box.height / 2
+        speed.y = -1
         cycle_color()
     end
-    if vy = -1 and y <= box[1] / 2
-        vy = 1
+    if speed.y = -1 and pos.y <= box.height / 2
+        speed.y = 1
         cycle_color()
     end
 
-    x = x + vx * 2
-    y = y + vy * 2
+    pos.x = pos.x + speed.x * 2
+    pos.y = pos.y + speed.y * 2
 end
