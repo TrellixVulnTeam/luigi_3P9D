@@ -1,6 +1,14 @@
 nom_variable1 = 10
 nom_variable2 = "hello"
 
+size = [1, 58]
+size[0] = 237
+pos = { x = size[0] / 2, y = size[1] / 2 }
+log(pos)
+log(pos.x + 5)
+pos.x = 8
+log(pos.x + 5)
+
 # Opérateurs arithmétiques : +, -, *, /
 # Opérateurs logiques : =, >, <, <=, >=
 # Combinateurs : or, and
