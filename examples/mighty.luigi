@@ -7,11 +7,6 @@ pos = { x = size.width / 2, y = size.height / 2 }
 speed = { x = 1, y = 1 }
 color = 0
 
-func cycle_color()
-    color = color + 1
-    if not color < length(COLORS) then color = 0
-end
-
 while run_window("black")
     size = get_window_size()
 
@@ -37,4 +32,9 @@ while run_window("black")
 
     pos.x = pos.x + speed.x * 2
     pos.y = pos.y + speed.y * 2
+end
+
+func cycle_color()
+    color = color + 1
+    if not color < length(COLORS) then color = 0
 end
