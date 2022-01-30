@@ -5,8 +5,8 @@ x_max = -1.1
 
 characters = [' ', '.', ':', ';', '+', '=', 'x', 'x', '$', '&']
 
-for i in 0..24
-    for j in 0..80
+for i in 0 to 24
+    for j in 0 to 80
         x = (j / 79.) * (x_max - x_min) + x_min
         y = (i / 24.) * (y_max - y_min) + y_min
 
@@ -14,7 +14,7 @@ for i in 0..24
         x0 = x
         y0 = y
 
-        for iter in 0..80
+        for iter in 0 to 80
             x1 = (x0 * x0) - (y0 * y0) + x
             y1 = 2. * x0 * y0 + y
 

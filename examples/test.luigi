@@ -57,7 +57,7 @@ for item in [2, 3, "hello"]
     log(item)
 end
 
-for idx in 0..length(liste)
+for idx in 0 to length(liste)
     log(idx + " = " + liste[idx])
 end
 
