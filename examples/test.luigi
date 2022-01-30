@@ -48,6 +48,7 @@ soyons_fous()
 
 for item in liste
     log(item)
+    if item > 2 then break
 end
 for item in []
     log(item)

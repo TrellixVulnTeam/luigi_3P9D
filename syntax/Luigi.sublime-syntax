@@ -8,7 +8,7 @@ contexts:
   main:
     - match: \#.*
       scope: comment.line.luigi
-    - match: \b(if|then|elif|else|end|return|in|for|while)\b
+    - match: \b(if|then|elif|else|end|return|in|for|while|break)\b
       scope: keyword.control.luigi
     - match: \bfunc\b
       scope: keyword.control.luigi
