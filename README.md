@@ -369,7 +369,7 @@ Prececedence | Operator      | Description      | Type   | Associates
 4            | __< <= > >=__ | Comparison       | Binary | Left
 5            | __+ -__       | Add, substract   | Binary | Left
 6            | __* /__       | Multiply, Divide | Binary | Left
-7            | __+ -__       | Negate           | Unary  | Right
+7            | __-__         | Negate           | Unary  | Right
 
 # Standard library
 
