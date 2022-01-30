@@ -13,7 +13,7 @@ contexts:
     - match: \bfunc\b
       scope: keyword.control.luigi
       push: function
-    - match: (<=?|>=?|!=?|[*\/+\-=])
+    - match: (\.\.?|<=?|>=?|!=?|[*\/+\-=])
       scope: keyword.operator.luigi
     - match: \b(and|or|not)\b
       scope: keyword.operator.luigi
@@ -27,7 +27,7 @@ contexts:
       scope: invalid.illegal.luigi
     - match: \b(true|false|null)\b
       scope: constant.language.luigi
-    - match: \b[0-9_]+\b
+    - match: \b[0-9]+(\.[0-9_]*)?\b
       scope: constant.numeric.luigi
     - match: \b([[:alpha:]_][[:alnum:]_]*) *\(\b
       captures:
