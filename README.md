@@ -129,7 +129,7 @@ n = 27
 while n != 1
     log(n)
 
-    if n % 2 == 0
+    if n % 2 = 0
         n = n / 2
     else
         n = 3 * n + 1
@@ -169,8 +169,8 @@ You can use `break` to bail out right in the middle of a loop body. It exits fro
 
 ```ruby
 for i in [1, 2, 3, 4]
-  log(i)
-  if i = 3 then break
+    log(i)
+    if i = 3 then break
 end
 
 # Prints out 1, 2, 3 (but not 4)
@@ -180,7 +180,7 @@ The `continue` can be used to skip the remaining loop body and move to the next 
 
 ```ruby
 for i in [1, 2, 3, 4]
-    if i == 2 then continue
+    if i = 2 then continue
     log(i)
 end
 
@@ -305,7 +305,7 @@ You can change an element by assigning a value to it:
 
 ```ruby
 animals[0] = "horse"
-log(animals) # ["horse", "cat", "dog", "beetle"]
+log(animals) # horse, cat, dog, beetle
 ```
 
 #### Adding elements
@@ -315,7 +315,7 @@ You can use `append` to add elements to the end of an existing list:
 ```ruby
 animals = ["rabbit", "cat"]
 append(animals, "dog")
-log(animals) # { "rabbit", "cat", "dog" }
+log(animals) # rabbit, cat, dog
 ```
 
 ### Objects
