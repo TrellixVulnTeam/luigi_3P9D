@@ -414,14 +414,6 @@ Function    | Parameters         | Description
 **get**     | obj, member        | Get member from object
 **set**     | obj, member, value | Set member in object
 
-## Random
-
-Function         | Parameters | Description
------------------|------------|--------------------------------------------------------------------
-**random**       |            | Return random float between 0 (included) and 1 (non-included)
-**random_float** | min, max   | Return random float between min (included) and max (non-included)
-**random_int**   | min, max   | Return random integer between min (included) and max (non-included)
-
 ## Math
 
 Function     | Parameters  | Description
@@ -448,6 +440,14 @@ Function     | Parameters  | Description
 **asin**     | x           | Return the arcsine (in radians) of a number
 **atan**     | x           | Return the arctangent (in radians) of a number
 **atan2**    | x, y        | Return the principal value of the arctangent (in radians) of `y/x`
+
+## Random
+
+Function         | Parameters | Description
+-----------------|------------|--------------------------------------------------------------------
+**random**       |            | Return random float between 0 (included) and 1 (non-included)
+**random_float** | min, max   | Return random float between min (included) and max (non-included)
+**random_int**   | min, max   | Return random integer between min (included) and max (non-included)
 
 ## Drawing
 
