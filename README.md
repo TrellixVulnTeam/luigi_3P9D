@@ -23,7 +23,7 @@ Comments start with `#` and end at the end of the line:
 x = 1 # This is also a comment
 ```
 
-Block comments are explicitly not supported, in order to support context-independent line-by-line parsing.
+Multi-line comments are explicitly not supported, in order to support context-independent line-by-line parsing.
 
 ## Identifiers and keywords
 
@@ -36,7 +36,7 @@ func if then else end while for in to break continue return
 and or not
 ```
 
-Those keywords cannot be used as variable or function identifiers.
+These keywords cannot be used as variable or function identifiers.
 
 ## Blocks
 
@@ -53,7 +53,7 @@ Luigi strives to support multi-line statements where appropriate, such as in the
 
 ```ruby
 log("Hello " +
-      "World")
+    "World")
 ```
 
 ## Assignment
@@ -65,7 +65,7 @@ foo = (1 + 2) * 6 # Declares the variable foo, and assign 18 to it
 foo = "Hello" + " World" # Assign "Hello World" to foo
 ```
 
-Assignment in Luigi is a statement. Contrary to other languages such as C, it is not possible to assign values to a variable in an expression.
+Assignment in Luigi is a statement. Contrary to other languages such as C, it is not possible to assign values to a variable in the middle of an expression.
 
 ## Control flow
 
@@ -77,7 +77,7 @@ Luigi considers the following expression results as false:
 
 * The boolean value `false` is false.
 * The null value `null` is false.
-* The numeric value `0` is false .
+* The numeric value `0` is false.
 
 Everything else is true, including empty strings and empty collections.
 
@@ -89,9 +89,9 @@ The simplest branching statement, `if` lets you conditionally skip a chunk of co
 if ready then log("Go!")
 ```
 
-That evaluates the parenthesized expression after `if`. If it’s true, then the statement after the condition is evaluated, otherwise it is skipped.
+This evaluates the expression after `if`. If it's true, then the statement or block after the `then` is evaluated, otherwise it is skipped.
 
-Instead of a single statement, you can have a block of code:
+Instead of a single statement, you can have a block of code, in which case you must omit `then` and directly go to the next line:
 
 ```ruby
 if ready
@@ -106,19 +106,21 @@ You may also provide one or several `else if` branches, and a final `else` branc
 choice = 1
 
 if choice = 0
-    log("Choice 0")
+    log("Choice 0") # Not executed
 else if choice = 1
-    log("Choice 1") # Executed branch 
+    log("Choice 1") # Executed
 else
-    log("Choice 2")
+    log("Choice 2") # Not executed
 end
 ```
 
+Single-line `if <expr> then <statement>` constructs cannot use `else`.
+
 ### While statement
 
-There are two loop statements in Luigi, and they should be familiar if you’ve used other imperative languages.
+There are two loop statements in Luigi, and they should be familiar if you've used other imperative languages.
 
-The simplest, a while statement executes a chunk of code as long as a condition continues to hold. For example:
+The simplest is the `while` statement. It executes a chunk of code as long as a condition continues to hold. For example:
 
 ```ruby
 # Hailstone sequence
@@ -137,7 +139,7 @@ end
 
 ### For statement
 
-For statements exist in two form: the first iterates through a list elements, and the second one creates an index variable that is incremented from a start value (inclusive) to an end value (non-inclusive).
+The `for` statement exists in two form: the first iterates through a list elements, and the second one creates an index variable that is incremented from a start value (inclusive) to an end value (non-inclusive).
 
 The first form can be used like this:
 
@@ -163,7 +165,7 @@ end
 
 ### Break and continue statements
 
-You can use `break` to bail out right in the middle of a loop body. It exists from the nearest enclosing `while` or `for` loop.
+You can use `break` to bail out right in the middle of a loop body. It exits from the nearest enclosing `while` or `for` loop.
 
 ```ruby
 for i in [1, 2, 3, 4]
@@ -174,7 +176,7 @@ end
 # Prints out 1, 2, 3 (but not 4)
 ```
 
-The `continue` can be used to skip the remaining loop body and move to the next iteration. Execution will immediately jump to the beginning of the next loop iteration (and check the loop conditions).
+The `continue` can be used to skip the remaining loop body and move to the next iteration. Execution will immediately jump to the beginning of the next loop iteration (and check the loop condition).
 
 ```ruby
 for i in [1, 2, 3, 4]
@@ -194,8 +196,7 @@ func sum(x, y)
 end
 ```
 
-Once defined, the function can be called by specifying an argument for each parameter, separated
-by a comma.
+Once defined, the function can be called by specifying an argument for each parameter, separated by a comma.
 
 ```ruby
 value = sum(3, 22)
@@ -220,7 +221,7 @@ end
 
 #### Null
 
-The `null` value is special, and is used to indicate the absence of a value. If you call a function that doesn’t return anything, you get `null` back.
+The `null` value is special, and is used to indicate the absence of a value. If you call a function that doesn't return anything, you get `null` back.
 
 #### Booleans
 
@@ -266,13 +267,13 @@ The following escape sequences can be used in string literals:
 
 #### Definition
 
-A list is a compound object that holds a collection of elements identified by integer index. You can create a list by placing a sequence of comma-separated expressions inside square brackets:
+A list is a compound object that holds a collection of elements identified by an integer index. You can create a list by placing a sequence of comma-separated expressions inside square brackets:
 
 ```ruby
 [11, "foo", false]
 ```
 
-You can also place each element on a separate line, in which case the comma can be skipped.
+You can also place each element on a separate line, in which case the comma can be skipped:
 
 ```ruby
 [
@@ -282,11 +283,11 @@ You can also place each element on a separate line, in which case the comma can 
 ]
 ```
 
-The elements don’t have to be the same type.
+The elements don't have to be of the same type.
 
 #### Accessing elements
 
-You can access an element from a list by calling the subscript syntax:
+You can access an element from a list with the subscript syntax:
 
 ```ruby
 animals = ["rabbit", "cat", "dog", "beetle"]
@@ -294,7 +295,7 @@ log(animals[0]) # rabbit
 log(animals[1]) # cat
 ```
 
-It’s a runtime error to pass an index outside of the bounds of the list. If you don’t know what those bounds are, you can find out using `length`:
+It's a runtime error to pass an index outside of the bounds of the list. If you don't know what those bounds are, you can find out using `length`:
 
 ```ruby
 log(length(animals)) # 4
@@ -337,6 +338,8 @@ You can also place each element on a separate line, in which case the comma can 
 }
 ```
 
+Once an object is created, you cannot add or remove members.
+
 #### Accessing members
 
 You can access an element from an object by using the dot operator:
@@ -356,7 +359,7 @@ log(vec.name) # Luigi
 
 ## Operators
 
-The following operators are supported in expressions, by order of precedence, from loosest to tightest: 
+The following operators are supported in expressions, by order of precedence, from loosest to tightest:
 
 Prececedence | Operator      | Description      | Type   | Associates
 -------------|---------------|------------------|--------|-----------
@@ -395,7 +398,7 @@ npm ci
 After that, running Luigi programs is relatively simple:
 
 ```sh
-node luigi.mjs examples\test.luigi
+node luigi.mjs examples/test.luigi
 ```
 
 As of now, Luigi does not yet support compilation to binaries or HTML/WebAssembly.
