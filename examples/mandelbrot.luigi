@@ -1,0 +1,36 @@
+y_min = -0.2
+y_max = 0.1
+x_min = -1.5
+x_max = -1.1
+
+characters = [' ', '.', ':', ';', '+', '=', 'x', 'x', '$', '&']
+
+for i in 0..24
+    for j in 0..80
+        x = (j / 79.) * (x_max - x_min) + x_min
+        y = (i / 24.) * (y_max - y_min) + y_min
+
+        pixel = " "
+        x0 = x
+        y0 = y
+
+        for iter in 0..80
+            x1 = (x0 * x0) - (y0 * y0) + x
+            y1 = 2. * x0 * y0 + y
+
+            x0 = x1
+            y0 = y1
+
+            # Stop if the point escaped.
+            d = (x0 * x0) + (y0 * y0)
+            if d > 4
+                pixel = characters[floor(iter / 8)]
+                break
+            end
+        end
+
+        print(pixel)
+    end
+
+    print('\n')
+end
