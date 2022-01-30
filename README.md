@@ -383,7 +383,7 @@ Function     | Parameters  | Description
 ## Strings
 
 Function     | Parameters  | Description
--------------|-------------|---------------------------------------------
+-------------|-------------|-------------------------------------
 **length**   | str         | Return length of list or string
 **upper**    | str         | Return string converted to uppercase
 **lower**    | str         | Return string converted to lowercase
@@ -391,7 +391,7 @@ Function     | Parameters  | Description
 ## Lists
 
 Function     | Parameters  | Description
--------------|-------------|---------------------------------------------
+-------------|-------------|----------------------
 **length**   | list        | Return length of list
 **append**   | list, value | Append value to list
 
