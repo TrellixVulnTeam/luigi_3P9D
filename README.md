@@ -410,9 +410,9 @@ Function     | Parameters  | Description
 
 Function    | Parameters         | Description
 ------------|--------------------|--------------------------------------------
+**members** | obj                | List object members
 **get**     | obj, member        | Get member from object
 **set**     | obj, member, value | Set member in object
-**members** | obj                | List object members
 
 ## Random
 
