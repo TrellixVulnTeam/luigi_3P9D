@@ -395,6 +395,14 @@ Function     | Parameters  | Description
 **length**   | list        | Return length of list
 **append**   | list, value | Append value to list
 
+## Objects
+
+Function    | Parameters         | Description
+------------|--------------------|--------------------------------------------
+**get**     | obj, member        | Get member from object
+**set**     | obj, member, value | Set member in object
+**members** | obj                | List object members
+
 ## Random
 
 Function         | Parameters | Description

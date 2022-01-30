@@ -9,6 +9,10 @@ log(pos.x + 5)
 pos.x = 8
 log(pos.x + 5)
 
+log(members(pos))
+set(pos, 'x', 1111)
+log(get(pos, 'x'))
+
 # Opérateurs arithmétiques : +, -, *, /
 # Opérateurs logiques : =, >, <, <=, >=
 # Combinateurs : or, and
