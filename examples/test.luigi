@@ -46,15 +46,15 @@ log("Hello world")
 print_somme(1 - (12 + 9), 2 * 19)
 soyons_fous()
 
-# for item in liste
-#     log(item)
-# end
-# for item in []
-#     log(item)
-# end
-# for item in [2, 3, "hello"]
-#     log(item)
-# end
+for item in liste
+    log(item)
+end
+for item in []
+    log(item)
+end
+for item in [2, 3, "hello"]
+    log(item)
+end
 
 # Lexer / scanneur:
 # But : passer du text brut à une liste de tokens (items), avec chacun un type (chaine, nombre, =, <) et éventuellement une valeur
