@@ -61,6 +61,14 @@ for idx in 0 to length(liste)
     log(idx + " = " + liste[idx])
 end
 
+idx = 0
+while true
+    idx = idx + 1
+    log("WHILE " + idx)
+    if idx < 6 then continue
+    break
+end
+
 # Lexer / scanneur:
 # But : passer du text brut à une liste de tokens (items), avec chacun un type (chaine, nombre, =, <) et éventuellement une valeur
 # [nom(nom_variable1), =, nombre(10), fin_de_ligne, nom(nom_variable2), =, chaine("hello"), ...]
