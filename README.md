@@ -318,6 +318,16 @@ append(animals, "dog")
 log(animals) # rabbit, cat, dog
 ```
 
+#### Remove elements
+
+Use `truncate` to remove elements from the end of an existing list:
+
+```ruby
+animals = ["rabbit", "cat", "dog"]
+truncate(animals, 2)
+log(animals) # rabbit
+```
+
 ### Objects
 
 #### Definition
@@ -391,9 +401,10 @@ Function     | Parameters  | Description
 ## Lists
 
 Function     | Parameters  | Description
--------------|-------------|----------------------
+-------------|-------------|-------------------------------------------
 **length**   | list        | Return length of list
 **append**   | list, value | Append value to list
+**truncate** | list, count | Remove count elements from the end of list
 
 ## Objects
 
