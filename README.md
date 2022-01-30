@@ -8,7 +8,7 @@ Luigi is an educational toy programming language implemented in JS, with four ma
   - Simple virtual machine, reusing JS data structures.
 * Use a simple syntax reminescent of Python and BASIC, with minimal overhead.
 * Provide a ready-to-use standard library with everything needed to implement simple 2D games (based on Raylib).
-* Easy to use compilation to desktop (Windows, Linux, macOS) and web-ready WASM binaries, by packing the bytecode interpreter and a Luigi executable.
+* Easy to use compilation to desktop (Windows, Linux, macOS) and web-ready WASM binaries, by packing the bytecode interpreter and user code.
 
 The language uses dynamic typing for implementation simplicity.
 
