@@ -1,12 +1,9 @@
-
-
-
 # Introduction
 
 Luigi is an educational toy programming language implemented in JS, with four main goals:
 
 * Show a simple and relatively efficient implementation of a programming language:
-  - Simple lexer implemented directly in JS.
+  - Simple lexer (tokenizer) implemented directly in JS.
   - Simple parser and bytecode compiler (without any intermediate AST).
   - Simple virtual machine, reusing JS data structures.
 * Use a simple syntax reminescent of Python and BASIC, with minimal overhead.
@@ -92,7 +89,9 @@ The simplest branching statement, `if` lets you conditionally skip a chunk of co
 if ready then log("Go!")
 ```
 
-That evaluates the parenthesized expression after `if`. If it’s true, then the statement after the condition is evaluated. Otherwise it is skipped. Instead of a statement, you can have a [block](https://wren.io/syntax.html#blocks):
+That evaluates the parenthesized expression after `if`. If it’s true, then the statement after the condition is evaluated, otherwise it is skipped.
+
+Instead of a single statement, you can have a block of code:
 
 ```ruby
 if ready
@@ -101,7 +100,7 @@ if ready
 end
 ```
 
-You may also provide an `else` branch. It will be executed if the condition is false:
+You may also provide one or several `else if` branches, and a final `else` branch. Each `else if` branch will be executed if the condition is true (and the previous ones were false). The final `else` branch will be executed if all previous conditions were false.
 
 ```ruby
 choice = 1
@@ -117,16 +116,17 @@ end
 
 ### While statement
 
-They are two loop statements supported in Luigi.
+There are two loop statements in Luigi, and they should be familiar if you’ve used other imperative languages.
 
-The `while` statement is the simplest, it executes a chunk of code as long as a condition continues to hold. For example:
+The simplest, a while statement executes a chunk of code as long as a condition continues to hold. For example:
 
 ```ruby
 # Hailstone sequence
 
 n = 27
-
 while n != 1
+    log(n)
+
     if n % 2 == 0
         n = n / 2
     else
@@ -135,11 +135,84 @@ while n != 1
 end
 ```
 
-This evaluates the expression n != 1. If it is true, then it executes the following body. After that, it loops back to the top, and evaluates the condition again. It keeps doing this as long as the condition evaluates to something true.
-
 ### For statement
 
+For statements exist in two form: the first iterates through a list elements, and the second one creates an index variable that is incremented from a start value (inclusive) to an end value (non-inclusive).
 
+The first form can be used like this:
+
+```ruby
+for beatle in ["george", "john", "paul", "ringo"]
+    log(beatle)
+end
+
+# Prints out george, john, paul, ringo
+```
+
+The second form can be used like this:
+
+```ruby
+animals = ["rabbit", "cat", "dog"]
+
+for i in 0 to length(animals)
+    log(i + " = " + animals[i]
+end
+
+# Prints out 0 = rabbit, 1 = cat, 2 = dog
+```
+
+### Break and continue statements
+
+You can use `break` to bail out right in the middle of a loop body. It exists from the nearest enclosing `while` or `for` loop.
+
+```ruby
+for i in [1, 2, 3, 4]
+  log(i)
+  if i = 3 then break
+end
+
+# Prints out 1, 2, 3 (but not 4)
+```
+
+The `continue` can be used to skip the remaining loop body and move to the next iteration. Execution will immediately jump to the beginning of the next loop iteration (and check the loop conditions).
+
+```ruby
+for i in [1, 2, 3, 4]
+    if i == 2 then continue
+    log(i)
+end
+
+# Prints out 1, 3 and 4 (but not 2)
+```
+## Functions
+
+You can define a function with the following syntax:
+
+```nim
+func sum(x, y)
+  return x + y
+end
+```
+
+Once defined, the function can be called by specifying an argument for each parameter, separated
+by a comma.
+
+```ruby
+value = sum(3, 22)
+log(value) # Print out 25
+```
+
+The value `null` is returned implictly if function execution ends without a return statement.
+
+Just like in Javascript and other languages, functions can be called before they are defined:
+
+```nim
+hello("Jack")
+
+func hello(name)
+    log("Hello " + name)
+end
+```
 
 ## Values
 
@@ -295,6 +368,40 @@ Prececedence | Operator      | Description      | Type   | Associates
 6            | __* /__       | Multiply, Divide | Binary | Left
 7            | __+ -__       | Negate           | Unary  | Right
 
+# Standard library
+
+## Strings
+
+## Lists
+
+## Random
+
+## Math
+
+## Drawing
+
 # How to use
 
+## Running Luigi
 
+First, install Node.js (14+) by following the instructions on the official website: https://nodejs.org/
+
+In order to run Luigi after cloning the repository, you need to install the required node modules with the following command:
+
+```sh
+npm ci
+```
+
+After that, running Luigi programs is relatively simple:
+
+```sh
+node luigi.mjs examples\test.luigi
+```
+
+As of now, Luigi does not yet support compilation to binaries or HTML/WebAssembly.
+
+## Examples
+
+You can find several examples in the _examples/_ subdirectory, including a small game in _examples/words/_.
+
+You are free to study and modify them as long as you respect the conditions of the AGPL 3.0 license.
