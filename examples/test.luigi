@@ -24,7 +24,7 @@ log(liste[inv(---1)])
 
 if nom_variable1 = 11 - 1
     log("Cas 1")
-elif nom_variable2 = "hello"
+else if nom_variable2 = "hello"
     log("Cas 2")
 else
     log("Cas 3")

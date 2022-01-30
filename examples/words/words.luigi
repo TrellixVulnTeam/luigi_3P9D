@@ -188,11 +188,11 @@ func run_game()
             word.x = window_size.width + word.width / 2
             word.y = random_int(word.height / 2, window_size.height - word.height / 2)
             word.vx = -random_float(0.8, 2)
-        elif dir_rnd < 0.5
+        else if dir_rnd < 0.5
             word.x = random_int(word.width / 2, window_size.width - word.width / 2)
             word.y = window_size.height + word.height / 2
             word.vy = -random_float(0.8, 2)
-        elif dir_rnd < 0.75
+        else if dir_rnd < 0.75
             word.x = -word.width / 2
             word.y = random_int(word.height / 2, window_size.height - word.height / 2)
             word.vx = random_float(0.8, 2)
@@ -221,13 +221,13 @@ func run_game()
 
     if player.x < SPRITES.player.width * PLAYER_SCALE / 2 and player.vx < 0
         player.vx = -0.2 * player.vx
-    elif player.x > window_size.width - SPRITES.player.width * PLAYER_SCALE / 2 and player.vx > 0
+    else if player.x > window_size.width - SPRITES.player.width * PLAYER_SCALE / 2 and player.vx > 0
         player.vx = -0.2 * player.vx
     end
     if player.y < SPRITES.player.height * PLAYER_SCALE / 2 and player.vy < 0
         player.vx = 0.98 * player.vx
         player.vy = -0.2 * player.vy
-    elif player.y > window_size.height - SPRITES.player.height * PLAYER_SCALE / 2 and player.vy > 0
+    else if player.y > window_size.height - SPRITES.player.height * PLAYER_SCALE / 2 and player.vy > 0
         player.vx = 0.98 * player.vx
         player.vy = -0.2 * player.vy
     end
@@ -250,7 +250,7 @@ func run_game()
             if player.x < x1 and player.x + SPRITES.player.width * PLAYER_SCALE / 2 >= x1 and player.vx > 0
                 player.vx = -0.2 * player.vx
                 player.ax = 0
-            elif player.x < x2 and player.x + SPRITES.player.width * PLAYER_SCALE / 2 >= x2 and player.vx < 0
+            else if player.x < x2 and player.x + SPRITES.player.width * PLAYER_SCALE / 2 >= x2 and player.vx < 0
                 player.vx = -0.2 * player.vx
                 player.ax = 0
             end
@@ -258,7 +258,7 @@ func run_game()
             if player.y < y1 and player.y + SPRITES.player.height * PLAYER_SCALE / 2 >= y1 and player.vy > 0
                 player.vy = -0.2 * player.vy
                 player.ay = 0
-            elif player.y < y2 and player.y + SPRITES.player.height * PLAYER_SCALE / 2 >= y2 and player.vy < 0
+            else if player.y < y2 and player.y + SPRITES.player.height * PLAYER_SCALE / 2 >= y2 and player.vy < 0
                 player.vy = -0.2 * player.vy
                 player.ay = 0
             end
@@ -284,7 +284,7 @@ func run_game()
                 player.vx = -0.2 * player.vx - word.vx * speed
                 player.vy = player.vy + (word.vy * speed - player.vy) * 0.5
                 player.ax = 0
-            elif player.x < x2 and player.x + SPRITES.player.width * PLAYER_SCALE / 2 >= x2 and player.vx < 0
+            else if player.x < x2 and player.x + SPRITES.player.width * PLAYER_SCALE / 2 >= x2 and player.vx < 0
                 player.vx = -0.2  * player.vx + word.vx * speed
                 player.vy = player.vy + (word.vy * speed - player.vy) * 0.5
                 player.ax = 0
@@ -294,7 +294,7 @@ func run_game()
                 player.vx = player.vx + (word.vx * speed - player.vx) * 0.5
                 player.vy = -0.2 * player.vy - word.vy * speed
                 player.ay = 0
-            elif player.y < y2 and player.y + SPRITES.player.height * PLAYER_SCALE / 2 >= y2 and player.vy < 0
+            else if player.y < y2 and player.y + SPRITES.player.height * PLAYER_SCALE / 2 >= y2 and player.vy < 0
                 player.vx = player.vx + (word.vx * speed - player.vx) * 0.5
                 player.vy = -0.2 * player.vy + word.vy * speed
                 player.ay = 0
