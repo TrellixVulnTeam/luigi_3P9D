@@ -393,7 +393,6 @@ Prececedence | Operator      | Description      | Type   | Associates
 Function     | Parameters  | Description
 -------------|-------------|---------------------------------------------
 **log**      | value       | Log value to console (with newline)
-**print**    | value       | Print raw value to console (without newline)
 
 ## Strings
 
