@@ -29,14 +29,19 @@ Multi-line comments are explicitly not supported, in order to support context-in
 
 Identifiers start with a letter or an underscore, and may contain letters, digits and underscores. Identifiers starting with a double underscore `__` are not allowed. Case is sensitive.
 
-The following list shows all reserved keywords used in Luigi.
+Reserved keywords cannot be used as variable or function identifiers. The following list shows all reserved keywords used in Luigi:
 
 ```
 func if then else end while for in to break continue return
 and or not
 ```
 
-These keywords cannot be used as variable or function identifiers.
+Identifiers starting with a capital letter (A - Z) define constant variables. Once defined, constant variable values cnanot be changed.
+
+```ruby
+CONST = 1
+CONST = 2 # Error: Cannot assign to constant variable "CONST"
+```
 
 ## Blocks
 
