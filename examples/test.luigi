@@ -79,7 +79,7 @@ end
 
 fn = get_func()
 fn()
-log(fn)
+log(params(fn))
 
 # Lexer / scanneur:
 # But : passer du text brut à une liste de tokens (items), avec chacun un type (chaine, nombre, =, <) et éventuellement une valeur

@@ -414,6 +414,12 @@ Function    | Parameters         | Description
 **get**     | obj, member        | Get member from object
 **set**     | obj, member, value | Set member in object
 
+## Functions
+
+Function    | Parameters         | Description
+------------|--------------------|--------------------------------------------
+**params**  | params             | List function parameters
+
 ## Math
 
 Function     | Parameters  | Description
