@@ -83,14 +83,14 @@ func create_walls()
     walls = []
 
     factor = sqrt(window_size.width * window_size.height) / 750
-    floors = random_int(4 * factor, 16 * factor)
+    floors = random_int(floor(4 * factor), ceil(16 * factor))
 
     while floors > 0
         collide = true
         while collide
             x1 = random_int(0, window_size.width - 40)
             y1 = random_int(0, window_size.height)
-            x2 = min(window_size.width, x1 + SPRITES.brick.width * WALL_SCALE * random_int(2, 8 * factor))
+            x2 = min(window_size.width, x1 + SPRITES.brick.width * WALL_SCALE * random_int(2, ceil(8 * factor)))
 
             wall = {
                 x1 = x1,
@@ -186,18 +186,18 @@ func run_game()
 
         if dir_rnd < 0.25
             word.x = window_size.width + word.width / 2
-            word.y = random_int(word.height / 2, window_size.height - word.height / 2)
+            word.y = random_int(floor(word.height / 2), ceil(window_size.height - word.height / 2))
             word.vx = -random_float(0.8, 2)
         else if dir_rnd < 0.5
-            word.x = random_int(word.width / 2, window_size.width - word.width / 2)
+            word.x = random_int(floor(word.width / 2), ceil(window_size.width - word.width / 2))
             word.y = window_size.height + word.height / 2
             word.vy = -random_float(0.8, 2)
         else if dir_rnd < 0.75
             word.x = -word.width / 2
-            word.y = random_int(word.height / 2, window_size.height - word.height / 2)
+            word.y = random_int(floor(word.height / 2), ceil(window_size.height - word.height / 2))
             word.vx = random_float(0.8, 2)
         else
-            word.x = random_int(word.width / 2, window_size.width - word.width / 2)
+            word.x = random_int(floor(word.width / 2), ceil(window_size.width - word.width / 2))
             word.y = -word.height / 2
             word.vy = random_float(0.8, 2)
         end
