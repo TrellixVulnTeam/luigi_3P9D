@@ -2,13 +2,13 @@
   "name": "luigi",
   "version": "0.0.0",
   "description": "",
-  "main": "lib/index.mjs",
+  "main": "lib/index.js",
   "bin": {
-    "luigi": "luigi.mjs"
+    "luigi": "luigi.js"
   },
   "author": "",
   "license": "AGPL-3.0",
   "dependencies": {
-    "raylib": "^0.8.1"
+    "ffi-napi": "^4.0.3"
   }
 }

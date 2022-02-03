@@ -11,7 +11,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
-open_window("Words!")
 window_size = get_window_size()
 
 WORDS = [
@@ -57,9 +56,6 @@ pause_words = null
 show_counter = null
 
 gameover = null
-
-init()
-run()
 
 func init()
     walls = create_walls()
@@ -122,34 +118,32 @@ func create_walls()
 end
 
 func run()
-    while run_window("black")
-        window_size = get_window_size()
+    window_size = get_window_size()
 
-        # Inputs
+    # Inputs
 
-        if (is_key_down("left") or is_key_down("a")) and player.vx > -5 then player.vx = player.vx - 0.5
-        if (is_key_down("right") or is_key_down("d")) and player.vx < 5 then player.vx = player.vx + 0.5
-        if (is_key_pressed("space") or is_key_pressed("up")) and abs(player.vy) < 0.2 then player.vy = -5
+    if (is_key_down("left") or is_key_down("a")) and player.vx > -5 then player.vx = player.vx - 0.5
+    if (is_key_down("right") or is_key_down("d")) and player.vx < 5 then player.vx = player.vx + 0.5
+    if (is_key_pressed("space") or is_key_pressed("up")) and abs(player.vy) < 0.2 then player.vy = -5
 
-        if is_key_pressed("tab") then show_counter = not show_counter
-        if is_key_pressed("f") then set_fullscreen(not is_fullscreen())
-        if is_key_pressed("p") then pause_words = not pause_words
-        if is_key_pressed("b")
-            background = background + 1
-            if background >= length(BACKGROUNDS) then background = 0
-        end
-        if is_key_pressed("r") then init()
-        if is_key_pressed("k") then player.health = 0
+    if is_key_pressed("tab") then show_counter = not show_counter
+    if is_key_pressed("f") then set_fullscreen(not is_fullscreen())
+    if is_key_pressed("p") then pause_words = not pause_words
+    if is_key_pressed("b")
+        background = background + 1
+        if background >= length(BACKGROUNDS) then background = 0
+    end
+    if is_key_pressed("r") then init()
+    if is_key_pressed("k") then player.health = 0
 
-        if gameover = null
-            run_game()
-            draw_game()
-        else
-            draw_game()
-            draw_gameover()
+    if gameover = null
+        run_game()
+        draw_game()
+    else
+        draw_game()
+        draw_gameover()
 
-            gameover = gameover + 1
-        end
+        gameover = gameover + 1
     end
 end
 
@@ -455,3 +449,6 @@ func draw_gameover()
         draw_text(window_size.width / 2, window_size.height - 60, { align = 2, color = "WHITE" }, text)
     end
 end
+
+init()
+run_window("Words!", { background = "BLACK" }, run)
