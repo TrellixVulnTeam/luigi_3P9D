@@ -17,12 +17,15 @@ import * as path from 'path';
 import * as process from 'process';
 import * as url from 'url';
 import { exec, execSync } from 'child_process';
+import * as esbuild from 'esbuild';
 
 let script = url.fileURLToPath(import.meta.url);
 process.chdir(path.dirname(script));
 
 await check_compilers();
 await build_raylib_native();
+await build_raylib_web();
+await build_luigi_web();
 console.log('>>> Done!');
 
 async function check_compilers() {
@@ -46,6 +49,13 @@ async function check_compilers() {
         } catch (err) {
             throw new Error('Cannot run Clang compiler (clang)');
         }
+    }
+
+    try {
+        execSync('emcc --version', { stdio: 'ignore' });
+    } catch (err) {
+        throw new Error('Cannot run Emscripten compiler (emcc), did you run emsdk_env?\n' +
+                        'https://emscripten.org/docs/getting_started/downloads.html');
     }
 }
 
@@ -105,3 +115,57 @@ async function build_raylib_native() {
                                    ' -lrt -ldl -lm -lX11 -pthread');
     }
 }
+
+async function build_raylib_web() {
+    console.log('>>> Build Raylib (web)');
+
+    fs.mkdirSync('dist/web/tmp', { recursive: true });
+
+    const execAsync = util.promisify(exec);
+
+    await Promise.all([
+        execAsync('emcc -c vendor/raylib/src/rcore.c -o dist/web/tmp/rcore.o -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES2 -Wno-everything'),
+        execAsync('emcc -c vendor/raylib/src/rshapes.c -o dist/web/tmp/rshapes.o -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES2 -Wno-everything'),
+        execAsync('emcc -c vendor/raylib/src/rtextures.c -o dist/web/tmp/rtextures.o -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES2 -Wno-everything'),
+        execAsync('emcc -c vendor/raylib/src/rtext.c -o dist/web/tmp/rtext.o -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES2 -Wno-everything'),
+        execAsync('emcc -c vendor/raylib/src/rmodels.c -o dist/web/tmp/rmodels.o -Os -Wall -DPLATFORM_WEB -DGRAPHICS_API_OPENGL_ES2 -Wno-everything'),
+        execAsync('emcc -c vendor/raylib/src/utils.c -o dist/web/tmp/utils.o -Os -Wall -DPLATFORM_WEB -Wno-everything'),
+        execAsync('emcc -c vendor/raylib/src/raudio.c -o dist/web/tmp/raudio.o -Os -Wall -DPLATFORM_WEB -Wno-everything')
+    ]);
+
+    await execAsync('emcc -o dist/web/raylib.js dist/web/tmp/rcore.o dist/web/tmp/rshapes.o dist/web/tmp/rtextures.o' +
+                    '     dist/web/tmp/rtext.o dist/web/tmp/rmodels.o dist/web/tmp/utils.o dist/web/tmp/raudio.o' +
+                    '     -s WASM=1 -s LINKABLE=1 -s USE_GLFW=3 -s ENVIRONMENT=web -s MODULARIZE=1 -s EXPORT_NAME=_load_raylib');
+}
+
+async function build_luigi_web() {
+    console.log('>>> Build Luigi (web)');
+
+    let externals = [
+        [/raylib/, 'raylib.js']
+    ];
+
+    let plugin = {
+        name: 'ignore',
+        setup: build => {
+            for (let external of externals) {
+                build.onResolve({ filter: external[0] }, args => ({
+                    path: external[1],
+                    external: true
+                }));
+            }
+        }
+    };
+
+    await esbuild.build({
+        entryPoints: ['lib/index.js'],
+        bundle: true,
+        format: 'iife',
+        globalName: 'luigi',
+        outfile: 'dist/web/luigi.js',
+        plugins: [plugin],
+    });
+
+    fs.copyFileSync('lib/web/luigi.html', 'dist/web/luigi.html');
+}
+
