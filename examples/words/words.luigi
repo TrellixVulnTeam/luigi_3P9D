@@ -20,7 +20,8 @@ WORDS = [
     "Emoucher",
     "Logomachie",
     "Floche",
-    "Boulingrin"
+    "Boulingrin",
+    "Oryctolagus"
 ]
 COLORS = [
     "RED",
