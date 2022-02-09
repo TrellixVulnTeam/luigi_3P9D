@@ -13,6 +13,7 @@
 
 #include "libcc.hh"
 #include "ffi.hh"
+#include "call.hh"
 
 #include <napi.h>
 #ifdef _WIN32
@@ -73,6 +74,7 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
 
     type->name = DuplicateString(name.c_str(), &types_alloc).ptr;
     type->primitive = PrimitiveKind::Record;
+    type->all_fp = true;
 
     for (uint32_t i = 0; i < keys.Length(); i++) {
         RecordMember member = {};
@@ -88,14 +90,14 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
         }
 
         type->size += member.type->size;
+        type->has_fp |= member.type->has_fp;
+        type->all_fp &= member.type->all_fp;
+
         type->members.Append(member);
     }
 
-#if RG_SIZE_MAX == INT64_MAX
-    type->irregular = (type->size != 1 && type->size != 2 && type->size != 4 && type->size != 8);
-#else
-    type->irregular = (type->size != 1 && type->size != 2 && type->size != 4);
-#endif
+    type->is_small = (type->size <= sizeof(void *));
+    type->is_regular = type->is_small && !(type->size & (type->size - 1));
 
     return Napi::External<TypeInfo>::New(env, type);
 }
@@ -118,8 +120,12 @@ Napi::Value CreatePointer(const Napi::CallbackInfo &info)
     TypeInfo *type = types.AppendDefault();
 
     type->name = Fmt(&types_alloc, "%1%2*", ref->name, ref->primitive == PrimitiveKind::Pointer ? "" : " ").ptr;
+
     type->primitive = PrimitiveKind::Pointer;
     type->size = 8;
+    type->is_small = true;
+    type->is_regular = true;
+
     type->ref = ref;
 
     return Napi::External<TypeInfo>::New(env, type);
@@ -143,6 +149,7 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
     // Load shared library
     {
+#ifdef _WIN32
         std::u16string filename = info[0].As<Napi::String>();
 
         HANDLE h = LoadLibraryW((LPCWSTR)filename.c_str());
@@ -150,6 +157,15 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
             Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
             return env.Null();
         }
+#else
+        std::string filename = info[0].As<Napi::String>();
+
+        void *h = dlopen(filename.c_str(), RTLD_NOW | RTLD_LOCAL);
+        if (!h) {
+            Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+#endif
 
         lib->module = h;
     }
@@ -165,14 +181,18 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         Napi::Array value = ((Napi::Value)functions[key]).As<Napi::Array>();
 
         func->name = DuplicateString(key.c_str(), &lib->str_alloc).ptr;
+        func->lib = lib;
 
         if (!value.IsArray() || value.Length() < 2 || !((Napi::Value)value[1]).IsArray()) {
             Napi::TypeError::New(env, "Wrong arguments").ThrowAsJavaScriptException();
             return env.Null();
         }
 
-        func->lib = lib;
+#ifdef _WIN32
         func->func = (void *)GetProcAddress((HMODULE)lib->module, key.c_str());
+#else
+        func->func = dlsym(lib->module, key.c_str());
+#endif
         if (!func->func) {
             Napi::Error::New(env, "Cannot find function in shared library").ThrowAsJavaScriptException();
             return env.Null();
@@ -193,6 +213,9 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
                 return env.Null();
             }
             func->parameters.Append(type);
+
+            func->args_size += AlignLen(type->size, 16);
+            func->irregular_size += type->is_regular ? 0 : AlignLen(type->size, 16);
         }
 
         Napi::Function wrapper = Napi::Function::New(env, TranslateCall, key.c_str(), (void *)func);
@@ -223,8 +246,13 @@ static void RegisterPrimitiveType(const char *name, PrimitiveKind primitive, Siz
     TypeInfo *type = types.AppendDefault();
 
     type->name = name;
+
     type->primitive = primitive;
     type->size = size;
+    type->is_small = true;
+    type->is_regular = true;
+    type->has_fp = (primitive == PrimitiveKind::Float32 || primitive == PrimitiveKind::Float64);
+    type->all_fp = type->has_fp;
 
     RG_ASSERT(!types_map.Find(name));
     types_map.Set(type);

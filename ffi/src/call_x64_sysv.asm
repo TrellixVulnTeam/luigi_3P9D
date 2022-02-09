@@ -12,15 +12,19 @@
 ; along with this program. If not, see https://www.gnu.org/licenses/.
 
 ; These three are the same, but they differ (in the C side) by their return type.
-; Unlike the three next functions, these ones don't forward XMM argument registers.
-global ForwardCall
+; Unlike the five next functions, these ones don't forward XMM argument registers.
+global ForwardCallII
 global ForwardCallF
-global ForwardCallD
+global ForwardCallFI
+global ForwardCallIF
+global ForwardCallFF
 
 ; The X variants are slightly slower, and are used when XMM arguments must be forwarded.
-global ForwardCallX
+global ForwardCallXII
 global ForwardCallXF
-global ForwardCallXD
+global ForwardCallXFI
+global ForwardCallXIF
+global ForwardCallXFF
 
 section .text
 
@@ -28,10 +32,11 @@ section .text
 ; Save RSP in RBX (non-volatile), and use carefully assembled stack provided by caller.
 %macro prologue 0
     endbr64
-    mov rax, rcx
+    mov rax, rdi
     push rbx
     mov rbx, rsp
-    mov rsp, rdx
+    mov rsp, rsi
+    add rsp, 112
 %endmacro
 
 ; Call native function.
@@ -46,21 +51,27 @@ section .text
 
 ; Prepare integer argument registers from array passed by caller.
 %macro forward_int 0
-    mov r9, [rdx+24]
-    mov r8, [rdx+16]
-    mov rcx, [rdx+0]
-    mov rdx, [rdx+8]
+    mov r9, [rsi+40]
+    mov r8, [rsi+32]
+    mov rcx, [rsi+24]
+    mov rdx, [rsi+16]
+    mov rdi, [rsi+0]
+    mov rsi, [rsi+8]
 %endmacro
 
 ; Prepare XMM argument registers from array passed by caller.
 %macro forward_xmm 0
-    movsd xmm3, [rdx+24]
-    movsd xmm2, [rdx+16]
-    movsd xmm1, [rdx+8]
-    movsd xmm0, [rdx+0]
+    movsd xmm7, [rsi+104]
+    movsd xmm6, [rsi+96]
+    movsd xmm5, [rsi+88]
+    movsd xmm4, [rsi+80]
+    movsd xmm3, [rsi+72]
+    movsd xmm2, [rsi+64]
+    movsd xmm1, [rsi+56]
+    movsd xmm0, [rsi+48]
 %endmacro
 
-ForwardCall:
+ForwardCallII:
     prologue
     forward_int
     epilogue
@@ -70,12 +81,22 @@ ForwardCallF:
     forward_int
     epilogue
 
-ForwardCallD:
+ForwardCallFI:
     prologue
     forward_int
     epilogue
 
-ForwardCallX:
+ForwardCallIF:
+    prologue
+    forward_int
+    epilogue
+
+ForwardCallFF:
+    prologue
+    forward_int
+    epilogue
+
+ForwardCallXII:
     prologue
     forward_xmm
     forward_int
@@ -87,7 +108,19 @@ ForwardCallXF:
     forward_int
     epilogue
 
-ForwardCallXD:
+ForwardCallXFI:
+    prologue
+    forward_xmm
+    forward_int
+    epilogue
+
+ForwardCallXIF:
+    prologue
+    forward_xmm
+    forward_int
+    epilogue
+
+ForwardCallXFF:
     prologue
     forward_xmm
     forward_int

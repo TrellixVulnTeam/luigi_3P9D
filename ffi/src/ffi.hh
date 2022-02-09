@@ -45,7 +45,10 @@ struct TypeInfo {
     const char *name;
 
     PrimitiveKind primitive;
-    bool irregular;
+    bool is_small;
+    bool is_regular;
+    bool has_fp;
+    bool all_fp;
     Size size;
 
     HeapArray<RecordMember> members; // Record only
@@ -73,12 +76,15 @@ public:
 
 struct FunctionInfo {
     const char *name;
-
     std::shared_ptr<LibraryData> lib;
+
     void *func;
 
-    HeapArray<const TypeInfo *> parameters;
     const TypeInfo *return_type;
+    HeapArray<const TypeInfo *> parameters;
+
+    Size args_size;
+    Size irregular_size;
 };
 
 Napi::Value TranslateCall(const Napi::CallbackInfo &info);
