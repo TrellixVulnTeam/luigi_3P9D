@@ -139,7 +139,7 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
         return env.Null();
     }
-    if (!info[0].IsString() || !info[1].IsObject()) {
+    if ((!info[0].IsString() && !info[0].IsNull()) || !info[1].IsObject()) {
         Napi::TypeError::New(env, "Wrong arguments").ThrowAsJavaScriptException();
         return env.Null();
     }
@@ -150,24 +150,30 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
     // Load shared library
     {
 #ifdef _WIN32
-        std::u16string filename = info[0].As<Napi::String>();
+        if (info[0].IsString()) {
+            std::u16string filename = info[0].As<Napi::String>();
+            lib->module = LoadLibraryW((LPCWSTR)filename.c_str());
+        } else {
+            lib->module = GetModuleHandle(nullptr);
+        }
 
-        HANDLE h = LoadLibraryW((LPCWSTR)filename.c_str());
-        if (!h) {
+        if (!lib->module) {
             Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
             return env.Null();
         }
 #else
-        std::string filename = info[0].As<Napi::String>();
+        if (info[0].IsString()) {
+            std::string filename = info[0].As<Napi::String>();
+            lib->module = dlopen(filename.c_str(), RTLD_NOW);
+        } else {
+            lib->module = RTLD_DEFAULT;
+        }
 
-        void *h = dlopen(filename.c_str(), RTLD_NOW | RTLD_LOCAL);
-        if (!h) {
+        if (!lib->module) {
             Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
             return env.Null();
         }
 #endif
-
-        lib->module = h;
     }
 
     Napi::Object functions = info[1].As<Napi::Array>();
@@ -231,7 +237,7 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 LibraryData::~LibraryData()
 {
 #ifdef _WIN32
-    if (module) {
+    if (module && module != GetModuleHandle(nullptr)) {
         FreeLibrary((HMODULE)module);
     }
 #else
