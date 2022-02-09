@@ -69,7 +69,7 @@ async function build_raylib_native() {
     // raylib definitions common to all compilers
     let defines = ['SUPPORT_FILEFORMAT_PNG', 'SUPPORT_FILEFORMAT_JPG', 'SUPPORT_FILEFORMAT_GIF']
 
-    if (process.platform == 'win32') {
+    if (process.platform == 'win32' && process.arch == 'x64') {
         let cmd = 'cl /nologo /EHsc /O2 /Ob2 /Gm- /Gd /MD /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR ' +
                   '   /DNDEBUG /D_WINDLL /D_MBCS /DWIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_DEPRECATE ' +
                   '   /DBUILD_LIBTYPE_SHARED /DPLATFORM_DESKTOP /DPLATFORM=PLATFORM_DESKTOP /DGRAPHICS_API_OPENGL_33 /DGRAPHICS=GRAPHICS_API_OPENGL_33 ' +
@@ -86,12 +86,12 @@ async function build_raylib_native() {
             execAsync(cmd + ' vendor/raylib/src/raudio.c /c /Fodist/node/tmp/raudio.obj')
         ]);
 
-        await execAsync('link /DLL /INCREMENTAL:NO /TLBID:1 /DYNAMICBASE /NXCOMPAT /OUT:dist/node/raylib_win32.dll' +
+        await execAsync('link /DLL /INCREMENTAL:NO /TLBID:1 /DYNAMICBASE /NXCOMPAT /OUT:dist/node/raylib_win32_x64.dll' +
                         '     kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib' +
                         '     uuid.lib comdlg32.lib advapi32.lib winmm.lib delayimp.lib' +
                         '     dist/node/tmp/rcore.obj dist/node/tmp/rshapes.obj dist/node/tmp/rtextures.obj dist/node/tmp/rtext.obj' +
                         '     dist/node/tmp/rmodels.obj dist/node/tmp/utils.obj dist/node/tmp/rglfw.obj dist/node/tmp/raudio.obj');
-    } else {
+    } else if (process.arch == 'x64') {
         let compiler = (process.platform == 'linux') ? 'gcc' : 'clang';
 
         let cmd = compiler + ' -O2 -w -fPIC -DNDEBUG' +
@@ -109,10 +109,12 @@ async function build_raylib_native() {
             execAsync(cmd + ' vendor/raylib/src/raudio.c -c -o dist/node/tmp/raudio.obj')
         ]);
 
-        await execAsync(compiler + ' -shared -o dist/node/raylib_' + process.platform + '.so' +
+        await execAsync(compiler + ` -shared -o dist/node/raylib_${process.platform}_x64.so` +
                                    ' dist/node/tmp/rcore.obj dist/node/tmp/rshapes.obj dist/node/tmp/rtextures.obj dist/node/tmp/rtext.obj' +
                                    ' dist/node/tmp/rmodels.obj dist/node/tmp/utils.obj dist/node/tmp/rglfw.obj dist/node/tmp/raudio.obj' +
                                    ' -lrt -ldl -lm -lX11 -pthread');
+    } else {
+        throw new Error(`Unsupported platform: ${process.platform} (${process.arch}`);
     }
 }
 
