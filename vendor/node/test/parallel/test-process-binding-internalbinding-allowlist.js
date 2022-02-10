@@ -14,6 +14,7 @@ assert(process.binding('contextify'));
 if (common.hasCrypto) { // eslint-disable-line node-core/crypto-check
   assert(process.binding('crypto'));
 }
+assert(process.binding('ffi'));
 assert(process.binding('fs'));
 assert(process.binding('fs_event_wrap'));
 assert(process.binding('http_parser'));

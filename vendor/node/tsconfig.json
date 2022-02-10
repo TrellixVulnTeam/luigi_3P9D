@@ -6,6 +6,7 @@
     "./typings/internalBinding/blob.d.ts",
     "./typings/internalBinding/config.d.ts",
     "./typings/internalBinding/constants.d.ts",
+    "./typings/internalBinding/ffi.d.ts",
     "./typings/internalBinding/fs.d.ts",
     "./typings/internalBinding/http_parser.d.ts",
     "./typings/internalBinding/messaging.d.ts",

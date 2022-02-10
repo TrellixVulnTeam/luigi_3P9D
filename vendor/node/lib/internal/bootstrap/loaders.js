@@ -82,6 +82,7 @@ const internalBindingAllowlist = new SafeSet([
   'constants',
   'contextify',
   'crypto',
+  'ffi',
   'fs',
   'fs_event_wrap',
   'http_parser',

@@ -27,6 +27,7 @@
 
   'dependencies': [
     '../raylib/raylib.gyp:raylib',
+    '../../ffi/ffi.gyp:ffi',
   ],
 
   'conditions': [
@@ -34,12 +35,14 @@
       'xcode_settings': {
         'OTHER_LDFLAGS': [
           '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)raylib<(STATIC_LIB_SUFFIX)',
+          '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)ffi<(STATIC_LIB_SUFFIX)',
         ],
       },
       'msvs_settings': {
         'VCLinkerTool': {
           'AdditionalOptions': [
             '/WHOLEARCHIVE:raylib<(STATIC_LIB_SUFFIX)',
+            '/WHOLEARCHIVE:ffi<(STATIC_LIB_SUFFIX)',
           ],
         },
       },
@@ -48,6 +51,7 @@
           'ldflags': [
             '-Wl,--whole-archive',
             '<(obj_dir)/deps/raylib/<(STATIC_LIB_PREFIX)raylib<(STATIC_LIB_SUFFIX)',
+            '<(obj_dir)/deps/raylib/<(STATIC_LIB_PREFIX)ffi<(STATIC_LIB_SUFFIX)',
             '-Wl,--no-whole-archive',
           ],
         }],

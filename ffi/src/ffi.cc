@@ -16,6 +16,10 @@
 #include "call.hh"
 
 #include <napi.h>
+#if NODE_WANT_INTERNALS
+    #include <env-inl.h>
+    #include <js_native_api_v8.h>
+#endif
 #ifdef _WIN32
     #ifndef NOMINMAX
         #define NOMINMAX
@@ -264,12 +268,8 @@ static void RegisterPrimitiveType(const char *name, PrimitiveKind primitive, Siz
     types_map.Set(type);
 }
 
-}
-
-Napi::Object Init(Napi::Env env, Napi::Object exports)
+static void InitBaseTypes()
 {
-    using namespace RG;
-
     RegisterPrimitiveType("void", PrimitiveKind::Void, 0);
     RegisterPrimitiveType("bool", PrimitiveKind::Bool, 1);
     RegisterPrimitiveType("int8", PrimitiveKind::Int8, 1);
@@ -291,6 +291,49 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     RegisterPrimitiveType("float", PrimitiveKind::Float32, 4);
     RegisterPrimitiveType("double", PrimitiveKind::Float64, 8);
     RegisterPrimitiveType("string", PrimitiveKind::String, 8);
+}
+
+#if NODE_WANT_INTERNALS
+
+static inline v8::Local<v8::Value> V8LocalValueFromJsValue(napi_value v) {
+    v8::Local<v8::Value> local;
+    memcpy(static_cast<void*>(&local), &v, sizeof(v));
+    return local;
+}
+
+static void SetMethod(node::Environment *env, v8::Local<v8::Object> target,
+                      const char *name, const Napi::Function &func)
+{
+    v8::Isolate *isolate = env->isolate();
+    v8::Local<v8::Context> context = isolate->GetCurrentContext();
+
+    v8::NewStringType str_type = v8::NewStringType::kInternalized;
+    v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, name, str_type).ToLocalChecked();
+
+    target->Set(context, str, V8LocalValueFromJsValue(func)).Check();
+}
+
+static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
+                         v8::Local<v8::Context> context, void *)
+{
+    node::Environment *env = node::Environment::GetCurrent(context);
+
+    InitBaseTypes();
+
+    // Not thread safe
+    static napi_env__ env_napi(context);
+    static Napi::Env env_cxx(&env_napi);
+
+    SetMethod(env, target, "struct", Napi::Function::New(env_cxx, CreateStruct));
+    SetMethod(env, target, "pointer", Napi::Function::New(env_cxx, CreatePointer));
+    SetMethod(env, target, "load", Napi::Function::New(env_cxx, LoadSharedLibrary));
+}
+
+#else
+
+static Napi::Value InitModule(Napi::Env env, Napi::Object exports)
+{
+    InitBaseTypes();
 
     exports.Set("struct", Napi::Function::New(env, CreateStruct));
     exports.Set("pointer", Napi::Function::New(env, CreatePointer));
@@ -299,4 +342,12 @@ Napi::Object Init(Napi::Env env, Napi::Object exports)
     return exports;
 }
 
-NODE_API_MODULE(addon, Init);
+#endif
+
+}
+
+#if NODE_WANT_INTERNALS
+    NODE_MODULE_CONTEXT_AWARE_INTERNAL(ffi, RG::InitInternal);
+#else
+    NAPI_MODULE(ffi, RG::InitModule);
+#endif

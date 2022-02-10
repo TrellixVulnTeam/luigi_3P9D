@@ -48,6 +48,7 @@
   V(contextify)                                                                \
   V(credentials)                                                               \
   V(errors)                                                                    \
+  V(ffi)                                                                       \
   V(fs)                                                                        \
   V(fs_dir)                                                                    \
   V(fs_event_wrap)                                                             \
