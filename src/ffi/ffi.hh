@@ -87,6 +87,4 @@ struct FunctionInfo {
     Size irregular_size;
 };
 
-Napi::Value TranslateCall(const Napi::CallbackInfo &info);
-
 }
