@@ -1,6 +1,3 @@
-/src/ffi/ffi.targets
-/src/ffi/ffi.xml
-/src/ffi/ffi.props
 *.sln
 *.vcxproj*
 *.target.mk
