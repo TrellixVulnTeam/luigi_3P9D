@@ -3,3 +3,7 @@
 /src/ffi/ffi.props
 *.sln
 *.vcxproj*
+*.target.mk
+
+/node
+/node.exe

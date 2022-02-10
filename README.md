@@ -463,20 +463,67 @@ Function         | Parameters | Description
 
 # How to use
 
-## Running Luigi
+## Build Node.js binary
 
-First, install Node.js (14+) by following the instructions on the official website: https://nodejs.org/
+Luigi uses a modified Node.js LTS binary that include a few additional modules, you need to
+build it first.
 
-In order to run Luigi after cloning the repository, you need to install the required node modules with the following command:
+### Windows
+
+To build Node, install the following dependencies:
+
+* [Python 3.8](https://www.python.org/downloads/) or newer
+* The "Desktop development with C++" workload from
+  [Visual Studio 2022 or 2019](https://visualstudio.microsoft.com/downloads/) or
+  the "C++ build tools" workload from the
+  [Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022),
+  with the default optional components
+* The [NetWide Assembler](https://www.nasm.us/), for OpenSSL and FFI assembler modules.
+  If not installed in the default location, it needs to be manually added to `PATH`.
+
+Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
-npm ci
+build.cmd
 ```
 
-After that, running Luigi programs is relatively simple:
+### Linux
+
+To build Node, install the following dependencies:
+
+* `gcc` and `g++` >= 8.3 or newer
+* GNU Make 3.81 or newer
+* Python 3.8 or newer
+* NASM 2.15 or newer
+
+#### macOS prerequisites
+
+* Xcode Command Line Tools >= 11 for macOS
+* Python 3.8 or newer
+* NASM 2.15 or newer
+
+macOS users can install the `Xcode Command Line Tools` by running
+`xcode-select --install`. Alternatively, if you already have the full Xcode
+installed, you can find them under the menu `Xcode -> Open Developer Tool ->
+More Developer Tools...`. This step will install `clang`, `clang++`, and
+`make`.
+
+Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
-node luigi.mjs examples/test.luigi
+./build.sh -j4
+```
+
+The `-j4` option will cause `make` to run 4 simultaneous compilation jobs which
+may reduce build time. For more information, see the
+[GNU Make Documentation](https://www.gnu.org/software/make/manual/html_node/Parallel.html).
+
+## Running Luigi
+
+Once the modified Node binary is ready, use it to run Luigi scripts like this:
+
+```sh
+node luigi.js examples/mighty.luigi
 ```
 
 As of now, Luigi does not yet support compilation to binaries or HTML/WebAssembly.
