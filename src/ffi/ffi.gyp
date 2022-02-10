@@ -18,28 +18,28 @@
         }
       },
       'include_dirs': [
-        '../vendor/node-addon-api',
-        '../vendor/node/src',
-        '../vendor/node/tools/msvs/genfiles',
-        '../vendor/node/deps/v8/include',
-        '../vendor/node/deps/cares/include',
-        '../vendor/node/deps/uv/include',
-        '../vendor/node/deps/uvwasi/include',
-        '../vendor/node/deps/googletest/include',
+        '../../vendor/node-addon-api',
+        '../../vendor/node/src',
+        '../../vendor/node/tools/msvs/genfiles',
+        '../../vendor/node/deps/v8/include',
+        '../../vendor/node/deps/cares/include',
+        '../../vendor/node/deps/uv/include',
+        '../../vendor/node/deps/uvwasi/include',
+        '../../vendor/node/deps/googletest/include',
       ],
       'direct_dependent_settings': {
         'include_dirs': [ 'src' ]
       },
       'sources': [
-        'src/call.cc',
-        'src/call_x64.cc',
-        'src/ffi.cc',
-        'src/libcc.cc',
+        'call.cc',
+        'call_x64.cc',
+        'ffi.cc',
+        'libcc.cc',
       ],
       'conditions': [
         [ 'target_arch=="x64" and OS=="win"', {
           'sources': [
-            'src/call_x64_win32.asm',
+            'call_x64_win32.asm',
           ],
           'rules': [
             {
@@ -61,7 +61,7 @@
         }],
         [ 'target_arch=="x64" and OS!="win"', {
           'sources': [
-            'src/call_x64_sysv.asm',
+            'call_x64_sysv.asm',
           ],
           'rules': [
             {

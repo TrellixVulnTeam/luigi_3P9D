@@ -15,7 +15,7 @@
 
 const process = require('process');
 const fs = require('fs');
-const luigi = require('./lib/index.js');
+const luigi = require('./src/luigi/index.js');
 
 function main() {
     if (process.argv.length < 3) {

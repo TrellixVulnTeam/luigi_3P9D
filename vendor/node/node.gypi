@@ -27,7 +27,7 @@
 
   'dependencies': [
     '../raylib/raylib.gyp:raylib',
-    '../../ffi/ffi.gyp:ffi',
+    '../../src/ffi/ffi.gyp:ffi',
   ],
 
   'conditions': [

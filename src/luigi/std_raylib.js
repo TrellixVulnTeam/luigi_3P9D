@@ -300,7 +300,7 @@ function init() {
     raylib.SetWindowState(StateFlags.WINDOW_HIDDEN);
     raylib.InitWindow(width, height, 'Luigi');
 
-    default_font = raylib.LoadFont('lib/std_opensans.ttf');
+    default_font = raylib.LoadFont('src/luigi/std_opensans.ttf');
 }
 init();
 

@@ -2,7 +2,7 @@
   "name": "luigi",
   "version": "0.0.0",
   "description": "",
-  "main": "lib/index.js",
+  "main": "src/luigi/index.js",
   "bin": {
     "luigi": "luigi.js"
   },
