@@ -1,4 +1,5 @@
-/node_modules
-/dist
-/ffi/build
-/ffi/node_modules
+/src/ffi/ffi.targets
+/src/ffi/ffi.xml
+/src/ffi/ffi.props
+*.sln
+*.vcxproj*
