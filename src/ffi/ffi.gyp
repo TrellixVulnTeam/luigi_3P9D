@@ -33,14 +33,12 @@
       'sources': [
         'call.cc',
         'call_x64.cc',
+        'call_x64_fwd.asm',
         'ffi.cc',
         'libcc.cc',
       ],
       'conditions': [
         [ 'target_arch=="x64" and OS=="win"', {
-          'sources': [
-            'call_x64_win32.asm',
-          ],
           'rules': [
             {
               'rule_name': 'Assemble_FFI',
@@ -60,9 +58,6 @@
           ],
         }],
         [ 'target_arch=="x64" and OS!="win"', {
-          'sources': [
-            'call_x64_sysv.asm',
-          ],
           'rules': [
             {
               'rule_name': 'Assemble_FFI',
