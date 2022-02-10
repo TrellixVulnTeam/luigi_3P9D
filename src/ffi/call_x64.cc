@@ -261,15 +261,15 @@ struct Xmm0Xmm1Ret {
 
 extern "C" RaxRdxRet ForwardCallII(const void *func, uint8_t *sp);
 extern "C" float ForwardCallF(const void *func, uint8_t *sp);
-extern "C" Xmm0RaxRet ForwardCallFI(const void *func, uint8_t *sp);
-extern "C" RaxXmm0Ret ForwardCallIF(const void *func, uint8_t *sp);
-extern "C" Xmm0Xmm1Ret ForwardCallFF(const void *func, uint8_t *sp);
+extern "C" Xmm0RaxRet ForwardCallDI(const void *func, uint8_t *sp);
+extern "C" RaxXmm0Ret ForwardCallID(const void *func, uint8_t *sp);
+extern "C" Xmm0Xmm1Ret ForwardCallDD(const void *func, uint8_t *sp);
 
 extern "C" RaxRdxRet ForwardCallXII(const void *func, uint8_t *sp);
 extern "C" float ForwardCallXF(const void *func, uint8_t *sp);
-extern "C" Xmm0RaxRet ForwardCallXFI(const void *func, uint8_t *sp);
-extern "C" RaxXmm0Ret ForwardCallXIF(const void *func, uint8_t *sp);
-extern "C" Xmm0Xmm1Ret ForwardCallXFF(const void *func, uint8_t *sp);
+extern "C" Xmm0RaxRet ForwardCallXDI(const void *func, uint8_t *sp);
+extern "C" RaxXmm0Ret ForwardCallXID(const void *func, uint8_t *sp);
+extern "C" Xmm0Xmm1Ret ForwardCallXDD(const void *func, uint8_t *sp);
 
 Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 {
@@ -493,10 +493,10 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         } break;
 
         case PrimitiveKind::Float64: {
-            double d = use_xmm ? ForwardCallXD(func->func, (uint8_t *)int_ptr)
-                               : ForwardCallD(func->func, (uint8_t *)int_ptr);
+            Xmm0RaxRet ret = use_xmm ? ForwardCallXDI(func->func, (uint8_t *)int_ptr)
+                                     : ForwardCallDI(func->func, (uint8_t *)int_ptr);
 
-            return Napi::Number::New(env, d);
+            return Napi::Number::New(env, ret.xmm0);
         } break;
 
         case PrimitiveKind::Record: {

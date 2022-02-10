@@ -15,16 +15,16 @@
 ; Unlike the five next functions, these ones don't forward XMM argument registers.
 global ForwardCallII
 global ForwardCallF
-global ForwardCallFI
-global ForwardCallIF
-global ForwardCallFF
+global ForwardCallDI
+global ForwardCallID
+global ForwardCallDD
 
 ; The X variants are slightly slower, and are used when XMM arguments must be forwarded.
 global ForwardCallXII
 global ForwardCallXF
-global ForwardCallXFI
-global ForwardCallXIF
-global ForwardCallXFF
+global ForwardCallXDI
+global ForwardCallXID
+global ForwardCallXDD
 
 section .text
 
@@ -81,17 +81,17 @@ ForwardCallF:
     forward_int
     epilogue
 
-ForwardCallFI:
+ForwardCallDI:
     prologue
     forward_int
     epilogue
 
-ForwardCallIF:
+ForwardCallID:
     prologue
     forward_int
     epilogue
 
-ForwardCallFF:
+ForwardCallDD:
     prologue
     forward_int
     epilogue
@@ -108,19 +108,19 @@ ForwardCallXF:
     forward_int
     epilogue
 
-ForwardCallXFI:
+ForwardCallXDI:
     prologue
     forward_xmm
     forward_int
     epilogue
 
-ForwardCallXIF:
+ForwardCallXID:
     prologue
     forward_xmm
     forward_int
     epilogue
 
-ForwardCallXFF:
+ForwardCallXDD:
     prologue
     forward_xmm
     forward_int
