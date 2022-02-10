@@ -24,7 +24,7 @@
 
 
 // Application icon
-1 ICON node.ico
+1 ICON "..\\..\\..\\..\\src\\luigi\\assets\\luigi.ico"
 
 
 // Version resource

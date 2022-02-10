@@ -5,5 +5,5 @@
 *.vcxproj*
 *.target.mk
 
-/node
-/node.exe
+/luigi
+/luigi.exe

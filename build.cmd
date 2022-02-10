@@ -7,4 +7,4 @@ endlocal
 setlocal
 cd %~dp0
 
-copy vendor\node\out\Release\node.exe node.exe
+copy vendor\node\out\Release\node.exe luigi.exe

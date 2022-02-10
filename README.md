@@ -523,7 +523,8 @@ may reduce build time. For more information, see the
 Once the modified Node binary is ready, use it to run Luigi scripts like this:
 
 ```sh
-node luigi.js examples/mighty.luigi
+luigi.exe luigi.js examples/mighty.luigi # Windows
+./luigi luigi.js examples/mighty.luigi # POSIX systems (Linux, macOS, etc.)
 ```
 
 As of now, Luigi does not yet support compilation to binaries or HTML/WebAssembly.
