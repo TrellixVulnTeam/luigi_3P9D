@@ -53,9 +53,9 @@
                 '<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).obj',
               ],
               'action': [
-                'nasm.exe',
-                '-fwin64',
-                '-o', '<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).obj',
+                'ml64.exe',
+                '/nologo', '/c',
+                '/Fo<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).obj',
                 '<(RULE_INPUT_PATH)',
               ],
             }

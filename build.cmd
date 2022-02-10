@@ -1,7 +1,7 @@
 @echo off
 
 setlocal
-call %~dp0\vendor\node\vcbuild.bat without-intl no-cctest
+call %~dp0\vendor\node\vcbuild.bat without-intl no-cctest openssl-no-asm
 endlocal
 
 setlocal

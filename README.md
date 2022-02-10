@@ -478,8 +478,6 @@ To build Node, install the following dependencies:
   the "C++ build tools" workload from the
   [Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022),
   with the default optional components
-* The [NetWide Assembler](https://www.nasm.us/), for OpenSSL and FFI assembler modules.
-  If not installed in the default location, it needs to be manually added to `PATH`.
 
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
