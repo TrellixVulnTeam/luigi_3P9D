@@ -320,13 +320,17 @@ static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
 
     InitBaseTypes();
 
-    // Not thread safe
-    static napi_env__ env_napi(context);
-    static Napi::Env env_cxx(&env_napi);
+    // Not very clean but I don't know enough about Node and V8 to do better...
+    // ... and it seems to work okay.
+    napi_env env_napi = new napi_env__(context);
+    env->AtExit([](void *udata) {
+        napi_env env_napi = (napi_env)udata;
+        delete env_napi;
+    }, env_napi);
 
-    SetMethod(env, target, "struct", Napi::Function::New(env_cxx, CreateStruct));
-    SetMethod(env, target, "pointer", Napi::Function::New(env_cxx, CreatePointer));
-    SetMethod(env, target, "load", Napi::Function::New(env_cxx, LoadSharedLibrary));
+    SetMethod(env, target, "struct", Napi::Function::New(env_napi, CreateStruct));
+    SetMethod(env, target, "pointer", Napi::Function::New(env_napi, CreatePointer));
+    SetMethod(env, target, "load", Napi::Function::New(env_napi, LoadSharedLibrary));
 }
 
 #else
