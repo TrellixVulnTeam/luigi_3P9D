@@ -100,7 +100,7 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
         type->members.Append(member);
     }
 
-    type->is_small = (type->size <= sizeof(void *));
+    type->is_small = (type->size <= RG_SIZE(void *));
     type->is_regular = type->is_small && !(type->size & (type->size - 1));
 
     return Napi::External<TypeInfo>::New(env, type);

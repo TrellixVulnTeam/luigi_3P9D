@@ -8,7 +8,7 @@
         'NAPI_DISABLE_CPP_EXCEPTIONS',
       ],
       'cflags_cc!': [ '-std=gnu++0x' ],
-      'cflags_cc': [ '-std=c++17', ],
+      'cflags_cc': [ '-std=c++17 -Wno-missing-field-initializers', ],
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++17',
       },
