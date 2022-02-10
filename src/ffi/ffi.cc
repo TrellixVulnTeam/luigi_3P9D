@@ -169,13 +169,13 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         if (info[0].IsString()) {
             std::string filename = info[0].As<Napi::String>();
             lib->module = dlopen(filename.c_str(), RTLD_NOW);
+
+            if (!lib->module) {
+                Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
+                return env.Null();
+            }
         } else {
             lib->module = RTLD_DEFAULT;
-        }
-
-        if (!lib->module) {
-            Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
-            return env.Null();
         }
 #endif
     }
