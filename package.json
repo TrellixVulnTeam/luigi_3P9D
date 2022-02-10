@@ -7,8 +7,5 @@
     "luigi": "luigi.js"
   },
   "author": "",
-  "license": "AGPL-3.0",
-  "devDependencies": {
-    "esbuild": "^0.14.18"
-  }
+  "license": "AGPL-3.0"
 }
