@@ -26,8 +26,8 @@
   },
 
   'dependencies': [
-    '../raylib/raylib.gyp:raylib',
-    '../../src/ffi/ffi.gyp:ffi',
+    'deps/raylib.gyp:raylib',
+    'deps/ffi.gyp:ffi',
   ],
 
   'conditions': [
@@ -50,8 +50,8 @@
         ['OS!="aix" and node_shared=="false"', {
           'ldflags': [
             '-Wl,--whole-archive',
-            '<(obj_dir)/deps/raylib/<(STATIC_LIB_PREFIX)raylib<(STATIC_LIB_SUFFIX)',
-            '<(obj_dir)/deps/raylib/<(STATIC_LIB_PREFIX)ffi<(STATIC_LIB_SUFFIX)',
+            '<(obj_dir)/deps/<(STATIC_LIB_PREFIX)raylib<(STATIC_LIB_SUFFIX)',
+            '<(obj_dir)/deps/<(STATIC_LIB_PREFIX)ffi<(STATIC_LIB_SUFFIX)',
             '-Wl,--no-whole-archive',
           ],
         }],

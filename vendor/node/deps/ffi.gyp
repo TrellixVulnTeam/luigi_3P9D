@@ -18,33 +18,37 @@
         }
       },
       'include_dirs': [
-        '../../vendor/node-addon-api',
-        '../../vendor/node/src',
-        '../../vendor/node/tools/msvs/genfiles',
-        '../../vendor/node/deps/v8/include',
-        '../../vendor/node/deps/cares/include',
-        '../../vendor/node/deps/uv/include',
-        '../../vendor/node/deps/uvwasi/include',
-        '../../vendor/node/deps/googletest/include',
+        '../../node-addon-api',
+        '../src',
+        '../tools/msvs/genfiles',
+        'v8/include',
+        'cares/include',
+        'uv/include',
+        'uvwasi/include',
+        'googletest/include',
       ],
       'direct_dependent_settings': {
-        'include_dirs': [ 'src' ]
+        'include_dirs': [ '../../../src' ]
       },
       'sources': [
-        'call.cc',
-        'call_x64.cc',
-        'call_x64_fwd.asm',
-        'ffi.cc',
-        'libcc.cc',
+        '../../../src/ffi/call.cc',
+        '../../../src/ffi/call_x64.cc',
+        '../../../src/ffi/ffi.cc',
+        '../../../src/ffi/libcc.cc',
       ],
       'conditions': [
         [ 'target_arch=="x64" and OS=="win"', {
+          'sources': [
+            '../../../src/ffi/call_x64_win32.asm',
+          ],
           'rules': [
             {
               'rule_name': 'Assemble_FFI',
               'message': 'Assembling <(RULE_INPUT_NAME)',
               'extension': 'asm',
-              'inputs': [],
+              'inputs': [
+                '<(RULE_INPUT_PATH)',
+              ],
               'outputs': [
                 '<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).obj',
               ],
@@ -58,22 +62,8 @@
           ],
         }],
         [ 'target_arch=="x64" and OS!="win"', {
-          'rules': [
-            {
-              'rule_name': 'Assemble_FFI',
-              'message': 'Assembling <(RULE_INPUT_NAME)',
-              'extension': 'asm',
-              'inputs': [],
-              'outputs': [
-                '<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).o',
-              ],
-              'action': [
-                'nasm',
-                '-felf64',
-                '-o', '<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).o',
-                '<(RULE_INPUT_PATH)',
-              ],
-            }
+          'sources': [
+            '../../../src/ffi/call_x64_sysv.S',
           ],
         }]
       ]

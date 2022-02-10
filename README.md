@@ -494,13 +494,11 @@ To build Node, install the following dependencies:
 * `gcc` and `g++` >= 8.3 or newer
 * GNU Make 3.81 or newer
 * Python 3.8 or newer
-* NASM 2.15 or newer
 
 #### macOS prerequisites
 
 * Xcode Command Line Tools >= 11 for macOS
 * Python 3.8 or newer
-* NASM 2.15 or newer
 
 macOS users can install the `Xcode Command Line Tools` by running
 `xcode-select --install`. Alternatively, if you already have the full Xcode

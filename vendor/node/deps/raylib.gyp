@@ -12,20 +12,20 @@
         'NDEBUG', # Force disable assertions in GLFW
       ],
       'include_dirs': [
-        'src/external/glfw/include',
+        '../../raylib/src/external/glfw/include',
       ],
       'direct_dependent_settings': {
-        'include_dirs': [ 'src' ],
+        'include_dirs': [ '../../raylib/src' ],
       },
       'sources': [
-        'src/rcore.c',
-        'src/rshapes.c',
-        'src/rtextures.c',
-        'src/rtext.c',
-        'src/rmodels.c',
-        'src/utils.c',
-        'src/rglfw.c',
-        'src/raudio.c',
+        '../../raylib/src/rcore.c',
+        '../../raylib/src/rshapes.c',
+        '../../raylib/src/rtextures.c',
+        '../../raylib/src/rtext.c',
+        '../../raylib/src/rmodels.c',
+        '../../raylib/src/utils.c',
+        '../../raylib/src/rglfw.c',
+        '../../raylib/src/raudio.c',
       ]
     }
   ]
