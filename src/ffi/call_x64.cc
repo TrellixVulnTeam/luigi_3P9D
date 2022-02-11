@@ -411,7 +411,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
 
                 if (RG_LIKELY(xmm_count < 6)) {
-                    memcpy(args_ptr + xmm_count++, &d, 8);
+                    memcpy(xmm_ptr + xmm_count++, &d, 8);
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
                     memcpy(args_ptr, &d, 8);
