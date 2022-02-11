@@ -36,9 +36,12 @@
 
 namespace RG {
 
-static BucketArray<TypeInfo> types;
-static HashTable<const char *, const TypeInfo *> types_map;
-static BlockAllocator types_alloc;
+struct InstanceData {
+    BucketArray<TypeInfo> types;
+    HashTable<const char *, const TypeInfo *> types_map;
+
+    BlockAllocator str_alloc;
+};
 
 template <typename T, typename... Args>
 static void ThrowError(Napi::Env env, const char *msg, Args... args)
@@ -67,12 +70,12 @@ static const char *GetTypeName(napi_valuetype type)
     return "unknown";
 }
 
-static const TypeInfo *ResolveType(Napi::Value value)
+static const TypeInfo *ResolveType(const InstanceData *instance, Napi::Value value)
 {
     if (value.IsString()) {
         std::string str = value.As<Napi::String>();
 
-        const TypeInfo *type = types_map.FindValue(str.c_str(), nullptr);
+        const TypeInfo *type = instance->types_map.FindValue(str.c_str(), nullptr);
 
         if (!type) {
             ThrowError<Napi::TypeError>(value.Env(), "Unknown type string '%1'", str.c_str());
@@ -96,6 +99,7 @@ static const TypeInfo *ResolveType(Napi::Value value)
 Napi::Value CreateStruct(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
 
     if (info.Length() < 2) {
         ThrowError<Napi::TypeError>(env, "Expected 2 arguments, got %1", info.Length());
@@ -110,13 +114,13 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
         return env.Null();
     }
 
-    TypeInfo *type = types.AppendDefault();
+    TypeInfo *type = instance->types.AppendDefault();
 
     std::string name = info[0].As<Napi::String>();
     Napi::Object obj = info[1].As<Napi::Object>();
     Napi::Array keys = obj.GetPropertyNames();
 
-    type->name = DuplicateString(name.c_str(), &types_alloc).ptr;
+    type->name = DuplicateString(name.c_str(), &instance->str_alloc).ptr;
     type->primitive = PrimitiveKind::Record;
     type->align = 1;
     type->all_fp = true;
@@ -127,8 +131,8 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
         std::string key = ((Napi::Value)keys[i]).As<Napi::String>();
         Napi::Value value = obj[key];
 
-        member.name = DuplicateString(key.c_str(), &types_alloc).ptr;
-        member.type = ResolveType(value);
+        member.name = DuplicateString(key.c_str(), &instance->str_alloc).ptr;
+        member.type = ResolveType(instance, value);
         if (!member.type)
             return env.Null();
 
@@ -144,25 +148,32 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
     type->is_small = (type->size <= RG_SIZE(void *));
     type->is_regular = type->is_small && !(type->size & (type->size - 1));
 
-    return Napi::External<TypeInfo>::New(env, type);
+    if (!instance->types_map.TrySet(type).second) {
+        ThrowError<Napi::Error>(env, "Duplicate type name '%1'", type->name);
+        return env.Null();
+    }
+
+    Napi::External external = Napi::External<TypeInfo>::New(env, type);
+    return external;
 }
 
 Napi::Value CreatePointer(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
 
     if (info.Length() < 1) {
         ThrowError<Napi::TypeError>(env, "Expected 1 argument, got %1", info.Length());
         return env.Null();
     }
 
-    const TypeInfo *ref = ResolveType(info[0]);
+    const TypeInfo *ref = ResolveType(instance, info[0]);
     if (!ref)
         return env.Null();
 
-    TypeInfo *type = types.AppendDefault();
+    TypeInfo *type = instance->types.AppendDefault();
 
-    type->name = Fmt(&types_alloc, "%1%2*", ref->name, ref->primitive == PrimitiveKind::Pointer ? "" : " ").ptr;
+    type->name = Fmt(&instance->str_alloc, "%1%2*", ref->name, ref->primitive == PrimitiveKind::Pointer ? "" : " ").ptr;
 
     type->primitive = PrimitiveKind::Pointer;
     type->size = sizeof(void *);
@@ -179,6 +190,7 @@ Napi::Value CreatePointer(const Napi::CallbackInfo &info)
 Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
 
     if (info.Length() < 2) {
         ThrowError<Napi::TypeError>(env, "Expected 2 arguments, not %1", info.Length());
@@ -265,12 +277,12 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
         Napi::Array parameters = ((Napi::Value)value[1u]).As<Napi::Array>();
 
-        func->return_type = ResolveType(value[0u]);
+        func->return_type = ResolveType(instance, value[0u]);
         if (!func->return_type)
             return env.Null();
 
         for (uint32_t j = 0; j < parameters.Length(); j++) {
-            const TypeInfo *type = ResolveType(parameters[j]);
+            const TypeInfo *type = ResolveType(instance, parameters[j]);
             if (!type)
                 return env.Null();
             if (type->primitive == PrimitiveKind::Void) {
@@ -306,9 +318,9 @@ LibraryData::~LibraryData()
 #endif
 }
 
-static void RegisterPrimitiveType(const char *name, PrimitiveKind primitive, Size size)
+static void RegisterPrimitiveType(InstanceData *instance, const char *name, PrimitiveKind primitive, Size size)
 {
-    TypeInfo *type = types.AppendDefault();
+    TypeInfo *type = instance->types.AppendDefault();
 
     type->name = name;
 
@@ -321,39 +333,52 @@ static void RegisterPrimitiveType(const char *name, PrimitiveKind primitive, Siz
     type->has_fp = (primitive == PrimitiveKind::Float32 || primitive == PrimitiveKind::Float64);
     type->all_fp = type->has_fp;
 
-    RG_ASSERT(!types_map.Find(name));
-    types_map.Set(type);
+    RG_ASSERT(!instance->types_map.Find(name));
+    instance->types_map.Set(type);
 }
 
-static void InitBaseTypes()
+static Napi::Object InitBaseTypes(Napi::Env env)
 {
-    RegisterPrimitiveType("void", PrimitiveKind::Void, 0);
-    RegisterPrimitiveType("bool", PrimitiveKind::Bool, 1);
-    RegisterPrimitiveType("int8", PrimitiveKind::Int8, 1);
-    RegisterPrimitiveType("uint8", PrimitiveKind::UInt8, 1);
-    RegisterPrimitiveType("char", PrimitiveKind::Int8, 1);
-    RegisterPrimitiveType("uchar", PrimitiveKind::UInt8, 1);
-    RegisterPrimitiveType("int16", PrimitiveKind::Int16, 2);
-    RegisterPrimitiveType("uint16", PrimitiveKind::UInt16, 2);
-    RegisterPrimitiveType("short", PrimitiveKind::Int16, 2);
-    RegisterPrimitiveType("ushort", PrimitiveKind::UInt16, 2);
-    RegisterPrimitiveType("int32", PrimitiveKind::Int32, 4);
-    RegisterPrimitiveType("uint32", PrimitiveKind::UInt32, 4);
-    RegisterPrimitiveType("int", PrimitiveKind::Int32, 4);
-    RegisterPrimitiveType("uint", PrimitiveKind::UInt32, 4);
-    RegisterPrimitiveType("int64", PrimitiveKind::Int64, 8);
-    RegisterPrimitiveType("uint64", PrimitiveKind::UInt64, 8);
-    RegisterPrimitiveType("float32", PrimitiveKind::Float32, 4);
-    RegisterPrimitiveType("float64", PrimitiveKind::Float64, 8);
-    RegisterPrimitiveType("float", PrimitiveKind::Float32, 4);
-    RegisterPrimitiveType("double", PrimitiveKind::Float64, 8);
-    RegisterPrimitiveType("string", PrimitiveKind::String, sizeof(void *));
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
+
+    RG_ASSERT(!instance->types.len);
+
+    RegisterPrimitiveType(instance, "void", PrimitiveKind::Void, 0);
+    RegisterPrimitiveType(instance, "bool", PrimitiveKind::Bool, 1);
+    RegisterPrimitiveType(instance, "int8", PrimitiveKind::Int8, 1);
+    RegisterPrimitiveType(instance, "uint8", PrimitiveKind::UInt8, 1);
+    RegisterPrimitiveType(instance, "char", PrimitiveKind::Int8, 1);
+    RegisterPrimitiveType(instance, "uchar", PrimitiveKind::UInt8, 1);
+    RegisterPrimitiveType(instance, "int16", PrimitiveKind::Int16, 2);
+    RegisterPrimitiveType(instance, "uint16", PrimitiveKind::UInt16, 2);
+    RegisterPrimitiveType(instance, "short", PrimitiveKind::Int16, 2);
+    RegisterPrimitiveType(instance, "ushort", PrimitiveKind::UInt16, 2);
+    RegisterPrimitiveType(instance, "int32", PrimitiveKind::Int32, 4);
+    RegisterPrimitiveType(instance, "uint32", PrimitiveKind::UInt32, 4);
+    RegisterPrimitiveType(instance, "int", PrimitiveKind::Int32, 4);
+    RegisterPrimitiveType(instance, "uint", PrimitiveKind::UInt32, 4);
+    RegisterPrimitiveType(instance, "int64", PrimitiveKind::Int64, 8);
+    RegisterPrimitiveType(instance, "uint64", PrimitiveKind::UInt64, 8);
+    RegisterPrimitiveType(instance, "float32", PrimitiveKind::Float32, 4);
+    RegisterPrimitiveType(instance, "float64", PrimitiveKind::Float64, 8);
+    RegisterPrimitiveType(instance, "float", PrimitiveKind::Float32, 4);
+    RegisterPrimitiveType(instance, "double", PrimitiveKind::Float64, 8);
+    RegisterPrimitiveType(instance, "string", PrimitiveKind::String, sizeof(void *));
+
+    Napi::Object types = Napi::Object::New(env);
+    for (TypeInfo &type: instance->types) {
+        Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, &type);
+        types.Set(type.name, external);
+    }
+    types.Freeze();
+
+    return types;
 }
 
 #if NODE_WANT_INTERNALS
 
-static void SetMethod(node::Environment *env, v8::Local<v8::Object> target,
-                      const char *name, const Napi::Function &func)
+static void SetValue(node::Environment *env, v8::Local<v8::Object> target,
+                     const char *name, Napi::Value value)
 {
     v8::Isolate *isolate = env->isolate();
     v8::Local<v8::Context> context = isolate->GetCurrentContext();
@@ -361,7 +386,7 @@ static void SetMethod(node::Environment *env, v8::Local<v8::Object> target,
     v8::NewStringType str_type = v8::NewStringType::kInternalized;
     v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, name, str_type).ToLocalChecked();
 
-    target->Set(context, str, v8impl::V8LocalValueFromJsValue(func)).Check();
+    target->Set(context, str, v8impl::V8LocalValueFromJsValue(value)).Check();
 }
 
 static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
@@ -369,30 +394,39 @@ static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
 {
     node::Environment *env = node::Environment::GetCurrent(context);
 
-    InitBaseTypes();
-
     // Not very clean but I don't know enough about Node and V8 to do better...
     // ... and it seems to work okay.
     napi_env env_napi = new napi_env__(context);
+    Napi::Env env_cxx(env_napi);
     env->AtExit([](void *udata) {
         napi_env env_napi = (napi_env)udata;
         delete env_napi;
     }, env_napi);
 
-    SetMethod(env, target, "struct", Napi::Function::New(env_napi, CreateStruct));
-    SetMethod(env, target, "pointer", Napi::Function::New(env_napi, CreatePointer));
-    SetMethod(env, target, "load", Napi::Function::New(env_napi, LoadSharedLibrary));
+    InstanceData *instance = new InstanceData();
+    env_cxx.SetInstanceData(instance);
+
+    SetValue(env, target, "struct", Napi::Function::New(env_napi, CreateStruct));
+    SetValue(env, target, "pointer", Napi::Function::New(env_napi, CreatePointer));
+    SetValue(env, target, "load", Napi::Function::New(env_napi, LoadSharedLibrary));
+
+    Napi::Object types = InitBaseTypes(env_cxx);
+    SetValue(env, target, "types", types);
 }
 
 #else
 
 static Napi::Value InitModule(Napi::Env env, Napi::Object exports)
 {
-    InitBaseTypes();
+    InstanceData *instance = new InstanceData();
+    env.SetInstanceData(instance);
 
     exports.Set("struct", Napi::Function::New(env, CreateStruct));
     exports.Set("pointer", Napi::Function::New(env, CreatePointer));
     exports.Set("load", Napi::Function::New(env, LoadSharedLibrary));
+
+    Napi::Object types = InitBaseTypes(env);
+    exports.Set("types", types);
 
     return exports;
 }
