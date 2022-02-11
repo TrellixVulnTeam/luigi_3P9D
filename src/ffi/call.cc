@@ -54,7 +54,14 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
         switch (member.type->primitive) {
             case PrimitiveKind::Void: { RG_UNREACHABLE(); } break;
 
-            case PrimitiveKind::Bool:
+            case PrimitiveKind::Bool: {
+                if (!value.IsBoolean())
+                    return false;
+
+                bool b = value.As<Napi::Boolean>();
+                *(bool *)dest = b;
+            } break;
+
             case PrimitiveKind::Int8:
             case PrimitiveKind::UInt8:
             case PrimitiveKind::Int16:
