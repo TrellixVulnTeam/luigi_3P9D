@@ -40,19 +40,55 @@ static BucketArray<TypeInfo> types;
 static HashTable<const char *, const TypeInfo *> types_map;
 static BlockAllocator types_alloc;
 
+template <typename T, typename... Args>
+static void ThrowError(Napi::Env env, const char *msg, Args... args)
+{
+    char buf[1024];
+    Fmt(buf, msg, args...);
+
+    T::New(env, buf).ThrowAsJavaScriptException();
+}
+
+static const char *GetTypeName(napi_valuetype type)
+{
+    switch (type) {
+        case napi_undefined: return "undefined";
+        case napi_null: return "null";
+        case napi_boolean: return "boolean";
+        case napi_number: return "number";
+        case napi_string: return "string";
+        case napi_symbol: return "symbol";
+        case napi_object: return "object";
+        case napi_function: return "fucntion";
+        case napi_external: return "external";
+        case napi_bigint: return "bigint";
+    }
+
+    return "unknown";
+}
+
 static const TypeInfo *ResolveType(Napi::Value value)
 {
     if (value.IsString()) {
         std::string str = value.As<Napi::String>();
 
         const TypeInfo *type = types_map.FindValue(str.c_str(), nullptr);
+
+        if (!type) {
+            ThrowError<Napi::TypeError>(value.Env(), "Unknown type string '%1'", str.c_str());
+            return nullptr;
+        }
+
         return type;
     } else if (value.IsExternal()) {
         Napi::External<TypeInfo> external = value.As<Napi::External<TypeInfo>>();
 
         const TypeInfo *type = external.Data();
+        RG_ASSERT(type);
+
         return type;
     } else {
+        ThrowError<Napi::TypeError>(value.Env(), "Unexpected %1 value as type specifier, expected string or external", GetTypeName(value.Type()));
         return nullptr;
     }
 }
@@ -62,11 +98,15 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
     Napi::Env env = info.Env();
 
     if (info.Length() < 2) {
-        Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+        ThrowError<Napi::TypeError>(env, "Expected 2 arguments, got %1", info.Length());
         return env.Null();
     }
-    if (!info[0].IsString() || !info[1].IsObject()) {
-        Napi::TypeError::New(env, "Wrong arguments").ThrowAsJavaScriptException();
+    if (!info[0].IsString()) {
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for name, expected string", GetTypeName(info[0].Type()));
+        return env.Null();
+    }
+    if (!info[1].IsObject()) {
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for members, expected object", GetTypeName(info[1].Type()));
         return env.Null();
     }
 
@@ -89,10 +129,8 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
 
         member.name = DuplicateString(key.c_str(), &types_alloc).ptr;
         member.type = ResolveType(value);
-        if (!member.type) {
-            Napi::Error::New(env, "Invalid type specifier").ThrowAsJavaScriptException();
+        if (!member.type)
             return env.Null();
-        }
 
         type->size += member.type->size;
         type->align = std::max(type->align, member.type->align);
@@ -114,15 +152,13 @@ Napi::Value CreatePointer(const Napi::CallbackInfo &info)
     Napi::Env env = info.Env();
 
     if (info.Length() < 1) {
-        Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+        ThrowError<Napi::TypeError>(env, "Expected 1 argument, got %1", info.Length());
         return env.Null();
     }
 
     const TypeInfo *ref = ResolveType(info[0]);
-    if (!ref) {
-        Napi::Error::New(env, "Invalid type specifier").ThrowAsJavaScriptException();
+    if (!ref)
         return env.Null();
-    }
 
     TypeInfo *type = types.AppendDefault();
 
@@ -145,11 +181,15 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
     Napi::Env env = info.Env();
 
     if (info.Length() < 2) {
-        Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+        ThrowError<Napi::TypeError>(env, "Expected 2 arguments, not %1", info.Length());
         return env.Null();
     }
-    if ((!info[0].IsString() && !info[0].IsNull()) || !info[1].IsObject()) {
-        Napi::TypeError::New(env, "Wrong arguments").ThrowAsJavaScriptException();
+    if (!info[0].IsString() && !info[0].IsNull()) {
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for filename, expected string or null", GetTypeName(info[0].Type()));
+        return env.Null();
+    }
+    if (!info[1].IsObject()) {
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for functions, expected object", GetTypeName(info[1].Type()));
         return env.Null();
     }
 
@@ -162,21 +202,23 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         if (info[0].IsString()) {
             std::u16string filename = info[0].As<Napi::String>();
             lib->module = LoadLibraryW((LPCWSTR)filename.c_str());
+
+            if (!lib->module) {
+                ThrowError<Napi::Error>(env, "Failed to load shared library: %1", GetWin32ErrorString());
+                return env.Null();
+            }
         } else {
             lib->module = GetModuleHandle(nullptr);
+            RG_ASSERT(lib->module);
         }
 
-        if (!lib->module) {
-            Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
-            return env.Null();
-        }
 #else
         if (info[0].IsString()) {
             std::string filename = info[0].As<Napi::String>();
             lib->module = dlopen(filename.c_str(), RTLD_NOW);
 
             if (!lib->module) {
-                Napi::Error::New(env, "Failed to load shared library").ThrowAsJavaScriptException();
+                ThrowError<Napi::Error>(env, "Failed to load shared library: %1", strerror(errno));
                 return env.Null();
             }
         } else {
@@ -198,8 +240,16 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         func->name = DuplicateString(key.c_str(), &lib->str_alloc).ptr;
         func->lib = lib;
 
-        if (!value.IsArray() || value.Length() < 2 || !((Napi::Value)value[1]).IsArray()) {
-            Napi::TypeError::New(env, "Wrong arguments").ThrowAsJavaScriptException();
+        if (!value.IsArray()) {
+            ThrowError<Napi::TypeError>(env, "Unexpexted %1 value for signature of '%2', expected an array", GetTypeName(value.Type()), func->name);
+            return env.Null();
+        }
+        if (value.Length() != 2) {
+            ThrowError<Napi::TypeError>(env, "Unexpected array of length %1 for '%2', expected 2 elements", value.Length(), func->name);
+            return env.Null();
+        }
+        if (!((Napi::Value)value[1]).IsArray()) {
+            ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetTypeName(((Napi::Value)value[1]).Type()), func->name);
             return env.Null();
         }
 
@@ -209,22 +259,22 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         func->func = dlsym(lib->module, key.c_str());
 #endif
         if (!func->func) {
-            Napi::Error::New(env, "Cannot find function in shared library").ThrowAsJavaScriptException();
+            ThrowError<Napi::Error>(env, "Cannot find function '%1' in shared library", key.c_str());
             return env.Null();
         }
 
         Napi::Array parameters = ((Napi::Value)value[1u]).As<Napi::Array>();
 
         func->return_type = ResolveType(value[0u]);
-        if (!func->return_type) {
-            Napi::Error::New(env, "Invalid type specifier").ThrowAsJavaScriptException();
+        if (!func->return_type)
             return env.Null();
-        }
 
         for (uint32_t j = 0; j < parameters.Length(); j++) {
             const TypeInfo *type = ResolveType(parameters[j]);
-            if (!type || type->primitive == PrimitiveKind::Void) {
-                Napi::Error::New(env, "Invalid type specifier").ThrowAsJavaScriptException();
+            if (!type)
+                return env.Null();
+            if (type->primitive == PrimitiveKind::Void) {
+                ThrowError<Napi::TypeError>(env, "Type void cannot be used as a parameter");
                 return env.Null();
             }
             func->parameters.Append(type);
