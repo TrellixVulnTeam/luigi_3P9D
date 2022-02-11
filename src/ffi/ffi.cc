@@ -15,11 +15,6 @@
 #include "ffi.hh"
 #include "call.hh"
 
-#include <napi.h>
-#if NODE_WANT_INTERNALS
-    #include <env-inl.h>
-    #include <js_native_api_v8.h>
-#endif
 #ifdef _WIN32
     #ifndef NOMINMAX
         #define NOMINMAX
@@ -31,6 +26,12 @@
 #else
     #include <dlfcn.h>
     #include <unistd.h>
+#endif
+
+#include <napi.h>
+#if NODE_WANT_INTERNALS
+    #include <env-inl.h>
+    #include <js_native_api_v8.h>
 #endif
 
 namespace RG {
@@ -56,7 +57,6 @@ static const TypeInfo *ResolveType(Napi::Value value)
     }
 }
 
-// XXX: Adjust size to consider alignment issues
 Napi::Value CreateStruct(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
@@ -78,6 +78,7 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
 
     type->name = DuplicateString(name.c_str(), &types_alloc).ptr;
     type->primitive = PrimitiveKind::Record;
+    type->align = 1;
     type->all_fp = true;
 
     for (uint32_t i = 0; i < keys.Length(); i++) {
@@ -94,12 +95,14 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
         }
 
         type->size += member.type->size;
+        type->align = std::max(type->align, member.type->align);
         type->has_fp |= member.type->has_fp;
         type->all_fp &= member.type->all_fp;
 
         type->members.Append(member);
     }
 
+    type->size = AlignLen(type->size, type->align);
     type->is_small = (type->size <= RG_SIZE(void *));
     type->is_regular = type->is_small && !(type->size & (type->size - 1));
 
@@ -126,7 +129,9 @@ Napi::Value CreatePointer(const Napi::CallbackInfo &info)
     type->name = Fmt(&types_alloc, "%1%2*", ref->name, ref->primitive == PrimitiveKind::Pointer ? "" : " ").ptr;
 
     type->primitive = PrimitiveKind::Pointer;
-    type->size = 8;
+    type->size = sizeof(void *);
+    type->align = sizeof(void *);
+
     type->is_small = true;
     type->is_regular = true;
 
@@ -259,6 +264,8 @@ static void RegisterPrimitiveType(const char *name, PrimitiveKind primitive, Siz
 
     type->primitive = primitive;
     type->size = size;
+    type->align = size;
+
     type->is_small = true;
     type->is_regular = true;
     type->has_fp = (primitive == PrimitiveKind::Float32 || primitive == PrimitiveKind::Float64);
@@ -290,7 +297,7 @@ static void InitBaseTypes()
     RegisterPrimitiveType("float64", PrimitiveKind::Float64, 8);
     RegisterPrimitiveType("float", PrimitiveKind::Float32, 4);
     RegisterPrimitiveType("double", PrimitiveKind::Float64, 8);
-    RegisterPrimitiveType("string", PrimitiveKind::String, 8);
+    RegisterPrimitiveType("string", PrimitiveKind::String, sizeof(void *));
 }
 
 #if NODE_WANT_INTERNALS

@@ -45,11 +45,12 @@ struct TypeInfo {
     const char *name;
 
     PrimitiveKind primitive;
+    int16_t size;
+    int8_t align;
     bool is_small;
     bool is_regular;
     bool has_fp;
     bool all_fp;
-    Size size;
 
     HeapArray<RecordMember> members; // Record only
     const TypeInfo *ref; // Pointer only

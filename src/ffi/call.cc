@@ -49,6 +49,8 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
         if (value.IsUndefined())
             return false;
 
+        dest = AlignUp(dest, member.type->align);
+
         switch (member.type->primitive) {
             case PrimitiveKind::Void: { RG_UNREACHABLE(); } break;
 
@@ -61,8 +63,6 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             case PrimitiveKind::UInt32:
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
-                dest = AlignUp(dest, member.type->size);
-
                 if (value.IsNumber()) {
                     int64_t v = value.As<Napi::Number>();
                     memcpy(dest, &v, member.type->size); // Little Endian
@@ -78,8 +78,6 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
                 }
             } break;
             case PrimitiveKind::Float32: {
-                dest = AlignUp(dest, 4);
-
                 if (value.IsNumber()) {
                     float f = value.As<Napi::Number>();
                     memcpy(dest, &f, 4);
@@ -95,8 +93,6 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
                 }
             } break;
             case PrimitiveKind::Float64: {
-                dest = AlignUp(dest, 8);
-
                 if (value.IsNumber()) {
                     double d = value.As<Napi::Number>();
                     memcpy(dest, &d, 8);
@@ -112,8 +108,6 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
                 }
             } break;
             case PrimitiveKind::String: {
-                dest = AlignUp(dest, 8);
-
                 if (!value.IsString())
                     return false;
 
@@ -131,8 +125,6 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             } break;
 
             case PrimitiveKind::Pointer: {
-                dest = AlignUp(dest, 8);
-
                 if (!value.IsExternal())
                     return false;
 
@@ -154,8 +146,10 @@ Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type)
 
     Napi::Object obj = Napi::Object::New(env);
 
+    ptr = AlignUp(ptr, type->align);
+
     for (const RecordMember &member: type->members) {
-        // XXX: ptr = AlignUp(ptr, member.type->size);
+        ptr = AlignUp(ptr, member.type->align);
 
         switch (member.type->primitive) {
             case PrimitiveKind::Void: { RG_UNREACHABLE(); } break;

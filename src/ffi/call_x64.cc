@@ -449,7 +449,6 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 } else if (param_type->is_small && param_type->all_fp && xmm_count < 8) {
                     ptr = (uint8_t *)(xmm_ptr + xmm_count++);
                 } else {
-                    // XXX: args_ptr = AlignUp(args_ptr, param_type->alignment);
                     ptr = args_ptr;
                     args_ptr += param_type->size;
                 }
