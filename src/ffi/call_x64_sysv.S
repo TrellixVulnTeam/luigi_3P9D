@@ -29,10 +29,14 @@
 // Copy function pointer to RAX, in order to save it through argument forwarding.
 // Save RSP in RBX (non-volatile), and use carefully assembled stack provided by caller.
 .macro prologue
+    .cfi_startproc
+    .cfi_def_cfa rsp, 8
     endbr64
     movq %rdi, %rax
     pushq %rbx
+    .cfi_def_cfa rsp, 16
     movq %rsp, %rbx
+    .cfi_def_cfa rbx, 16
     movq %rsi, %rsp
     addq $112, %rsp
 .endm
@@ -45,6 +49,7 @@
     movq %rbx, %rsp
     popq %rbx
     ret
+    .cfi_endproc
 .endm
 
 // Prepare integer argument registers from array passed by caller.
