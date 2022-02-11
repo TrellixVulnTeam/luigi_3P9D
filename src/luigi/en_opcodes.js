@@ -16,7 +16,7 @@
 let names = {};
 let counter = 0;
 
-module.exports = {
+Object.assign(exports, {
     PUSH: opcode('PUSH'),
     POP: opcode('POP'),
 
@@ -63,7 +63,7 @@ module.exports = {
     CALL: opcode('CALL'),
     CALL_INDIRECT: opcode('CALL_INDIRECT'),
     RETURN: opcode('RETURN')
-};
+});
 
 function opcode(name) {
     let code = counter++;

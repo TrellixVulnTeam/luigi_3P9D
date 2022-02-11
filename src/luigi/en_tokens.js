@@ -16,7 +16,7 @@
 let names = {};
 let counter = 0;
 
-module.exports = {
+Object.assign(exports, {
     EOL: token('EOL'),
 
     NULL: token('null'),
@@ -62,7 +62,7 @@ module.exports = {
     END: token('end'),
 
     IDENTIFIER: token('identifier')
-};
+});
 
 function token(name) {
     let type = counter++;
