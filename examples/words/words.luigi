@@ -14,18 +14,18 @@
 window_size = get_window_size()
 
 WORDS = [
-    "Pellucide",
-    "Croquignole",
-    "Emoucher",
-    "Logomachie",
-    "Floche",
-    "Boulingrin",
+    "Pellucide"
+    "Croquignole"
+    "Emoucher"
+    "Logomachie"
+    "Floche"
+    "Boulingrin"
     "Oryctolagus"
 ]
 COLORS = [
-    "RED",
-    "BLACK",
-    "LIME",
+    "RED"
+    "BLACK"
+    "LIME"
     "PURPLE"
 ]
 SPEED = 3
@@ -37,12 +37,12 @@ SPRITES = {
     brick = load_image("examples/words/assets/iron.png")
 }
 BACKGROUNDS = [
-    load_image("examples/words/assets/aurora.png"),
-    load_image("examples/words/assets/flames.png"),
-    load_image("examples/words/assets/forest.png"),
-    load_image("examples/words/assets/lonely.png"),
-    load_image("examples/words/assets/nebula.png"),
-    load_image("examples/words/assets/starfield.png"),
+    load_image("examples/words/assets/aurora.png")
+    load_image("examples/words/assets/flames.png")
+    load_image("examples/words/assets/forest.png")
+    load_image("examples/words/assets/lonely.png")
+    load_image("examples/words/assets/nebula.png")
+    load_image("examples/words/assets/starfield.png")
     load_image("examples/words/assets/station.png")
 ]
 
@@ -61,10 +61,10 @@ func init()
     walls = create_walls()
     background = 0
     player = {
-        x = 50, y = 50,
-        vx = 0, vy = 0,
-        ax = 0, ay = 0,
-        angle = 0,
+        x = 50, y = 50
+        vx = 0, vy = 0
+        ax = 0, ay = 0
+        angle = 0
         health = 5
     }
     grap = null
@@ -90,13 +90,13 @@ func create_walls()
             x2 = min(window_size.width, x1 + SPRITES.brick.width * WALL_SCALE * random_int(2, ceil(8 * factor)))
 
             wall = {
-                x1 = x1,
-                y1 = y1,
-                x2 = x2,
-                y2 = y1,
-                x = (x1 + x2) / 2,
-                y = y1,
-                width = x2 - x1,
+                x1 = x1
+                y1 = y1
+                x2 = x2
+                y2 = y1
+                x = (x1 + x2) / 2
+                y = y1
+                width = x2 - x1
                 height = 40
             }
             collide = false
@@ -166,15 +166,15 @@ func run_game()
         dimensions = measure_text(upper(WORDS[idx]), size)
 
         word = {
-            x = null,
-            y = null,
-            vx = 0,
-            vy = 0,
+            x = null
+            y = null
+            vx = 0
+            vy = 0
 
-            width = dimensions.width,
-            height = dimensions.height,
-            color = COLORS[color],
-            size = size,
+            width = dimensions.width
+            height = dimensions.height
+            color = COLORS[color]
+            size = size
 
             word = WORDS[idx]
         }
@@ -344,13 +344,13 @@ func run_game()
             for word in words
                 if check_grap_against(mouse.x, mouse.y, word)
                     grap = {
-                        x = mouse.x,
-                        y = mouse.y,
-                        time = time,
-                        active = true,
+                        x = mouse.x
+                        y = mouse.y
+                        time = time
+                        active = true
 
-                        src = word,
-                        dx = mouse.x - word.x,
+                        src = word
+                        dx = mouse.x - word.x
                         dy = mouse.y - word.y
                     }
 
@@ -363,13 +363,13 @@ func run_game()
             for wall in walls
                 if check_grap_against(mouse.x, mouse.y, wall)
                     grap = {
-                        x = mouse.x,
-                        y = mouse.y,
-                        time = time,
-                        active = true,
+                        x = mouse.x
+                        y = mouse.y
+                        time = time
+                        active = true
 
-                        src = wall,
-                        dx = mouse.x - wall.x,
+                        src = wall
+                        dx = mouse.x - wall.x
                         dy = mouse.y - wall.y
                     }
 
