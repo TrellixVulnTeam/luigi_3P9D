@@ -115,8 +115,7 @@ const raylib = (() => {
         IsKeyPressed: ['bool', ['int']],
         IsKeyReleased: ['bool', ['int']],
         IsKeyDown: ['bool', ['int']],
-        GetMouseX: ['int', []],
-        GetMouseY: ['int', []],
+        GetMousePosition: [Vector2, []],
         IsMouseButtonPressed: ['bool', ['int']],
         IsMouseButtonReleased: ['bool', ['int']],
         IsMouseButtonDown: ['bool', ['int']],
@@ -473,9 +472,11 @@ exports.is_key_pressed = function(name) {
 exports.get_mouse = function() {
     let buttons = [0, 1, 2];
 
+    let pos = raylib.GetMousePosition();
+
     let state = {
-        x: raylib.GetMouseX(),
-        y: raylib.GetMouseY(),
+        x: pos.x,
+        y: pos.y,
 
         pressed: buttons.map(btn => raylib.IsMouseButtonPressed(btn)),
         released: buttons.map(btn => raylib.IsMouseButtonReleased(btn)),
@@ -487,22 +488,9 @@ exports.get_mouse = function() {
     return state;
 };
 
-exports.is_mouse_down = function(btn) {
-    return raylib.IsMouseButtonDown(btn);
-};
-
-exports.is_mouse_pressed = function(btn) {
-    return raylib.IsMouseButtonPressed(btn);
-};
-
-exports.get_mouse_pos = function() {
-    let pos = {
-        x: raylib.GetMouseX(),
-        y: raylib.GetMouseY()
-    }
-
-    return pos;
-};
+exports.is_mouse_down = function(btn) { return raylib.IsMouseButtonDown(btn); };
+exports.is_mouse_pressed = function(btn) { return raylib.IsMouseButtonPressed(btn); };
+exports.get_mouse_pos = function() { return raylib.GetMousePosition(); };
 
 // Utility
 
