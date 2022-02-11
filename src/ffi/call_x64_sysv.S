@@ -28,94 +28,97 @@
 
 // Copy function pointer to RAX, in order to save it through argument forwarding.
 // Save RSP in RBX (non-volatile), and use carefully assembled stack provided by caller.
-#define PROLOGUE \
-    endbr64 ; \
-    movq %rdi, %rax ; \
-    pushq %rbx ; \
-    movq %rsp, %rbx ; \
-    movq %rsi, %rsp ; \
+.macro prologue
+    endbr64
+    movq %rdi, %rax
+    pushq %rbx
+    movq %rsp, %rbx
+    movq %rsi, %rsp
     addq $112, %rsp
+.endm
 
 // Call native function.
 // Once done, restore normal stack pointer and return.
 // The return value is passed untouched through RAX or XMM0.
-#define EPILOGUE \
-    call *%rax ; \
-    movq %rbx, %rsp ; \
-    popq %rbx ; \
+.macro epilogue
+    call *%rax
+    movq %rbx, %rsp
+    popq %rbx
     ret
+.endm
 
 // Prepare integer argument registers from array passed by caller.
-#define FORWARD_INT \
-    movq 40(%rsi), %r9 ; \
-    movq 32(%rsi), %r8 ; \
-    movq 24(%rsi), %rcx ; \
-    movq 16(%rsi), %rdx ; \
-    movq 0(%rsi), %rdi ; \
+.macro forward_int
+    movq 40(%rsi), %r9
+    movq 32(%rsi), %r8
+    movq 24(%rsi), %rcx
+    movq 16(%rsi), %rdx
+    movq 0(%rsi), %rdi
     movq 8(%rsi), %rsi
+.endm
 
 // Prepare XMM argument registers from array passed by caller.
-#define FORWARD_XMM \
-    movsd 104(%rsi), %xmm7 ; \
-    movsd 96(%rsi), %xmm6 ; \
-    movsd 88(%rsi), %xmm5 ; \
-    movsd 80(%rsi), %xmm4 ; \
-    movsd 72(%rsi), %xmm3 ; \
-    movsd 64(%rsi), %xmm2 ; \
-    movsd 56(%rsi), %xmm1 ; \
+.macro forward_xmm
+    movsd 104(%rsi), %xmm7
+    movsd 96(%rsi), %xmm6
+    movsd 88(%rsi), %xmm5
+    movsd 80(%rsi), %xmm4
+    movsd 72(%rsi), %xmm3
+    movsd 64(%rsi), %xmm2
+    movsd 56(%rsi), %xmm1
     movsd 48(%rsi), %xmm0
+.endm
 
 ForwardCallII:
-    PROLOGUE
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_int
+    epilogue
 
 ForwardCallF:
-    PROLOGUE
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_int
+    epilogue
 
 ForwardCallDI:
-    PROLOGUE
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_int
+    epilogue
 
 ForwardCallID:
-    PROLOGUE
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_int
+    epilogue
 
 ForwardCallDD:
-    PROLOGUE
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_int
+    epilogue
 
 ForwardCallXII:
-    PROLOGUE
-    FORWARD_XMM
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_int
+    epilogue
 
 ForwardCallXF:
-    PROLOGUE
-    FORWARD_XMM
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_xmm
+    forward_int
+    epilogue
 
 ForwardCallXDI:
-    PROLOGUE
-    FORWARD_XMM
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_xmm
+    forward_int
+    epilogue
 
 ForwardCallXID:
-    PROLOGUE
-    FORWARD_XMM
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_xmm
+    forward_int
+    epilogue
 
 ForwardCallXDD:
-    PROLOGUE
-    FORWARD_XMM
-    FORWARD_INT
-    EPILOGUE
+    prologue
+    forward_xmm
+    forward_int
+    epilogue
