@@ -250,7 +250,7 @@ LibraryData::~LibraryData()
         FreeLibrary((HMODULE)module);
     }
 #else
-    if (module) {
+    if (module && module != RTLD_DEFAULT) {
         dlclose(module);
     }
 #endif
