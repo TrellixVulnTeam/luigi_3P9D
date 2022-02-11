@@ -14,7 +14,7 @@
       },
       'msvs_settings': {
         'VCCLCompilerTool': {
-          'AdditionalOptions': ['/std:c++17'],
+          'AdditionalOptions': ['/std:c++17 /wd4200'],
         }
       },
       'include_dirs': [
