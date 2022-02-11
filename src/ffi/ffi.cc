@@ -352,12 +352,6 @@ static void InitBaseTypes()
 
 #if NODE_WANT_INTERNALS
 
-static inline v8::Local<v8::Value> V8LocalValueFromJsValue(napi_value v) {
-    v8::Local<v8::Value> local;
-    memcpy(static_cast<void*>(&local), &v, sizeof(v));
-    return local;
-}
-
 static void SetMethod(node::Environment *env, v8::Local<v8::Object> target,
                       const char *name, const Napi::Function &func)
 {
@@ -367,7 +361,7 @@ static void SetMethod(node::Environment *env, v8::Local<v8::Object> target,
     v8::NewStringType str_type = v8::NewStringType::kInternalized;
     v8::Local<v8::String> str = v8::String::NewFromUtf8(isolate, name, str_type).ToLocalChecked();
 
-    target->Set(context, str, V8LocalValueFromJsValue(func)).Check();
+    target->Set(context, str, v8impl::V8LocalValueFromJsValue(func)).Check();
 }
 
 static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
