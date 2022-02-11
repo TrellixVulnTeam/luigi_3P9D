@@ -318,7 +318,7 @@ LibraryData::~LibraryData()
 #endif
 }
 
-static void RegisterPrimitiveType(InstanceData *instance, const char *name, PrimitiveKind primitive, Size size)
+static void RegisterPrimitiveType(InstanceData *instance, const char *name, PrimitiveKind primitive, int16_t size)
 {
     TypeInfo *type = instance->types.AppendDefault();
 
