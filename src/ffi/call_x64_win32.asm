@@ -30,7 +30,10 @@ prologue macro
     endbr64
     mov rax, rcx
     push rbx
+    .pushreg rbx
     mov rbx, rsp
+    .setframe rbx, 0
+    .endprolog
     mov rsp, rdx
 endm
 
@@ -60,37 +63,43 @@ forward_xmm macro
     movsd xmm0, qword ptr [rdx+0]
 endm
 
-ForwardCall:
+ForwardCall proc frame
     prologue
     forward_int
     epilogue
+ForwardCall endp
 
-ForwardCallF:
+ForwardCallF proc frame
     prologue
     forward_int
     epilogue
+ForwardCallF endp
 
-ForwardCallD:
+ForwardCallD proc frame
     prologue
     forward_int
     epilogue
+ForwardCallD endp
 
-ForwardCallX:
+ForwardCallX proc frame
     prologue
     forward_xmm
     forward_int
     epilogue
+ForwardCallX endp
 
-ForwardCallXF:
+ForwardCallXF proc frame
     prologue
     forward_xmm
     forward_int
     epilogue
+ForwardCallXF endp
 
-ForwardCallXD:
+ForwardCallXD proc frame
     prologue
     forward_xmm
     forward_int
     epilogue
+ForwardCallXD endp
 
 end
