@@ -43,7 +43,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     // Sanity checks
     if (info.Length() < (uint32_t)func->parameters.len) {
-        Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+        ThrowError<Napi::TypeError>(env, "Expected %1 arguments, got %2", func->parameters.len, info.Length());
         return env.Null();
     }
 
@@ -77,7 +77,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Bool: {
                 if (!value.IsBoolean()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected boolean", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -103,7 +103,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                     *(uint64_t *)(args_ptr + j) = v;
                 } else {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
             } break;
@@ -119,7 +119,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                     *(float *)(args_ptr + j) = f;
                 } else {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -137,7 +137,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                     *(double *)(args_ptr + j) = d;
                 } else {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -145,7 +145,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::String: {
                 if (!value.IsString()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -155,7 +155,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Record: {
                 if (!value.IsObject()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -170,15 +170,13 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
 
                 Napi::Object obj = info[i].As<Napi::Object>();
-                if (!PushObject(obj, param_type, &lib->tmp_alloc, ptr)) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                if (!PushObject(obj, param_type, &lib->tmp_alloc, ptr))
                     return env.Null();
-                }
             } break;
 
             case PrimitiveKind::Pointer: {
                 if (!value.IsExternal()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -286,7 +284,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     // Sanity checks
     if (info.Length() < (uint32_t)func->parameters.len) {
-        Napi::TypeError::New(env, "Wrong number of arguments").ThrowAsJavaScriptException();
+        ThrowError<Napi::TypeError>(env, "Expected %1 arguments, got %2", func->parameters.len, info.Length());
         return env.Null();
     }
 
@@ -334,7 +332,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Bool: {
                 if (!value.IsBoolean()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected boolean", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -364,7 +362,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     bool lossless;
                     v = bigint.Uint64Value(&lossless);
                 } else {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -386,7 +384,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     bool lossless;
                     f = (float)bigint.Uint64Value(&lossless);
                 } else {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -408,7 +406,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     bool lossless;
                     d = (double)bigint.Uint64Value(&lossless);
                 } else {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -422,7 +420,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::String: {
                 if (!value.IsString()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -439,7 +437,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Record: {
                 if (!value.IsObject()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 
@@ -454,15 +452,13 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
 
                 Napi::Object obj = info[i].As<Napi::Object>();
-                if (!PushObject(obj, param_type, &lib->tmp_alloc, ptr)) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                if (!PushObject(obj, param_type, &lib->tmp_alloc, ptr))
                     return env.Null();
-                }
             } break;
 
             case PrimitiveKind::Pointer: {
                 if (!value.IsExternal()) {
-                    Napi::TypeError::New(env, "Unexpected value type").ThrowAsJavaScriptException();
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i);
                     return env.Null();
                 }
 

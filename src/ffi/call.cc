@@ -40,6 +40,8 @@ const char *CopyNodeString(const Napi::Value &value, Allocator *alloc)
 
 bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc, uint8_t *dest)
 {
+    Napi::Env env = obj.Env();
+
     RG_ASSERT(obj.IsObject());
     RG_ASSERT(type->primitive == PrimitiveKind::Record);
 
@@ -55,8 +57,10 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             case PrimitiveKind::Void: { RG_UNREACHABLE(); } break;
 
             case PrimitiveKind::Bool: {
-                if (!value.IsBoolean())
+                if (!value.IsBoolean()) {
+                    ThrowError<Napi::TypeError>(env, "Expected boolean value for member '%1', got %2", member.name, GetTypeName(value.Type()));
                     return false;
+                }
 
                 bool b = value.As<Napi::Boolean>();
                 *(bool *)dest = b;
@@ -81,6 +85,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
                     memcpy(dest, &v, member.type->size); // Little Endian
                 } else {
+                    ThrowError<Napi::TypeError>(env, "Expected number value for member '%1', got %2", member.name, GetTypeName(value.Type()));
                     return false;
                 }
             } break;
@@ -96,6 +101,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
                     memcpy(dest, &f, 4);
                 } else {
+                    ThrowError<Napi::TypeError>(env, "Expected number value for member '%1', got %2", member.name, GetTypeName(value.Type()));
                     return false;
                 }
             } break;
@@ -111,20 +117,25 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
                     memcpy(dest, &d, 8);
                 } else {
+                    ThrowError<Napi::TypeError>(env, "Expected number value for member '%1', got %2", member.name, GetTypeName(value.Type()));
                     return false;
                 }
             } break;
             case PrimitiveKind::String: {
-                if (!value.IsString())
+                if (!value.IsString()) {
+                    ThrowError<Napi::TypeError>(env, "Expected string value for member '%1', got %2", member.name, GetTypeName(value.Type()));
                     return false;
+                }
 
                 const char *str = CopyNodeString(value, alloc);
                 *(const char **)dest = str;
             } break;
 
             case PrimitiveKind::Record: {
-                if (!value.IsObject())
+                if (!value.IsObject()) {
+                    ThrowError<Napi::TypeError>(env, "Expected object value for member '%1', got %2", member.name, GetTypeName(value.Type()));
                     return false;
+                }
 
                 Napi::Object obj = value.As<Napi::Object>();
                 if (!PushObject(obj, member.type, alloc, dest))
@@ -132,8 +143,10 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             } break;
 
             case PrimitiveKind::Pointer: {
-                if (!value.IsExternal())
+                if (!value.IsExternal()) {
+                    ThrowError<Napi::TypeError>(env, "Expected external value for member '%1', got %2", member.name, GetTypeName(value.Type()));
                     return false;
+                }
 
                 Napi::External external = value.As<Napi::External<void>>();
                 void *ptr = external.Data();
