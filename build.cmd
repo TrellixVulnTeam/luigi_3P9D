@@ -1,10 +1,17 @@
 @echo off
 
 setlocal
-call %~dp0\vendor\node\vcbuild.bat without-intl no-cctest openssl-no-asm
-endlocal
+cd %~dp0
+
+set options=without-intl no-cctest
+where /q nasm
+if ERRORLEVEL 1 (
+    echo WARNING: Could not find NASM assembly compiler in PATH, OpenSSL will be slow
+    set options=%options% openssl-no-asm
+)
 
 setlocal
-cd %~dp0
+call vendor\node\vcbuild.bat %options%
+endlocal
 
 copy vendor\node\out\Release\node.exe luigi.exe
