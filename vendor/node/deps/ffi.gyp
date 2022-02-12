@@ -37,6 +37,9 @@
         '../../../src/ffi/libcc.cc',
       ],
       'conditions': [
+        [ 'v8_enable_handle_zapping==0', { # Hacky way to detect release builds, gyp sucks
+          'defines': [ 'NDEBUG', ],
+        }],
         [ 'target_arch=="x64" and OS=="win"', {
           'sources': [
             '../../../src/ffi/call_x64_win32.asm',
