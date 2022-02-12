@@ -491,11 +491,13 @@ To build Node, install the following dependencies:
 
 * `gcc` and `g++` >= 8.3 or newer
 * GNU Make 3.81 or newer
+* [Ninja](https://ninja-build.org/) build system
 * Python 3.8 or newer
 
 #### macOS prerequisites
 
 * Xcode Command Line Tools >= 11 for macOS
+* [Ninja](https://ninja-build.org/) build system
 * Python 3.8 or newer
 
 macOS users can install the `Xcode Command Line Tools` by running
@@ -507,12 +509,8 @@ More Developer Tools...`. This step will install `clang`, `clang++`, and
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
-./build.sh -j4
+./build.sh
 ```
-
-The `-j4` option will cause `make` to run 4 simultaneous compilation jobs which
-may reduce build time. For more information, see the
-[GNU Make Documentation](https://www.gnu.org/software/make/manual/html_node/Parallel.html).
 
 ## Running Luigi
 
