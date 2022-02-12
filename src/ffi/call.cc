@@ -248,9 +248,8 @@ void DumpStack(const FunctionInfo *func, Span<const uint8_t> sp)
 
     PrintLn(stderr, "Parameters:");
     for (Size i = 0; i < func->parameters.len; i++) {
-        const TypeInfo *type = func->parameters[i];
-        PrintLn(stderr, "  %1 = %2 (small = %3, regular = %4, FP = %5/%6)", i, type->name,
-                        type->is_small, type->is_regular, type->has_fp, type->all_fp);
+        const ParameterInfo &param = func->parameters[i];
+        PrintLn(stderr, "  %1 = %2 (flags = 0x%1)", i, param.type->name, FmtHex(param.flags));
     }
 
     PrintLn(stderr, "Stack (%1 bytes) at 0x%2:", sp.len, sp.ptr);

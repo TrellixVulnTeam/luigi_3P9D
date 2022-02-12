@@ -46,11 +46,7 @@ struct TypeInfo {
 
     PrimitiveKind primitive;
     int16_t size;
-    int8_t align;
-    bool is_small;
-    bool is_regular;
-    bool has_fp;
-    bool all_fp;
+    int16_t align;
 
     HeapArray<RecordMember> members; // Record only
     const TypeInfo *ref; // Pointer only
@@ -75,14 +71,19 @@ public:
     BlockAllocator str_alloc;
 };
 
+struct ParameterInfo {
+    const TypeInfo *type;
+    unsigned int flags; // ABI-specific
+};
+
 struct FunctionInfo {
     const char *name;
     std::shared_ptr<LibraryData> lib;
 
     void *func;
 
-    const TypeInfo *return_type;
-    HeapArray<const TypeInfo *> parameters;
+    ParameterInfo ret;
+    HeapArray<ParameterInfo> parameters;
 
     Size args_size;
     Size irregular_size;

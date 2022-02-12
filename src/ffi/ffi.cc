@@ -96,7 +96,6 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
     type->name = DuplicateString(name.c_str(), &instance->str_alloc).ptr;
     type->primitive = PrimitiveKind::Record;
     type->align = 1;
-    type->all_fp = true;
 
     for (uint32_t i = 0; i < keys.Length(); i++) {
         RecordMember member = {};
@@ -111,15 +110,11 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
 
         type->size += member.type->size;
         type->align = std::max(type->align, member.type->align);
-        type->has_fp |= member.type->has_fp;
-        type->all_fp &= member.type->all_fp;
 
         type->members.Append(member);
     }
 
     type->size = AlignLen(type->size, type->align);
-    type->is_small = (type->size <= RG_SIZE(void *));
-    type->is_regular = type->is_small && !(type->size & (type->size - 1));
 
     if (!instance->types_map.TrySet(type).second) {
         ThrowError<Napi::Error>(env, "Duplicate type name '%1'", type->name);
@@ -151,9 +146,6 @@ Napi::Value CreatePointer(const Napi::CallbackInfo &info)
     type->primitive = PrimitiveKind::Pointer;
     type->size = sizeof(void *);
     type->align = sizeof(void *);
-
-    type->is_small = true;
-    type->is_regular = true;
 
     type->ref = ref;
 
@@ -250,23 +242,27 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
         Napi::Array parameters = ((Napi::Value)value[1u]).As<Napi::Array>();
 
-        func->return_type = ResolveType(instance, value[0u]);
-        if (!func->return_type)
+        func->ret.type = ResolveType(instance, value[0u]);
+        if (!func->ret.type)
             return env.Null();
 
         for (uint32_t j = 0; j < parameters.Length(); j++) {
-            const TypeInfo *type = ResolveType(instance, parameters[j]);
-            if (!type)
+            ParameterInfo param = {};
+
+            param.type = ResolveType(instance, parameters[j]);
+            if (!param.type)
                 return env.Null();
-            if (type->primitive == PrimitiveKind::Void) {
+            if (param.type->primitive == PrimitiveKind::Void) {
                 ThrowError<Napi::TypeError>(env, "Type void cannot be used as a parameter");
                 return env.Null();
             }
-            func->parameters.Append(type);
+            func->parameters.Append(param);
 
-            func->args_size += AlignLen(type->size, 16);
-            func->irregular_size += type->is_regular ? 0 : AlignLen(type->size, 16);
+            func->args_size += AlignLen(param.type->size, 16);
         }
+
+        if (!AnalyseFunction(func))
+            return env.Null();
 
         Napi::Function wrapper = Napi::Function::New(env, TranslateCall, key.c_str(), (void *)func);
         wrapper.AddFinalizer([](Napi::Env, FunctionInfo *func) { delete func; }, func);
@@ -300,11 +296,6 @@ static void RegisterPrimitiveType(InstanceData *instance, const char *name, Prim
     type->primitive = primitive;
     type->size = size;
     type->align = size;
-
-    type->is_small = true;
-    type->is_regular = true;
-    type->has_fp = (primitive == PrimitiveKind::Float32 || primitive == PrimitiveKind::Float64);
-    type->all_fp = type->has_fp;
 
     RG_ASSERT(!instance->types_map.Find(name));
     instance->types_map.Set(type);

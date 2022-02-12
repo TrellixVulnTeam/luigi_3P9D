@@ -21,6 +21,10 @@ namespace RG {
 
 #if defined(_WIN64) // Win64 ABI
 
+enum class ParameterFlag {
+    Regular = 1 << 0
+};
+
 extern "C" uint64_t ForwardCall(const void *func, uint8_t *sp);
 extern "C" float ForwardCallF(const void *func, uint8_t *sp);
 extern "C" double ForwardCallD(const void *func, uint8_t *sp);
@@ -28,13 +32,25 @@ extern "C" uint64_t ForwardCallX(const void *func, uint8_t *sp);
 extern "C" float ForwardCallXF(const void *func, uint8_t *sp);
 extern "C" double ForwardCallXD(const void *func, uint8_t *sp);
 
+bool AnalyseFunction(FunctionInfo *func)
+{
+    const auto is_regular = [](Size size) { return (size <= 8 && !(size & (size - 1))); };
+
+    func->ret.flags |= is_regular(func->ret.type->size) ? (int)ParameterFlag::Regular : 0;
+
+    for (ParameterInfo &param: func->parameters) {
+        param.flags |= is_regular(param.type->size) ? (int)ParameterFlag::Regular : 0;
+    }
+
+    return true;
+}
+
 Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
 
     FunctionInfo *func = (FunctionInfo *)info.Data();
     LibraryData *lib = func->lib.get();
-    const TypeInfo *return_type = func->return_type;
 
     lib->stack.len = 0;
     lib->stack.SetCapacity(Mebibytes(2));
@@ -55,10 +71,10 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     bool use_xmm = false;
 
     // Reserve space for return value if needed
-    if (return_type->is_regular) {
+    if (func->ret.flags & (int)ParameterFlag::Regular) {
         args_ptr = scratch_ptr - AlignLen(8 * std::max((Size)4, func->parameters.len), 16);
     } else {
-        return_ptr = scratch_ptr - AlignLen(return_type->size, 16);
+        return_ptr = scratch_ptr - AlignLen(func->ret.type->size, 16);
         args_ptr = return_ptr - AlignLen(8 * std::max((Size)4, func->parameters.len + 1), 16);
         *(uint64_t *)args_ptr = (uint64_t)return_ptr;
     }
@@ -69,10 +85,10 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     // Push arguments
     for (Size i = 0, j = return_ptr ? 8 : 0; i < func->parameters.len; i++, j += 8) {
-        const TypeInfo *param_type = func->parameters[i];
+        const ParameterInfo &param = func->parameters[i];
         Napi::Value value = info[i];
 
-        switch (param_type->primitive) {
+        switch (param.type->primitive) {
             case PrimitiveKind::Void: { RG_UNREACHABLE(); } break;
 
             case PrimitiveKind::Bool: {
@@ -160,17 +176,17 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
 
                 uint8_t *ptr;
-                if (param_type->is_regular) {
+                if (param.flags & (int)ParameterFlag::Regular) {
                     ptr = (uint8_t *)(args_ptr + j);
                 } else {
                     ptr = scratch_ptr;
                     *(uint8_t **)(args_ptr + j) = ptr;
 
-                    scratch_ptr = AlignUp(scratch_ptr + param_type->size, 16);
+                    scratch_ptr = AlignUp(scratch_ptr + param.type->size, 16);
                 }
 
                 Napi::Object obj = info[i].As<Napi::Object>();
-                if (!PushObject(obj, param_type, &lib->tmp_alloc, ptr))
+                if (!PushObject(obj, param.type, &lib->tmp_alloc, ptr))
                     return env.Null();
             } break;
 
@@ -189,7 +205,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     // DumpStack(func, MakeSpan(args_ptr, top_ptr - args_ptr));
 
     // Execute and convert return value
-    switch (return_type->primitive) {
+    switch (func->ret.type->primitive) {
         case PrimitiveKind::Float32: {
             float f = use_xmm ? ForwardCallXF(func->func, args_ptr)
                               : ForwardCallF(func->func, args_ptr);
@@ -206,7 +222,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             uint64_t rax = use_xmm ? ForwardCallX(func->func, args_ptr)
                                    : ForwardCall(func->func, args_ptr);
 
-            switch (return_type->primitive) {
+            switch (func->ret.type->primitive) {
                 case PrimitiveKind::Void: return env.Null();
                 case PrimitiveKind::Bool: return Napi::Boolean::New(env, rax);
                 case PrimitiveKind::Int8: return Napi::Number::New(env, (double)rax);
@@ -223,7 +239,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                 case PrimitiveKind::Record: {
                     const uint8_t *ptr = return_ptr ? return_ptr : (const uint8_t *)&rax;
-                    Napi::Object obj = PopObject(env, ptr, return_type);
+                    Napi::Object obj = PopObject(env, ptr, func->ret.type);
                     return obj;
                 } break;
 
@@ -239,6 +255,11 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 }
 
 #elif defined(__x86_64__) // System V x64 ABI
+
+enum class ParameterFlag {
+    PassInt = 1 << 0,
+    PassXmm = 1 << 1
+};
 
 struct RaxRdxRet {
     uint64_t rax;
@@ -269,13 +290,46 @@ extern "C" Xmm0RaxRet ForwardCallXDI(const void *func, uint8_t *sp);
 extern "C" RaxXmm0Ret ForwardCallXID(const void *func, uint8_t *sp);
 extern "C" Xmm0Xmm1Ret ForwardCallXDD(const void *func, uint8_t *sp);
 
+static bool IsAllXMM(const TypeInfo *type)
+{
+    if (type->primitive == PrimitiveKind::Record) {
+        for (const RecordMember &member: type->members) {
+            if (!IsAllXMM(member.type))
+                return false;
+        }
+
+        return true;
+    } else {
+        bool fp = (type->primitive == PrimitiveKind::Float32 || type->primitive == PrimitiveKind::Float64);
+        return fp;
+    }
+}
+
+bool AnalyseFunction(FunctionInfo *func)
+{
+    if (func->ret.type->size <= 16) {
+        func->ret.flags |= (int)ParameterFlag::PassInt;
+    }
+
+    for (ParameterInfo &param: func->parameters) {
+        bool all_xmm = IsAllXMM(param.type);
+
+        if (param.type->size <= 8 && !all_xmm) {
+            param.flags |= (int)ParameterFlag::PassInt;
+        } else if (param.type->size <= 8 && all_xmm) {
+            param.flags |= (int)ParameterFlag::PassXmm;
+        }
+    }
+
+    return true;
+}
+
 Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
 
     FunctionInfo *func = (FunctionInfo *)info.Data();
     LibraryData *lib = func->lib.get();
-    const TypeInfo *return_type = func->return_type;
 
     lib->stack.len = 0;
     lib->stack.SetCapacity(Mebibytes(2));
@@ -297,7 +351,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     bool use_xmm = false;
 
     // Reserve space for return value if needed
-    if (return_type->size <= 16) {
+    if (func->ret.flags & (int)ParameterFlag::PassInt) {
         args_ptr = top_ptr - func->args_size;
         xmm_ptr = (uint64_t *)args_ptr - 8;
         int_ptr = xmm_ptr - 6;
@@ -306,7 +360,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         memset(int_ptr, 0, top_ptr - (uint8_t *)int_ptr);
 #endif
     } else {
-        return_ptr = top_ptr - AlignLen(return_type->size, 16);
+        return_ptr = top_ptr - AlignLen(func->ret.type->size, 16);
 
         args_ptr = return_ptr - func->args_size;
         xmm_ptr = (uint64_t *)args_ptr - 8;
@@ -324,10 +378,10 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     // Push arguments
     for (Size i = 0; i < func->parameters.len; i++) {
-        const TypeInfo *param_type = func->parameters[i];
+        const ParameterInfo &param = func->parameters[i];
         Napi::Value value = info[i];
 
-        switch (param_type->primitive) {
+        switch (param.type->primitive) {
             case PrimitiveKind::Void: { RG_UNREACHABLE(); } break;
 
             case PrimitiveKind::Bool: {
@@ -369,9 +423,9 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 if (RG_LIKELY(int_count < 8)) {
                     int_ptr[int_count++] = v;
                 } else {
-                    args_ptr = AlignUp(args_ptr, param_type->size);
-                    memcpy(args_ptr, &v, param_type->size); // Little Endian
-                    args_ptr += param_type->size;
+                    args_ptr = AlignUp(args_ptr, param.type->size);
+                    memcpy(args_ptr, &v, param.type->size); // Little Endian
+                    args_ptr += param.type->size;
                 }
             } break;
             case PrimitiveKind::Float32: {
@@ -442,17 +496,17 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
 
                 uint8_t *ptr;
-                if (param_type->is_small && !param_type->all_fp && int_count < 6) {
+                if ((param.flags & (int)ParameterFlag::PassInt) && int_count < 6) {
                     ptr = (uint8_t *)(int_ptr + int_count++);
-                } else if (param_type->is_small && param_type->all_fp && xmm_count < 8) {
+                } else if (param.flags & (int)ParameterFlag::PassXmm && xmm_count < 8) {
                     ptr = (uint8_t *)(xmm_ptr + xmm_count++);
                 } else {
                     ptr = args_ptr;
-                    args_ptr += param_type->size;
+                    args_ptr += param.type->size;
                 }
 
                 Napi::Object obj = info[i].As<Napi::Object>();
-                if (!PushObject(obj, param_type, &lib->tmp_alloc, ptr))
+                if (!PushObject(obj, param.type, &lib->tmp_alloc, ptr))
                     return env.Null();
             } break;
 
@@ -474,13 +528,13 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
         }
 
-        use_xmm |= param_type->has_fp;
+        use_xmm |= (param.type->primitive == PrimitiveKind::Float32 || param.type->primitive == PrimitiveKind::Float64);
     }
 
     // DumpStack(func, MakeSpan((uint8_t *)int_ptr, top_ptr - (uint8_t *)int_ptr));
 
     // Execute and convert return value
-    switch (return_type->primitive) {
+    switch (func->ret.type->primitive) {
         case PrimitiveKind::Float32: {
             float f = use_xmm ? ForwardCallXF(func->func, (uint8_t *)int_ptr) 
                               : ForwardCallF(func->func, (uint8_t *)int_ptr);
@@ -499,7 +553,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                                     : ForwardCallII(func->func, (uint8_t *)int_ptr);
 
             const uint8_t *ptr = return_ptr ? return_ptr : (const uint8_t *)&ret;
-            Napi::Object obj = PopObject(env, ptr, return_type);
+            Napi::Object obj = PopObject(env, ptr, func->ret.type);
             return obj;
         } break;
 
@@ -507,7 +561,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             RaxRdxRet ret = use_xmm ? ForwardCallXII(func->func, (uint8_t *)int_ptr)
                                     : ForwardCallII(func->func, (uint8_t *)int_ptr);
 
-            switch (return_type->primitive) {
+            switch (func->ret.type->primitive) {
                 case PrimitiveKind::Void: return env.Null();
                 case PrimitiveKind::Bool: return Napi::Boolean::New(env, ret.rax);
                 case PrimitiveKind::Int8: return Napi::Number::New(env, (double)ret.rax);

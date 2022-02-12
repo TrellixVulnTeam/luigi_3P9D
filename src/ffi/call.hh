@@ -46,6 +46,9 @@ Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type);
 
 void DumpStack(const FunctionInfo *func, Span<const uint8_t> sp);
 
+// ABI specific
+
+bool AnalyseFunction(FunctionInfo *func);
 Napi::Value TranslateCall(const Napi::CallbackInfo &info);
 
 }
