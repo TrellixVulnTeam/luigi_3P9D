@@ -3,8 +3,8 @@
     {
       'target_name': 'raylib',
       'type': 'static_library',
-      'cflags': ['-Wno-sign-compare -Wno-old-style-declaration -Wno-unused-function -Wno-missing-field-initializers'],
-      'cflags_cc': ['-Wno-sign-compare -Wno-old-style-declaration -Wno-unused-function -Wno-missing-field-initializers'],
+      'cflags': ['-Wno-sign-compare -Wno-old-style-declaration -Wno-unused-function -Wno-missing-field-initializers -Wno-unused-value -Wno-implicit-fallthrough'],
+      'cflags_cc': ['-Wno-sign-compare -Wno-old-style-declaration -Wno-unused-function -Wno-missing-field-initializers -Wno-unused-value -Wno-implicit-fallthrough'],
       'defines': [
         'PLATFORM_DESKTOP',
         'PLATFORM=PLATFORM_DESKTOP',
