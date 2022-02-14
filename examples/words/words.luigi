@@ -61,7 +61,7 @@ func init()
     walls = create_walls()
     background = 0
     player = {
-        x = 50, y = 50
+        x = window_size.width / 2, y = window_size.height / 2
         vx = 0, vy = 0
         ax = 0, ay = 0
         angle = 0
