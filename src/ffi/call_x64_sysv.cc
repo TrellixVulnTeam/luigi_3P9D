@@ -122,7 +122,7 @@ static Size ClassifyType(const TypeInfo *type, Size offset, Span<RegisterClass> 
     RG_UNREACHABLE();
 }
 
-static void AnalyseParameter(ParameterInfo *param)
+static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int xmm_avail)
 {
     LocalArray<RegisterClass, 8> classes = {};
     classes.len = ClassifyType(param->type, 0, classes.data);
@@ -145,17 +145,25 @@ static void AnalyseParameter(ParameterInfo *param)
         xmm_count += (cls == RegisterClass::SSE);
     }
 
-    param->gpr_count = (int8_t)gpr_count;
-    param->xmm_count = (int8_t)xmm_count;
-    param->gpr_first = (classes[0] == RegisterClass::Integer);
+    if (gpr_count <= gpr_avail && xmm_count <= xmm_avail){
+        param->gpr_count = (int8_t)gpr_count;
+        param->xmm_count = (int8_t)xmm_count;
+        param->gpr_first = (classes[0] == RegisterClass::Integer);
+    }
 }
 
 bool AnalyseFunction(FunctionInfo *func)
 {
-    AnalyseParameter(&func->ret);
+    AnalyseParameter(&func->ret, 2, 2);
+
+    int gpr_avail = 6;
+    int xmm_avail = 8;
 
     for (ParameterInfo &param: func->parameters) {
-        AnalyseParameter(&param);
+        AnalyseParameter(&param, gpr_avail, xmm_avail);
+
+        gpr_avail -= param.gpr_count;
+        xmm_avail -= param.xmm_count;
     }
 
     return true;
@@ -334,16 +342,10 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                 Napi::Object obj = info[i].As<Napi::Object>();
 
-                bool memory = (!param.gpr_count && !param.xmm_count) ||
-                              RG_UNLIKELY(param.gpr_count > 6 - gpr_count || param.xmm_count > 8 - xmm_count);
-
-                if (memory) {
-                    args_ptr = AlignUp(args_ptr, param.type->align);
-                    if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
-                        return env.Null();
-                    args_ptr += param.type->size;
-                } else {
+                if (param.gpr_count || param.xmm_count) {
                     RG_ASSERT(param.type->size <= 16);
+                    RG_ASSERT(param.gpr_count <= 6 - gpr_count);
+                    RG_ASSERT(param.xmm_count <= 8 - xmm_count);
 
                     uint64_t buf[2] = {};
                     if (!PushObject(obj, param.type, &lib->tmp_alloc, (uint8_t *)buf))
@@ -368,6 +370,11 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                             gpr_ptr[gpr_count++] = *(ptr++);
                         }
                     }
+                } else if (param.type->size) {
+                    args_ptr = AlignUp(args_ptr, param.type->align);
+                    if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
+                        return env.Null();
+                    args_ptr += param.type->size;
                 }
             } break;
 
