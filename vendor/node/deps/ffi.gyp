@@ -32,7 +32,8 @@
       },
       'sources': [
         '../../../src/ffi/call.cc',
-        '../../../src/ffi/call_x64.cc',
+        '../../../src/ffi/call_x64_sysv.cc',
+        '../../../src/ffi/call_x64_win.cc',
         '../../../src/ffi/ffi.cc',
         '../../../src/ffi/libcc.cc',
       ],
@@ -42,7 +43,7 @@
         }],
         [ 'target_arch=="x64" and OS=="win"', {
           'sources': [
-            '../../../src/ffi/call_x64_win32.asm',
+            '../../../src/ffi/call_x64_win_fwd.asm',
           ],
           'rules': [
             {
@@ -66,7 +67,7 @@
         }],
         [ 'target_arch=="x64" and OS!="win"', {
           'sources': [
-            '../../../src/ffi/call_x64_sysv.S',
+            '../../../src/ffi/call_x64_sysv_fwd.S',
           ],
         }]
       ]

@@ -73,7 +73,16 @@ public:
 
 struct ParameterInfo {
     const TypeInfo *type;
-    unsigned int flags; // ABI-specific
+
+    // ABI-specific part
+
+#if defined(_WIN64)
+    bool regular;
+#elif defined(__x86_64__)
+    int8_t gpr_count;
+    int8_t xmm_count;
+    bool gpr_first;
+#endif
 };
 
 struct FunctionInfo {

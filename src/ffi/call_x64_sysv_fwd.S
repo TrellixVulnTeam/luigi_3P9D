@@ -13,17 +13,17 @@
 
 // These five are the same, but they differ (in the C side) by their return type.
 // Unlike the five next functions, these ones don't forward XMM argument registers.
-.global ForwardCallII
+.global ForwardCallGG
 .global ForwardCallF
-.global ForwardCallDI
-.global ForwardCallID
+.global ForwardCallDG
+.global ForwardCallGD
 .global ForwardCallDD
 
 // The X variants are slightly slower, and are used when XMM arguments must be forwarded.
-.global ForwardCallXII
+.global ForwardCallXGG
 .global ForwardCallXF
-.global ForwardCallXDI
-.global ForwardCallXID
+.global ForwardCallXDG
+.global ForwardCallXGD
 .global ForwardCallXDD
 
 // Copy function pointer to RAX, in order to save it through argument forwarding.
@@ -74,7 +74,7 @@
     movsd 48(%rsi), %xmm0
 .endm
 
-ForwardCallII:
+ForwardCallGG:
     prologue
     forward_int
     epilogue
@@ -84,12 +84,12 @@ ForwardCallF:
     forward_int
     epilogue
 
-ForwardCallDI:
+ForwardCallDG:
     prologue
     forward_int
     epilogue
 
-ForwardCallID:
+ForwardCallGD:
     prologue
     forward_int
     epilogue
@@ -99,8 +99,9 @@ ForwardCallDD:
     forward_int
     epilogue
 
-ForwardCallXII:
+ForwardCallXGG:
     prologue
+    forward_xmm
     forward_int
     epilogue
 
@@ -110,13 +111,13 @@ ForwardCallXF:
     forward_int
     epilogue
 
-ForwardCallXDI:
+ForwardCallXDG:
     prologue
     forward_xmm
     forward_int
     epilogue
 
-ForwardCallXID:
+ForwardCallXGD:
     prologue
     forward_xmm
     forward_int

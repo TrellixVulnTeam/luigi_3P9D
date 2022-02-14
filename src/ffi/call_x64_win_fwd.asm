@@ -13,12 +13,12 @@
 
 ; These three are the same, but they differ (in the C side) by their return type.
 ; Unlike the three next functions, these ones don't forward XMM argument registers.
-public ForwardCall
+public ForwardCallG
 public ForwardCallF
 public ForwardCallD
 
 ; The X variants are slightly slower, and are used when XMM arguments must be forwarded.
-public ForwardCallX
+public ForwardCallXG
 public ForwardCallXF
 public ForwardCallXD
 
@@ -63,11 +63,11 @@ forward_xmm macro
     movsd xmm0, qword ptr [rdx+0]
 endm
 
-ForwardCall proc frame
+ForwardCallG proc frame
     prologue
     forward_int
     epilogue
-ForwardCall endp
+ForwardCallG endp
 
 ForwardCallF proc frame
     prologue
@@ -81,12 +81,12 @@ ForwardCallD proc frame
     epilogue
 ForwardCallD endp
 
-ForwardCallX proc frame
+ForwardCallXG proc frame
     prologue
     forward_xmm
     forward_int
     epilogue
-ForwardCallX endp
+ForwardCallXG endp
 
 ForwardCallXF proc frame
     prologue

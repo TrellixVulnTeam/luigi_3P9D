@@ -45,6 +45,8 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
     RG_ASSERT(obj.IsObject());
     RG_ASSERT(type->primitive == PrimitiveKind::Record);
 
+    dest = AlignUp(dest, type->align);
+
     for (const RecordMember &member: type->members) {
         Napi::Value value = obj.Get(member.name);
 
@@ -249,7 +251,7 @@ void DumpStack(const FunctionInfo *func, Span<const uint8_t> sp)
     PrintLn(stderr, "Parameters:");
     for (Size i = 0; i < func->parameters.len; i++) {
         const ParameterInfo &param = func->parameters[i];
-        PrintLn(stderr, "  %1 = %2 (flags = 0x%1)", i, param.type->name, FmtHex(param.flags));
+        PrintLn(stderr, "  %1 = %2", i, param.type->name);
     }
 
     PrintLn(stderr, "Stack (%1 bytes) at 0x%2:", sp.len, sp.ptr);
