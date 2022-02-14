@@ -18,9 +18,15 @@ const token_types = require('./en_tokens.js');
 let tokens;
 
 exports.scan = function(code) {
-    tokens = [];
+    let file = {
+        tokens: [],
+        funcs: new Set
+    };
+
+    tokens = file.tokens;
 
     let line = 1;
+    let funcs = [];
 
     for (let offset = 0; offset < code.length; offset++) {
         let c = code[offset];
@@ -163,7 +169,10 @@ exports.scan = function(code) {
                     case 'false': { append(line, token_types.BOOLEAN, false); } break;
                     case 'true': { append(line, token_types.BOOLEAN, true); } break;
 
-                    case 'func': { append(line, token_types.FUNC); } break;
+                    case 'func': {
+                        append(line, token_types.FUNC);
+                        funcs.push(tokens.length);
+                    } break;
                     case 'if': { append(line, token_types.IF); } break;
                     case 'then': { append(line, token_types.THEN); } break;
                     case 'else': { append(line, token_types.ELSE); } break;
@@ -195,7 +204,12 @@ exports.scan = function(code) {
     // Always end with at least one EOL for parser simplicity
     append(line, token_types.EOL);
 
-    return tokens;
+    for (let idx of funcs) {
+        if (idx < tokens.length && tokens[idx].type == token_types.IDENTIFIER)
+            file.funcs.add(tokens[idx].value);
+    }
+
+    return file;
 };
 
 // Utility

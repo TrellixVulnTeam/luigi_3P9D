@@ -5,6 +5,8 @@ pos = { x = size.width / 2, y = size.height / 2 }
 speed = { x = 1, y = 1 }
 color = 0
 
+run_window("Mighty Screensaver", { background = "BLACK" }, run)
+
 func run()
     size = get_window_size()
 
@@ -36,5 +38,3 @@ func cycle_color()
     color = color + 1
     if not color < length(COLORS) then color = 0
 end
-
-run_window("Mighty Screensaver", { background = "BLACK" }, run)

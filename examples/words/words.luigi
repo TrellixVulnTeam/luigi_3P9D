@@ -57,6 +57,9 @@ show_counter = null
 
 gameover = null
 
+init()
+run_window("Words!", { background = "BLACK" }, run)
+
 func init()
     walls = create_walls()
     background = 0
@@ -449,6 +452,3 @@ func draw_gameover()
         draw_text(window_size.width / 2, window_size.height - 60, { align = 2, color = "WHITE" }, text)
     end
 end
-
-init()
-run_window("Words!", { background = "BLACK" }, run)

@@ -25,12 +25,13 @@ let current_func;
 let calls;
 
 let tokens;
+let lexer_funcs;
 let offset;
 let line;
 
 let loops;
 
-exports.parse = function(_tokens) {
+exports.parse = function(file) {
     functions = {};
 
     import_natives(functions, std_basic);
@@ -56,7 +57,8 @@ exports.parse = function(_tokens) {
         default_func.memory[name] = func;
     }
 
-    tokens = _tokens;
+    tokens = file.tokens;
+    lexer_funcs = file.funcs;
     offset = 0;
     line = tokens.length ? tokens[0].line : 0;
 
@@ -473,6 +475,8 @@ function parse_expression() {
             } else {
                 if (call) {
                     parse_call(tok.value);
+                } else if (lexer_funcs.has(tok.value)) {
+                    emit(opcodes.LOAD_GLOBAL, tok.value);
                 } else {
                     error(offset, `Variable "${tok.value}" does not exist`);
                 }

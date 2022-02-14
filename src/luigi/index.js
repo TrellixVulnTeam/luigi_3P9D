@@ -22,8 +22,8 @@ exports.parse = parse;
 exports.execute = execute;
 
 exports.run = function(code) {
-    let tokens = scan(code);
-    let functions = parse(tokens);
+    let file = scan(code);
+    let functions = parse(file);
 
     execute(functions);
 };
