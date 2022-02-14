@@ -36,8 +36,8 @@ make -C vendor/node $make_flags
 install -m 0755 vendor/node/out/$type/node ./luigi
 
 esbuild_flags=
-if [ "$type" == "Release" ]; then esbuild_flags="$esbuild_flags --minify"; fi
-vendor/esbuild/esbuild_linux_x64 --bundle src/luigi/luigi.js --outfile=luigi.js --platform=node $esbuild_flags
+if [ "$type" = "Release" ]; then esbuild_flags="$esbuild_flags --minify"; fi
+vendor/esbuild/esbuild_linux_x64 --bundle src/luigi/luigi.js --outfile=dev/luigi.js --platform=node $esbuild_flags
 
-[ "$run" = 1 ] && ./luigi luigi.js $run_args
+[ "$run" = 1 ] && ./luigi dev/luigi.js $run_args
 exit 0

@@ -195,7 +195,15 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
             lib->module = dlopen(filename.c_str(), RTLD_NOW);
 
             if (!lib->module) {
-                ThrowError<Napi::Error>(env, "Failed to load shared library: %1", strerror(errno));
+                const char *msg = dlerror();
+
+                if (StartsWith(msg, filename.c_str()))
+                    msg += filename.length();
+                while (strchr(": ", msg[0])) {
+                    msg++;
+                }
+
+                ThrowError<Napi::Error>(env, "Failed to load shared library: %1", msg);
                 return env.Null();
             }
         } else {
@@ -339,6 +347,8 @@ static Napi::Object InitBaseTypes(Napi::Env env)
     return types;
 }
 
+}
+
 #if NODE_WANT_INTERNALS
 
 static void SetValue(node::Environment *env, v8::Local<v8::Object> target,
@@ -356,6 +366,8 @@ static void SetValue(node::Environment *env, v8::Local<v8::Object> target,
 static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
                          v8::Local<v8::Context> context, void *)
 {
+    using namespace RG;
+
     node::Environment *env = node::Environment::GetCurrent(context);
 
     // Not very clean but I don't know enough about Node and V8 to do better...
@@ -373,6 +385,7 @@ static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
     SetValue(env, target, "struct", Napi::Function::New(env_napi, CreateStruct));
     SetValue(env, target, "pointer", Napi::Function::New(env_napi, CreatePointer));
     SetValue(env, target, "load", Napi::Function::New(env_napi, LoadSharedLibrary));
+    SetValue(env, target, "internal", Napi::Boolean::New(env_napi, true));
 
     Napi::Object types = InitBaseTypes(env_cxx);
     SetValue(env, target, "types", types);
@@ -380,14 +393,17 @@ static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
 
 #else
 
-static Napi::Value InitModule(Napi::Env env, Napi::Object exports)
+static Napi::Object InitModule(Napi::Env env, Napi::Object exports)
 {
+    using namespace RG;
+
     InstanceData *instance = new InstanceData();
     env.SetInstanceData(instance);
 
     exports.Set("struct", Napi::Function::New(env, CreateStruct));
     exports.Set("pointer", Napi::Function::New(env, CreatePointer));
     exports.Set("load", Napi::Function::New(env, LoadSharedLibrary));
+    exports.Set("internal", Napi::Boolean::New(env, false));
 
     Napi::Object types = InitBaseTypes(env);
     exports.Set("types", types);
@@ -397,10 +413,8 @@ static Napi::Value InitModule(Napi::Env env, Napi::Object exports)
 
 #endif
 
-}
-
 #if NODE_WANT_INTERNALS
-    NODE_MODULE_CONTEXT_AWARE_INTERNAL(ffi, RG::InitInternal);
+    NODE_MODULE_CONTEXT_AWARE_INTERNAL(ffi, InitInternal);
 #else
-    NAPI_MODULE(ffi, RG::InitModule);
+    NODE_API_MODULE(ffi, InitModule);
 #endif

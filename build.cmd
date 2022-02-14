@@ -42,9 +42,9 @@ if %node%==1 (
     copy vendor\node\out\Release\node.exe luigi.exe
 )
 
-vendor\esbuild\esbuild_win_x64.exe --bundle src/luigi/luigi.js --outfile=luigi.js --platform=node --minify
+vendor\esbuild\esbuild_win_x64.exe --bundle src/luigi/luigi.js --outfile=dev/luigi.js --platform=node --minify
 
-if %run%==1 .\luigi.exe luigi.js %run_args%
+if %run%==1 .\luigi.exe dev/luigi.js %run_args%
 
 exit /B %ERRORLEVEL%
 

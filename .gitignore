@@ -2,6 +2,9 @@
 *.vcxproj*
 *.target.mk
 
+build/
+node_modules/
+
 /luigi
 /luigi.exe
-/luigi.js
+/dev/luigi.js

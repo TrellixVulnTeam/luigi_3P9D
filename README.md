@@ -520,8 +520,8 @@ Once these dependencies are met, open a command prompt in the repository and run
 Once the modified Node binary is ready, use it to run Luigi scripts like this:
 
 ```sh
-luigi.exe luigi.js examples/mighty.luigi # Windows
-./luigi luigi.js examples/mighty.luigi # POSIX systems (Linux, macOS, etc.)
+luigi.exe src/luigi/luigi.js examples/mighty.luigi # Windows
+./luigi src/luigi/luigi.js examples/mighty.luigi # POSIX systems (Linux, macOS, etc.)
 ```
 
 As of now, Luigi does not yet support compilation to binaries or HTML/WebAssembly.

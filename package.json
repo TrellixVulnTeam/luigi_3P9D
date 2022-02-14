@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/luigi/index.js",
   "bin": {
-    "luigi": "luigi.js"
+    "luigi": "src/luigi/luigi.js"
   },
   "author": "",
   "license": "AGPL-3.0"

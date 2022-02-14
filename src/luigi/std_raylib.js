@@ -14,7 +14,16 @@
 'use strict';
 
 const process = require('process');
-const ffi = process.binding('ffi');
+const path = require('path');
+const ffi = (() => {
+    try {
+        return process.binding('ffi');
+    } catch (err) {
+        // Prevent esbuild from trying to pick this up
+        let path = '../../dev/build/Release/FFI.node';
+        return require(path);
+    }
+})();
 const { run_function } = require('./lu_vm.js');
 
 const Image = ffi.struct('Image', {
@@ -83,7 +92,9 @@ const Font = ffi.struct('Font', {
 });
 
 const raylib = (() => {
-    let lib = ffi.load(null, {
+    let filename = ffi.internal ? null : path.normalize(`${__dirname}/../../dev/build/Release/Raylib${process.platform == 'win32' ? '.dll' : '.so'}`);
+
+    let lib = ffi.load(filename, {
         SetTraceLogLevel: ['void', ['int']],
         InitWindow: ['void', ['int', 'int', 'string']],
         SetWindowState: ['void', ['uint']],
