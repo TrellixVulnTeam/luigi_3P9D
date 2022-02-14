@@ -5,7 +5,7 @@ cd %~dp0
 
 set node=1
 set configure=1
-set flags=without-intl no-cctest
+set flags=without-intl no-cctest noetw
 set run=0
 set run_args=
 

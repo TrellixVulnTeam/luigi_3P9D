@@ -27,15 +27,17 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-make_flags=BUILDTYPE=$type
+make_flags="BUILDTYPE=$type"
+config_flags="--without-intl --without-dtrace  --without-etw --without-npm --without-corepack"
 if [ "$jobs" != "" ]; then make_flags="$make_flags JOBS=$jobs"; fi
-echo $make_flags
+if [ "$configure" = 1 ]; then vendor/node/configure --ninja $config_flags; fi
 
-if [ "$configure" = 1 ]; then vendor/node/configure --ninja --without-intl; fi
 make -C vendor/node $make_flags
 install -m 0755 vendor/node/out/$type/node ./luigi
 
-vendor/esbuild/esbuild_linux_x64 --bundle src/luigi/luigi.js --outfile=luigi.js --platform=node --minify
+esbuild_flags=
+if [ "$type" == "Release" ] then esbuild_flags="$esbuild_flags --minify"; fi
+vendor/esbuild/esbuild_linux_x64 --bundle src/luigi/luigi.js --outfile=luigi.js --platform=node $esbuild_flags
 
 [ "$run" = 1 ] && ./luigi luigi.js $run_args
 exit 0
