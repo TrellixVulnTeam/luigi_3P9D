@@ -22,8 +22,6 @@
 #endif
 #if __has_include("../../../vendor/dragonbox/include/dragonbox/dragonbox.h")
     #include "../../../vendor/dragonbox/include/dragonbox/dragonbox.h"
-#else
-    #include "dragonbox.h"
 #endif
 
 #ifdef _WIN32
@@ -696,7 +694,7 @@ TimeSpec DecomposeTime(int64_t time, TimeMode mode)
 
 bool CopyString(const char *str, Span<char> buf)
 {
-#ifndef NDEBUG
+#ifdef RG_DEBUG
     RG_ASSERT(buf.len > 0);
 #else
     if (RG_UNLIKELY(!buf.len))
@@ -718,7 +716,7 @@ bool CopyString(const char *str, Span<char> buf)
 
 bool CopyString(Span<const char> str, Span<char> buf)
 {
-#ifndef NDEBUG
+#ifdef RG_DEBUG
     RG_ASSERT(buf.len > 0);
 #else
     if (RG_UNLIKELY(!buf.len))
@@ -833,6 +831,7 @@ static Span<char> FormatUnsignedToBinary(uint64_t value, char out_buf[64])
     return MakeSpan(out_buf, msb);
 }
 
+#ifdef JKJ_HEADER_DRAGONBOX
 static Size FakeFloatPrecision(Span<char> buf, int K, int min_prec, int max_prec, int *out_K)
 {
     RG_ASSERT(min_prec >= 0);
@@ -958,11 +957,13 @@ static Span<char> ExponentiateFloat(Span<char> buf, int K, int min_prec, int max
 
     return buf;
 }
+#endif
 
 // NaN and Inf are handled by caller
 template <typename T>
 Span<const char> FormatFloatingPoint(T value, int min_prec, int max_prec, char out_buf[128])
 {
+#ifdef JKJ_HEADER_DRAGONBOX
     auto v = jkj::dragonbox::to_decimal(value, jkj::dragonbox::policy::sign::ignore);
 
     Span<char> buf = FormatUnsignedToDecimal(v.significand, out_buf);
@@ -985,6 +986,16 @@ Span<const char> FormatFloatingPoint(T value, int min_prec, int max_prec, char o
     } else {
         return ExponentiateFloat(buf, v.exponent, min_prec, max_prec);
     }
+#else
+    #ifdef _MSC_VER
+        #pragma message("Cannot format floating point values correctly without Dragonbox")
+    #else
+        #warning Cannot format floating point values correctly without Dragonbox
+    #endif
+
+    int ret = snprintf(out_buf, 128, "%g", value);
+    return MakeSpan(out_buf, std::min(ret, 128));
+#endif
 }
 
 template <typename AppendFunc>
@@ -1435,7 +1446,7 @@ static inline Size ProcessAnsiSpecifier(const char *spec, bool vt100, AppendFunc
 
 end:
     if (!valid) {
-#ifndef NDEBUG
+#ifdef RG_DEBUG
         LogDebug("Format string contains invalid ANSI specifier");
 #endif
         return idx;
@@ -1452,7 +1463,7 @@ end:
 template <typename AppendFunc>
 static inline void DoFormat(const char *fmt, Span<const FmtArg> args, bool vt100, AppendFunc append)
 {
-#ifndef NDEBUG
+#ifdef RG_DEBUG
     bool invalid_marker = false;
     uint32_t unused_arguments = ((uint32_t)1 << args.len) - 1;
 #endif
@@ -1485,7 +1496,7 @@ static inline void DoFormat(const char *fmt, Span<const FmtArg> args, bool vt100
             idx--;
             if (idx < args.len) {
                 ProcessArg<AppendFunc>(args[idx], append);
-#ifndef NDEBUG
+#ifdef RG_DEBUG
                 unused_arguments &= ~((uint32_t)1 << idx);
             } else {
                 invalid_marker = true;
@@ -1503,18 +1514,18 @@ static inline void DoFormat(const char *fmt, Span<const FmtArg> args, bool vt100
         } else if (marker_ptr[1]) {
             append(marker_ptr[0]);
             fmt_ptr = marker_ptr + 1;
-#ifndef NDEBUG
+#ifdef RG_DEBUG
             invalid_marker = true;
 #endif
         } else {
-#ifndef NDEBUG
+#ifdef RG_DEBUG
             invalid_marker = true;
 #endif
             break;
         }
     }
 
-#ifndef NDEBUG
+#ifdef RG_DEBUG
     if (invalid_marker && unused_arguments) {
         fprintf(stderr, "\nLog format string '%s' has invalid markers and unused arguments\n", fmt);
     } else if (unused_arguments) {
