@@ -82,6 +82,10 @@ struct ParameterInfo {
     int8_t gpr_count;
     int8_t xmm_count;
     bool gpr_first;
+#elif defined(__aarch64__)
+    int8_t gpr_count;
+    int8_t vec_count;
+    bool gpr_first;
 #endif
 };
 
