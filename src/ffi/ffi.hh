@@ -65,8 +65,8 @@ public:
 
     void *module = nullptr; // HMODULE on Windows
 
-    HeapArray<uint8_t> stack;
     BlockAllocator tmp_alloc;
+    LocalArray<uint8_t, Mebibytes(1), 16> stack;
 
     BlockAllocator str_alloc;
 };

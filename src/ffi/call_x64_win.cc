@@ -51,10 +51,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     FunctionInfo *func = (FunctionInfo *)info.Data();
     LibraryData *lib = func->lib.get();
-
-    lib->stack.len = 0;
-    lib->stack.SetCapacity(Mebibytes(2));
-    lib->stack.len = lib->stack.capacity;
+    
     RG_DEFER { lib->tmp_alloc.ReleaseAll(); };
 
     // Sanity checks
@@ -79,7 +76,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         *(uint64_t *)args_ptr = (uint64_t)return_ptr;
     }
 
-    RG_ASSERT(AlignUp(lib->stack.ptr, 16) == lib->stack.ptr);
+    RG_ASSERT(AlignUp(lib->stack.data, 16) == lib->stack.data);
     RG_ASSERT(AlignUp(lib->stack.end(), 16) == lib->stack.end());
     RG_ASSERT(AlignUp(args_ptr, 16) == args_ptr);
 
