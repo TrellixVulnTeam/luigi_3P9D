@@ -237,7 +237,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                 bool b = info[i].As<Napi::Boolean>();
 
-                if (RG_LIKELY(gpr_count < 8)) {
+                if (RG_LIKELY(gpr_count < 6)) {
                     gpr_ptr[gpr_count++] = (uint64_t)b;
                 } else {
                     *args_ptr = (uint8_t)b;
@@ -265,7 +265,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     return env.Null();
                 }
 
-                if (RG_LIKELY(gpr_count < 8)) {
+                if (RG_LIKELY(gpr_count < 6)) {
                     gpr_ptr[gpr_count++] = v;
                 } else {
                     args_ptr = AlignUp(args_ptr, param.type->align);
@@ -287,7 +287,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     return env.Null();
                 }
 
-                if (RG_LIKELY(xmm_count < 6)) {
+                if (RG_LIKELY(xmm_count < 8)) {
                     memcpy(xmm_ptr + xmm_count++, &f, 4);
                 } else {
                     args_ptr = AlignUp(args_ptr, 4);
@@ -309,7 +309,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     return env.Null();
                 }
 
-                if (RG_LIKELY(xmm_count < 6)) {
+                if (RG_LIKELY(xmm_count < 8)) {
                     memcpy(xmm_ptr + xmm_count++, &d, 8);
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
@@ -325,7 +325,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                 const char *str = CopyNodeString(info[i], &lib->tmp_alloc);
 
-                if (RG_LIKELY(gpr_count < 8)) {
+                if (RG_LIKELY(gpr_count < 6)) {
                     gpr_ptr[gpr_count++] = (uint64_t)str;
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
@@ -386,7 +386,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                 void *ptr = info[i].As<Napi::External<void>>();
 
-                if (RG_LIKELY(gpr_count < 8)) {
+                if (RG_LIKELY(gpr_count < 6)) {
                     gpr_ptr[gpr_count++] = (uint64_t)ptr;
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
