@@ -44,7 +44,7 @@ add_library(Raylib SHARED
 set_target_properties(Raylib PROPERTIES PREFIX "")
 target_include_directories(Raylib PRIVATE ${CMAKE_JS_INC} ../vendor/raylib/src/external/glfw/include)
 target_compile_definitions(Raylib PRIVATE PLATFORM_DESKTOP PLATFORM=PLATFORM_DESKTOP
-                                          GRAPHICS_API_OPENGL_33 GRAPHICS=GRAPHICS_API_OPENGL_33 BUILD_LIBTYPE_SHARED)
+                                          GRAPHICS_API_OPENGL_21 GRAPHICS=GRAPHICS_API_OPENGL_21 BUILD_LIBTYPE_SHARED NDEBUG)
 if(WIN32)
     target_link_libraries(Raylib PRIVATE winmm)
 endif()
