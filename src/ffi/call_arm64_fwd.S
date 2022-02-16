@@ -30,12 +30,14 @@
 // Save RSP in r19 (non-volatile), and use carefully assembled stack provided by caller.
 .macro prologue
     .cfi_startproc
+    stp x29, x30, [sp, -16]!
+    str x19, [sp, -16]!
+    .cfi_offset 29, -32
+    .cfi_offset 30, -24
+    .cfi_def_cfa sp, 32
     mov x9, x0
-    sub sp, sp, #16
-    .cfi_def_cfa sp, 16
-    str x19, [sp]
     mov x19, sp
-    .cfi_def_cfa x19, 16
+    .cfi_def_cfa x19, 32
     mov sp, x1
     add sp, sp, #128
 .endm
@@ -46,7 +48,11 @@
 .macro epilogue
     blr x9
     mov sp, x19
-    ldr x19, [sp]
+    ldr x19, [sp], 16
+    ldp x29, x30, [sp], 16
+    .cfi_restore 30
+    .cfi_restore 29
+    .cfi_def_cfa sp, 0
     ret
     .cfi_endproc
 .endm
@@ -65,9 +71,14 @@
 
 // Prepare vector argument registers from array passed by caller.
 .macro forward_xmm
-    add x10, x1, #64
-    ld1 {v0.8b, v1.8b, v2.8b, v3.8b}, [x10], #32
-    ld1 {v4.8b, v5.8b, v6.8b, v7.8b}, [x10]
+    ldr d7, [x1, 120]
+    ldr d6, [x1, 112]
+    ldr d5, [x1, 104]
+    ldr d4, [x1, 96]
+    ldr d3, [x1, 88]
+    ldr d2, [x1, 80]
+    ldr d1, [x1, 72]
+    ldr d0, [x1, 64]
 .endm
 
 ForwardCallGG:

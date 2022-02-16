@@ -171,6 +171,8 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
     }
 
     std::shared_ptr<LibraryData> lib = std::make_shared<LibraryData>();
+    lib->stack.AppendDefault(Mebibytes(1));
+
     Napi::Object obj = Napi::Object::New(env);
 
     // Load shared library

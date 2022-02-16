@@ -32,30 +32,30 @@ struct X0X1Ret {
     uint64_t x0;
     uint64_t x1;
 };
-struct X0V0Ret {
+struct X0D0Ret {
     uint64_t x0;
-    double v0;
+    double d0;
 };
-struct V0X0Ret {
-    double v0;
+struct D0X0Ret {
+    double d0;
     uint64_t x0;
 };
-struct V0V1Ret {
-    double v0;
-    double v1;
+struct D0D1Ret {
+    double d0;
+    double d1;
 };
 
 extern "C" X0X1Ret ForwardCallGG(const void *func, uint8_t *sp);
 extern "C" float ForwardCallF(const void *func, uint8_t *sp);
-extern "C" V0X0Ret ForwardCallDG(const void *func, uint8_t *sp);
-extern "C" X0V0Ret ForwardCallGD(const void *func, uint8_t *sp);
-extern "C" V0V1Ret ForwardCallDD(const void *func, uint8_t *sp);
+extern "C" D0X0Ret ForwardCallDG(const void *func, uint8_t *sp);
+extern "C" X0D0Ret ForwardCallGD(const void *func, uint8_t *sp);
+extern "C" D0D1Ret ForwardCallDD(const void *func, uint8_t *sp);
 
 extern "C" X0X1Ret ForwardCallXGG(const void *func, uint8_t *sp);
 extern "C" float ForwardCallXF(const void *func, uint8_t *sp);
-extern "C" V0X0Ret ForwardCallXDG(const void *func, uint8_t *sp);
-extern "C" X0V0Ret ForwardCallXGD(const void *func, uint8_t *sp);
-extern "C" V0V1Ret ForwardCallXDD(const void *func, uint8_t *sp);
+extern "C" D0X0Ret ForwardCallXDG(const void *func, uint8_t *sp);
+extern "C" X0D0Ret ForwardCallXGD(const void *func, uint8_t *sp);
+extern "C" D0D1Ret ForwardCallXDD(const void *func, uint8_t *sp);
 
 static inline RegisterClass MergeClasses(RegisterClass cls1, RegisterClass cls2)
 {
@@ -214,7 +214,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         gpr_ptr[gpr_count++] = (uint64_t)return_ptr;
     }
 
-    RG_ASSERT(AlignUp(lib->stack.data, 16) == lib->stack.data);
+    RG_ASSERT(AlignUp(lib->stack.ptr, 16) == lib->stack.ptr);
     RG_ASSERT(AlignUp(lib->stack.end(), 16) == lib->stack.end());
     RG_ASSERT(AlignUp(args_ptr, 16) == args_ptr);
 
@@ -409,9 +409,9 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         } break;
 
         case PrimitiveKind::Float64: {
-            V0X0Ret ret = PERFORM_CALL(DG);
+            D0X0Ret ret = PERFORM_CALL(DG);
 
-            return Napi::Number::New(env, ret.v0);
+            return Napi::Number::New(env, (double)ret.d0);
         } break;
 
         case PrimitiveKind::Record: {
@@ -421,12 +421,12 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 Napi::Object obj = PopObject(env, (const uint8_t *)&ret, func->ret.type);
                 return obj;
             } else if (func->ret.gpr_first) {
-                X0V0Ret ret = PERFORM_CALL(GD);
+                X0D0Ret ret = PERFORM_CALL(GD);
 
                 Napi::Object obj = PopObject(env, (const uint8_t *)&ret, func->ret.type);
                 return obj;
             } else if (func->ret.vec_count) {
-                V0X0Ret ret = PERFORM_CALL(DG);
+                D0X0Ret ret = PERFORM_CALL(DG);
 
                 Napi::Object obj = PopObject(env, (const uint8_t *)&ret, func->ret.type);
                 return obj;

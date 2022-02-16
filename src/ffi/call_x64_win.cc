@@ -76,7 +76,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         *(uint64_t *)args_ptr = (uint64_t)return_ptr;
     }
 
-    RG_ASSERT(AlignUp(lib->stack.data, 16) == lib->stack.data);
+    RG_ASSERT(AlignUp(lib->stack.ptr, 16) == lib->stack.ptr);
     RG_ASSERT(AlignUp(lib->stack.end(), 16) == lib->stack.end());
     RG_ASSERT(AlignUp(args_ptr, 16) == args_ptr);
 
