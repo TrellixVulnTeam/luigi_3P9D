@@ -31,9 +31,10 @@
 .macro prologue
     .cfi_startproc
     stp x29, x30, [sp, -16]!
+    .cfi_def_cfa sp, 16
+    .cfi_offset 29, 16
+    .cfi_offset 30, 8
     str x19, [sp, -16]!
-    .cfi_offset 29, -32
-    .cfi_offset 30, -24
     .cfi_def_cfa sp, 32
     mov x9, x0
     mov x19, sp
@@ -49,10 +50,11 @@
     blr x9
     mov sp, x19
     ldr x19, [sp], 16
+    .cfi_def_cfa sp, 16
     ldp x29, x30, [sp], 16
+    .cfi_def_cfa sp, 0
     .cfi_restore 30
     .cfi_restore 29
-    .cfi_def_cfa sp, 0
     ret
     .cfi_endproc
 .endm
