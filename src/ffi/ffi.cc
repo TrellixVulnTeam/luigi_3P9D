@@ -216,7 +216,7 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
     Napi::Object functions = info[1].As<Napi::Array>();
     Napi::Array keys = functions.GetPropertyNames();
-    Size max_scratch_size = 0;
+    Size extra_size = 0;
 
     for (uint32_t i = 0; i < keys.Length(); i++) {
         FunctionInfo *func = new FunctionInfo();
@@ -256,6 +256,7 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         func->ret.type = ResolveType(instance, value[0u]);
         if (!func->ret.type)
             return env.Null();
+        func->scratch_size = AlignLen(func->ret.type->size, 16);
 
         for (uint32_t j = 0; j < parameters.Length(); j++) {
             ParameterInfo param = {};
@@ -271,7 +272,10 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
             func->scratch_size += AlignLen(param.type->size, 16);
         }
-        max_scratch_size = std::max(max_scratch_size, func->scratch_size);
+
+        // That's enough extra space for pretty much every ABI supported, with 16 bytes of
+        // bonus for each in case we need to put pointers and exta-align them.
+        extra_size = std::max(extra_size, func->scratch_size + AlignLen(8 * (func->parameters.len + 1), 16));
 
         if (!AnalyseFunction(func))
             return env.Null();
@@ -283,7 +287,7 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         obj.Set(key, wrapper);
     }
 
-    lib->stack.AppendDefault(Mebibytes(1) + max_scratch_size);
+    lib->stack.AppendDefault(Mebibytes(1) + extra_size);
 
     return obj;
 }
