@@ -114,7 +114,7 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
         type->members.Append(member);
     }
 
-    type->size = AlignLen(type->size, type->align);
+    type->size = (int16_t)AlignLen(type->size, type->align);
 
     if (!instance->types_map.TrySet(type).second) {
         ThrowError<Napi::Error>(env, "Duplicate type name '%1'", type->name);

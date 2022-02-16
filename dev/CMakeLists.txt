@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 if(MSVC)
     enable_language(ASM_MASM)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
+    add_compile_options(/wd4200)
 endif()
 
 # FFI
