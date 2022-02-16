@@ -15,16 +15,12 @@
 // Unlike the five next functions, these ones don't forward XMM argument registers.
 .global ForwardCallGG
 .global ForwardCallF
-.global ForwardCallDG
-.global ForwardCallGD
-.global ForwardCallDD
+.global ForwardCallDDDD
 
 // The X variants are slightly slower, and are used when XMM arguments must be forwarded.
 .global ForwardCallXGG
 .global ForwardCallXF
-.global ForwardCallXDG
-.global ForwardCallXGD
-.global ForwardCallXDD
+.global ForwardCallXDDDD
 
 // Copy function pointer to r9, in order to save it through argument forwarding.
 // Save RSP in r19 (non-volatile), and use carefully assembled stack provided by caller.
@@ -40,7 +36,7 @@
     mov x19, sp
     .cfi_def_cfa x19, 32
     mov sp, x1
-    add sp, sp, #128
+    add sp, sp, #192
 .endm
 
 // Call native function.
@@ -49,6 +45,7 @@
 .macro epilogue
     blr x9
     mov sp, x19
+    .cfi_def_cfa sp, 32
     ldr x19, [sp], 16
     .cfi_def_cfa sp, 16
     ldp x29, x30, [sp], 16
@@ -61,26 +58,27 @@
 
 // Prepare general purpose argument registers from array passed by caller.
 .macro forward_int
-    ldr x7, [x1, 56]
-    ldr x6, [x1, 48]
-    ldr x5, [x1, 40]
-    ldr x4, [x1, 32]
-    ldr x3, [x1, 24]
-    ldr x2, [x1, 16]
-    ldr x0, [x1, 0]
-    ldr x1, [x1, 8]
+    ldr x8, [x1, 120]
+    ldr x7, [x1, 112]
+    ldr x6, [x1, 104]
+    ldr x5, [x1, 96]
+    ldr x4, [x1, 88]
+    ldr x3, [x1, 80]
+    ldr x2, [x1, 72]
+    ldr x0, [x1, 56]
+    ldr x1, [x1, 64]
 .endm
 
 // Prepare vector argument registers from array passed by caller.
-.macro forward_xmm
-    ldr d7, [x1, 120]
-    ldr d6, [x1, 112]
-    ldr d5, [x1, 104]
-    ldr d4, [x1, 96]
-    ldr d3, [x1, 88]
-    ldr d2, [x1, 80]
-    ldr d1, [x1, 72]
-    ldr d0, [x1, 64]
+.macro forward_vec
+    ldr d7, [x1, 184]
+    ldr d6, [x1, 176]
+    ldr d5, [x1, 168]
+    ldr d4, [x1, 160]
+    ldr d3, [x1, 152]
+    ldr d2, [x1, 144]
+    ldr d1, [x1, 136]
+    ldr d0, [x1, 128]
 .endm
 
 ForwardCallGG:
@@ -93,47 +91,25 @@ ForwardCallF:
     forward_int
     epilogue
 
-ForwardCallDG:
-    prologue
-    forward_int
-    epilogue
-
-ForwardCallGD:
-    prologue
-    forward_int
-    epilogue
-
-ForwardCallDD:
+ForwardCallDDDD:
     prologue
     forward_int
     epilogue
 
 ForwardCallXGG:
     prologue
-    forward_xmm
+    forward_vec
     forward_int
     epilogue
 
 ForwardCallXF:
     prologue
-    forward_xmm
+    forward_vec
     forward_int
     epilogue
 
-ForwardCallXDG:
+ForwardCallXDDDD:
     prologue
-    forward_xmm
-    forward_int
-    epilogue
-
-ForwardCallXGD:
-    prologue
-    forward_xmm
-    forward_int
-    epilogue
-
-ForwardCallXDD:
-    prologue
-    forward_xmm
+    forward_vec
     forward_int
     epilogue

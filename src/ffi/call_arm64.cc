@@ -21,66 +21,29 @@
 
 namespace RG {
 
-enum class RegisterClass {
-    NoClass = 0, // Explicitly 0
-    Integer,
-    SSE,
-    Memory
-};
-
 struct X0X1Ret {
     uint64_t x0;
     uint64_t x1;
 };
-struct X0D0Ret {
-    uint64_t x0;
-    double d0;
-};
-struct D0X0Ret {
-    double d0;
-    uint64_t x0;
-};
-struct D0D1Ret {
+struct HfaRet {
     double d0;
     double d1;
+    double d2;
+    double d3;
 };
 
 extern "C" X0X1Ret ForwardCallGG(const void *func, uint8_t *sp);
 extern "C" float ForwardCallF(const void *func, uint8_t *sp);
-extern "C" D0X0Ret ForwardCallDG(const void *func, uint8_t *sp);
-extern "C" X0D0Ret ForwardCallGD(const void *func, uint8_t *sp);
-extern "C" D0D1Ret ForwardCallDD(const void *func, uint8_t *sp);
+extern "C" HfaRet ForwardCallDDDD(const void *func, uint8_t *sp);
 
 extern "C" X0X1Ret ForwardCallXGG(const void *func, uint8_t *sp);
 extern "C" float ForwardCallXF(const void *func, uint8_t *sp);
-extern "C" D0X0Ret ForwardCallXDG(const void *func, uint8_t *sp);
-extern "C" X0D0Ret ForwardCallXGD(const void *func, uint8_t *sp);
-extern "C" D0D1Ret ForwardCallXDD(const void *func, uint8_t *sp);
+extern "C" HfaRet ForwardCallXDDDD(const void *func, uint8_t *sp);
 
-static inline RegisterClass MergeClasses(RegisterClass cls1, RegisterClass cls2)
+static void CountRegisters(const TypeInfo *type, int *out_gpr, int *out_vec)
 {
-    if (cls1 == cls2)
-        return cls1;
-
-    if (cls1 == RegisterClass::NoClass)
-        return cls2;
-    if (cls2 == RegisterClass::NoClass)
-        return cls1;
-
-    if (cls1 == RegisterClass::Memory || cls2 == RegisterClass::Memory)
-        return RegisterClass::Memory;
-    if (cls1 == RegisterClass::Integer || cls2 == RegisterClass::Integer)
-        return RegisterClass::Integer;
-
-    return RegisterClass::SSE;
-}
-
-static Size ClassifyType(const TypeInfo *type, Size offset, Span<RegisterClass> classes)
-{
-    RG_ASSERT(classes.len > 0);
-
     switch (type->primitive) {
-        case PrimitiveKind::Void: { return 0; } break;
+        case PrimitiveKind::Void: {} break;
 
         case PrimitiveKind::Bool:
         case PrimitiveKind::Int8:
@@ -92,69 +55,65 @@ static Size ClassifyType(const TypeInfo *type, Size offset, Span<RegisterClass> 
         case PrimitiveKind::Int64:
         case PrimitiveKind::UInt64:
         case PrimitiveKind::String:
-        case PrimitiveKind::Pointer: {
-            classes[0] = MergeClasses(classes[0], RegisterClass::Integer);
-            return 1;
-        } break;
+        case PrimitiveKind::Pointer: { *out_gpr += 1; } break;
 
         case PrimitiveKind::Float32:
-        case PrimitiveKind::Float64: {
-            classes[0] = MergeClasses(classes[0], RegisterClass::SSE);
-            return 1;
-        } break;
+        case PrimitiveKind::Float64: { *out_vec += 1; } break;
 
         case PrimitiveKind::Record: {
-            if (type->size > 64) {
-                classes[0] = MergeClasses(classes[0], RegisterClass::Memory);
-                return 1;
-            }
-
             for (const RecordMember &member: type->members) {
-                Size start = offset / 8;
-                ClassifyType(member.type, offset % 8, classes.Take(start, classes.len - start));
-                offset += member.type->size;
+                CountRegisters(member.type, out_gpr, out_vec);
             }
-
-            return (offset + 7) / 8;
         } break;
     }
+}
 
-    RG_UNREACHABLE();
+static bool IsHFA(const TypeInfo *type)
+{
+    if (type->primitive != PrimitiveKind::Record)
+        return false;
+
+    if (!type->members.len || type->members.len > 4)
+        return false;
+    if (type->members[0].type->primitive != PrimitiveKind::Float32 &&
+            type->members[0].type->primitive != PrimitiveKind::Float64)
+        return false;
+
+    for (Size i = 1; i < type->members.len; i++) {
+        if (type->members[i].type != type->members[0].type)
+            return false;
+    }
+
+    return true;
+}
+
+static void AnalyseReturn(ParameterInfo *ret)
+{
+    if (IsHFA(ret->type)) {
+        ret->hfa = true;
+        ret->vec_count = ret->type->members.len;
+    } else if (ret->type->size <= 16) {
+        ret->gpr_count = ret->type->size / 8;
+    }
 }
 
 static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int vec_avail)
 {
-    LocalArray<RegisterClass, 8> classes = {};
-    classes.len = ClassifyType(param->type, 0, classes.data);
-
-    if (!classes.len)
-        return;
-    if (classes.len > 2)
-        return;
-
     int gpr_count = 0;
     int vec_count = 0;
+    CountRegisters(param->type, &gpr_count, &vec_count);
 
-    for (RegisterClass cls: classes) {
-        RG_ASSERT(cls != RegisterClass::NoClass);
+    if (gpr_count > gpr_avail || vec_count > vec_avail)
+        return;
 
-        if (cls == RegisterClass::Memory)
-            return;
-
-        gpr_count += (cls == RegisterClass::Integer);
-        vec_count += (cls == RegisterClass::SSE);
-    }
-
-    if (gpr_count <= gpr_avail && vec_count <= vec_avail){
-        param->gpr_count = (int8_t)gpr_count;
-        param->vec_count = (int8_t)vec_count;
-        param->gpr_first = (classes[0] == RegisterClass::Integer);
-    }
+    param->hfa = IsHFA(param->type);
+    param->gpr_count = gpr_count;
+    param->vec_count = vec_count;
 }
 
 bool AnalyseFunction(FunctionInfo *func)
 {
-    AnalyseParameter(&func->ret, 2, 2);
+    AnalyseReturn(&func->ret);
 
     int gpr_avail = 8;
     int vec_avail = 8;
@@ -167,6 +126,62 @@ bool AnalyseFunction(FunctionInfo *func)
     }
 
     return true;
+}
+
+bool PushHFA(const Napi::Object &obj, const TypeInfo *type, uint8_t *dest)
+{
+    Napi::Env env = obj.Env();
+
+    RG_ASSERT(obj.IsObject());
+    RG_ASSERT(type->primitive == PrimitiveKind::Record);
+    RG_ASSERT(AlignUp(dest, 8) == dest);
+
+    for (const RecordMember &member: type->members) {
+        Napi::Value value = obj.Get(member.name);
+
+        if (member.type->primitive == PrimitiveKind::Float32) {
+            float f;
+            if (!CopyNodeNumber(value, &f))
+                return false;
+
+            *(float *)dest = f;
+        } else if (member.type->primitive == PrimitiveKind::Float64) {
+            double d;
+            if (!CopyNodeNumber(value, &d))
+                return false;
+
+            *(double *)dest = d;
+        } else {
+            RG_UNREACHABLE();
+        }
+
+        dest += 8;
+    }
+
+    return true;
+}
+
+Napi::Object PopHFA(napi_env env, const uint8_t *ptr, const TypeInfo *type)
+{
+    RG_ASSERT(type->primitive == PrimitiveKind::Record);
+
+    Napi::Object obj = Napi::Object::New(env);
+
+    for (const RecordMember &member: type->members) {
+        if (member.type->primitive == PrimitiveKind::Float32) {
+            float f = *(float *)ptr;
+            obj.Set(member.name, Napi::Number::New(env, (double)f));
+        } else if (member.type->primitive == PrimitiveKind::Float64) {
+            double d = *(double *)ptr;
+            obj.Set(member.name, Napi::Number::New(env, d));
+        } else {
+            RG_UNREACHABLE();
+        }
+
+        ptr += 8;
+    }
+
+    return obj;
 }
 
 Napi::Value TranslateCall(const Napi::CallbackInfo &info)
@@ -189,13 +204,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     uint8_t *return_ptr = nullptr;
     uint8_t *args_ptr = nullptr;
     uint64_t *gpr_ptr = nullptr, *vec_ptr = nullptr;
+    uint8_t *sp_ptr = nullptr;
     int gpr_count = 0, vec_count = 0;
 
     // Return through registers unless it's too big
-    if (!func->ret.type->size || func->ret.gpr_count || func->ret.vec_count) {
-        args_ptr = top_ptr - func->args_size;
+    if (!func->ret.type->size || func->ret.hfa || func->ret.gpr_count) {
+        args_ptr = top_ptr - func->args_size - 1024; // XXX
         vec_ptr = (uint64_t *)args_ptr - 8;
-        gpr_ptr = vec_ptr - 8;
+        gpr_ptr = vec_ptr - 9;
+        sp_ptr = (uint8_t *)(gpr_ptr - 7);
 
 #ifdef RG_DEBUG
         memset(gpr_ptr, 0, top_ptr - (uint8_t *)gpr_ptr);
@@ -203,15 +220,16 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     } else {
         return_ptr = top_ptr - AlignLen(func->ret.type->size, 16);
 
-        args_ptr = return_ptr - func->args_size;
+        args_ptr = return_ptr - func->args_size - 1024; // XXX
         vec_ptr = (uint64_t *)args_ptr - 8;
-        gpr_ptr = vec_ptr - 8;
+        gpr_ptr = vec_ptr - 9;
+        sp_ptr = (uint8_t *)(gpr_ptr - 7);
 
 #ifdef RG_DEBUG
         memset(gpr_ptr, 0, top_ptr - (uint8_t *)gpr_ptr);
 #endif
 
-        gpr_ptr[gpr_count++] = (uint64_t)return_ptr;
+        gpr_ptr[8] = (uint64_t)return_ptr;
     }
 
     RG_ASSERT(AlignUp(lib->stack.ptr, 16) == lib->stack.ptr);
@@ -312,7 +330,12 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                 Napi::Object obj = info[i].As<Napi::Object>();
 
-                if (param.gpr_count || param.vec_count) {
+                if (param.hfa) {
+                    if (!PushHFA(obj, param.type, (uint8_t *)(vec_ptr + vec_count)))
+                        return env.Null();
+
+                    vec_count += param.vec_count;
+                } if (param.gpr_count || param.vec_count) {
                     RG_ASSERT(param.type->size <= 16);
                     RG_ASSERT(param.gpr_count <= 8 - gpr_count);
                     RG_ASSERT(param.vec_count <= 8 - vec_count);
@@ -341,10 +364,18 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                         }
                     }
                 } else if (param.type->size) {
+                    // int16_t align = std::max((int16_t)8, param.type->align);
+                    //
+                    // args_ptr = AlignUp(args_ptr, align);
+                    // if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
+                    //     return env.Null();
+                    // args_ptr += AlignLen(param.type->size, 8);
+
                     args_ptr = AlignUp(args_ptr, param.type->align);
                     if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
                         return env.Null();
-                    args_ptr += param.type->size;
+                    // args_ptr += param.type->size;
+                    args_ptr = AlignUp(args_ptr, 8);
                 }
             } break;
 
@@ -370,8 +401,8 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     // DumpStack(func, MakeSpan((uint8_t *)gpr_ptr, top_ptr - (uint8_t *)gpr_ptr));
 
 #define PERFORM_CALL(Suffix) \
-    (vec_count ? ForwardCallX ## Suffix(func->func, (uint8_t *)gpr_ptr) \
-               : ForwardCall ## Suffix(func->func, (uint8_t *)gpr_ptr))
+    (vec_count ? ForwardCallX ## Suffix(func->func, sp_ptr) \
+               : ForwardCall ## Suffix(func->func, sp_ptr))
 
     // Execute and convert return value
     switch (func->ret.type->primitive) {
@@ -382,24 +413,19 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         } break;
 
         case PrimitiveKind::Float64: {
-            D0X0Ret ret = PERFORM_CALL(DG);
+            HfaRet ret = PERFORM_CALL(DDDD);
 
             return Napi::Number::New(env, (double)ret.d0);
         } break;
 
         case PrimitiveKind::Record: {
-            if (func->ret.gpr_first && !func->ret.vec_count) {
+            if (func->ret.hfa) {
+                HfaRet ret = PERFORM_CALL(DDDD);
+
+                Napi::Object obj = PopHFA(env, (const uint8_t *)&ret, func->ret.type);
+                return obj;
+            } else if (func->ret.gpr_count) {
                 X0X1Ret ret = PERFORM_CALL(GG);
-
-                Napi::Object obj = PopObject(env, (const uint8_t *)&ret, func->ret.type);
-                return obj;
-            } else if (func->ret.gpr_first) {
-                X0D0Ret ret = PERFORM_CALL(GD);
-
-                Napi::Object obj = PopObject(env, (const uint8_t *)&ret, func->ret.type);
-                return obj;
-            } else if (func->ret.vec_count) {
-                D0X0Ret ret = PERFORM_CALL(DG);
 
                 Napi::Object obj = PopObject(env, (const uint8_t *)&ret, func->ret.type);
                 return obj;
