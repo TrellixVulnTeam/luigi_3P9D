@@ -194,7 +194,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     // Return through registers unless it's too big
     if (!func->ret.ret_stack) {
-        args_ptr = top_ptr - func->args_size;
+        args_ptr = top_ptr - func->scratch_size;
         xmm_ptr = (uint64_t *)args_ptr - 8;
         gpr_ptr = xmm_ptr - 6;
 
@@ -204,7 +204,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     } else {
         return_ptr = top_ptr - AlignLen(func->ret.type->size, 16);
 
-        args_ptr = return_ptr - func->args_size;
+        args_ptr = return_ptr - func->scratch_size;
         xmm_ptr = (uint64_t *)args_ptr - 8;
         gpr_ptr = xmm_ptr - 6;
 

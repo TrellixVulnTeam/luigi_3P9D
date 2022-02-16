@@ -62,7 +62,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     // Stack pointer and register
     uint8_t *top_ptr = lib->stack.end();
-    uint8_t *scratch_ptr = top_ptr - func->irregular_size;
+    uint8_t *scratch_ptr = top_ptr - func->scratch_size;
     uint8_t *return_ptr = nullptr;
     uint8_t *args_ptr = nullptr;
     bool forward_xmm = false;

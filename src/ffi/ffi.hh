@@ -100,8 +100,8 @@ struct FunctionInfo {
     ParameterInfo ret;
     HeapArray<ParameterInfo> parameters;
 
-    Size args_size;
-    Size irregular_size;
+    // Total size needed if all arguments were copied together (with align = 16)
+    Size scratch_size; 
 };
 
 template <typename T, typename... Args>

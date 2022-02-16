@@ -171,7 +171,6 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
     }
 
     std::shared_ptr<LibraryData> lib = std::make_shared<LibraryData>();
-    lib->stack.AppendDefault(Mebibytes(1));
 
     Napi::Object obj = Napi::Object::New(env);
 
@@ -216,6 +215,7 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
     Napi::Object functions = info[1].As<Napi::Array>();
     Napi::Array keys = functions.GetPropertyNames();
+    Size max_scratch_size = 0;
 
     for (uint32_t i = 0; i < keys.Length(); i++) {
         FunctionInfo *func = new FunctionInfo();
@@ -268,8 +268,9 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
             }
             func->parameters.Append(param);
 
-            func->args_size += AlignLen(param.type->size, 16);
+            func->scratch_size += AlignLen(param.type->size, 16);
         }
+        max_scratch_size = std::max(max_scratch_size, func->scratch_size);
 
         if (!AnalyseFunction(func))
             return env.Null();
@@ -280,6 +281,8 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
         obj.Set(key, wrapper);
     }
+
+    lib->stack.AppendDefault(Mebibytes(1) + max_scratch_size);
 
     return obj;
 }
