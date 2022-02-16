@@ -129,4 +129,44 @@ static inline const char *GetTypeName(napi_valuetype type)
     return "unknown";
 }
 
+template <typename T>
+bool CopyNodeNumber(const Napi::Value &value, T *out_value)
+{
+    if (value.IsNumber()) {
+        *out_value = (T)value.As<Napi::Number>();
+        return true;
+    } else if (value.IsBigInt()) {
+        Napi::BigInt bigint = value.As<Napi::BigInt>();
+
+        bool lossless;
+        *out_value = (T)bigint.Uint64Value(&lossless);
+
+        return true;
+    } else {
+        Napi::Env env = value.Env();
+
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected number", GetTypeName(value.Type()));
+        return false;
+    }
+}
+
+static inline const char *CopyNodeString(const Napi::Value &value, Allocator *alloc)
+{
+    Napi::Env env = value.Env();
+    napi_status status;
+
+    size_t len = 0;
+    status = napi_get_value_string_utf8(env, value, nullptr, 0, &len);
+    RG_ASSERT(status == napi_ok);
+
+    Span<char> buf;
+    buf.len = (Size)len + 1;
+    buf.ptr = (char *)Allocator::Allocate(alloc, buf.len);
+
+    status = napi_get_value_string_utf8(env, value, buf.ptr, (size_t)buf.len, &len);
+    RG_ASSERT(status == napi_ok);
+
+    return buf.ptr;
+}
+
 }

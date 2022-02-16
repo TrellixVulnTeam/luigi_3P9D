@@ -39,7 +39,7 @@ static inline const uint8_t *AlignUp(const uint8_t *ptr, Size align)
     return aligned;
 }
 
-const char *CopyNodeString(const Napi::Value &value, Allocator *alloc);
+bool CopyNodeNumber(const Napi::Value &value, uint64_t *out_v);
 
 bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc, uint8_t *dest);
 Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type);

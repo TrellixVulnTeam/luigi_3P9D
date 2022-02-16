@@ -228,7 +228,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Bool: {
                 if (!value.IsBoolean()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected boolean", GetTypeName(value.Type()), i);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected boolean", GetTypeName(value.Type()));
                     return env.Null();
                 }
 
@@ -249,21 +249,12 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             case PrimitiveKind::UInt32:
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
-                uint64_t v;
-                if (info[i].IsNumber()) {
-                    v = (uint64_t)info[i].As<Napi::Number>().Int64Value();
-                } else if (info[i].IsBigInt()) {
-                    Napi::BigInt bigint = info[i].As<Napi::BigInt>();
-
-                    bool lossless;
-                    v = bigint.Uint64Value(&lossless);
-                } else {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
+                int64_t v;
+                if (!CopyNodeNumber(info[i], &v))
                     return env.Null();
-                }
 
                 if (RG_LIKELY(gpr_count < 8)) {
-                    gpr_ptr[gpr_count++] = v;
+                    gpr_ptr[gpr_count++] = (uint64_t)v;
                 } else {
                     args_ptr = AlignUp(args_ptr, param.type->align);
                     memcpy(args_ptr, &v, param.type->size); // Little Endian
@@ -272,17 +263,8 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::Float32: {
                 float f;
-                if (info[i].IsNumber()) {
-                    f = info[i].As<Napi::Number>();
-                } else if (info[i].IsBigInt()) {
-                    Napi::BigInt bigint = info[i].As<Napi::BigInt>();
-
-                    bool lossless;
-                    f = (float)bigint.Uint64Value(&lossless);
-                } else {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
+                if (!CopyNodeNumber(info[i], &f))
                     return env.Null();
-                }
 
                 if (RG_LIKELY(vec_count < 8)) {
                     memcpy(vec_ptr + vec_count++, &f, 4);
@@ -294,17 +276,8 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::Float64: {
                 double d;
-                if (info[i].IsNumber()) {
-                    d = info[i].As<Napi::Number>();
-                } else if (info[i].IsBigInt()) {
-                    Napi::BigInt bigint = info[i].As<Napi::BigInt>();
-
-                    bool lossless;
-                    d = (double)bigint.Uint64Value(&lossless);
-                } else {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i);
+                if (!CopyNodeNumber(info[i], &d))
                     return env.Null();
-                }
 
                 if (RG_LIKELY(vec_count < 8)) {
                     memcpy(vec_ptr + vec_count++, &d, 8);
@@ -316,7 +289,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::String: {
                 if (!value.IsString()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetTypeName(value.Type()), i);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected string", GetTypeName(value.Type()));
                     return env.Null();
                 }
 
@@ -333,7 +306,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Record: {
                 if (!value.IsObject()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetTypeName(value.Type()), i);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected object", GetTypeName(value.Type()));
                     return env.Null();
                 }
 
@@ -377,7 +350,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Pointer: {
                 if (!value.IsExternal()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected external", GetTypeName(value.Type()));
                     return env.Null();
                 }
 

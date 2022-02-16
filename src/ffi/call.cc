@@ -19,25 +19,6 @@
 
 namespace RG {
 
-const char *CopyNodeString(const Napi::Value &value, Allocator *alloc)
-{
-    Napi::Env env = value.Env();
-    napi_status status;
-
-    size_t len = 0;
-    status = napi_get_value_string_utf8(env, value, nullptr, 0, &len);
-    RG_ASSERT(status == napi_ok);
-
-    Span<char> buf;
-    buf.len = (Size)len + 1;
-    buf.ptr = (char *)Allocator::Allocate(alloc, buf.len);
-
-    status = napi_get_value_string_utf8(env, value, buf.ptr, (size_t)buf.len, &len);
-    RG_ASSERT(status == napi_ok);
-
-    return buf.ptr;
-}
-
 bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc, uint8_t *dest)
 {
     Napi::Env env = obj.Env();
