@@ -79,6 +79,7 @@ struct ParameterInfo {
 #if defined(_WIN64)
     bool regular;
 #elif defined(__x86_64__)
+    bool ret_stack;
     int8_t gpr_count;
     int8_t xmm_count;
     bool gpr_first;

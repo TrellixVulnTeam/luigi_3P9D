@@ -155,8 +155,9 @@ static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int xmm_avail)
 bool AnalyseFunction(FunctionInfo *func)
 {
     AnalyseParameter(&func->ret, 2, 2);
+    func->ret.ret_stack = func->ret.type->size && !func->ret.gpr_count && !func->ret.xmm_count;
 
-    int gpr_avail = 6;
+    int gpr_avail = 6 - param.ret_stack;
     int xmm_avail = 8;
 
     for (ParameterInfo &param: func->parameters) {
@@ -192,7 +193,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     int gpr_count = 0, xmm_count = 0;
 
     // Return through registers unless it's too big
-    if (!func->ret.type->size || func->ret.gpr_count || func->ret.xmm_count) {
+    if (!func->ret.ret_stack) {
         args_ptr = top_ptr - func->args_size;
         xmm_ptr = (uint64_t *)args_ptr - 8;
         gpr_ptr = xmm_ptr - 6;
