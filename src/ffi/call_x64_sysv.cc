@@ -372,8 +372,8 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     // DumpStack(func, MakeSpan((uint8_t *)gpr_ptr, top_ptr - (uint8_t *)gpr_ptr));
 
 #define PERFORM_CALL(Suffix) \
-    (xmm_count ? ForwardCallX ## Suffix(func->func, (uint8_t *)gpr_ptr) \
-               : ForwardCall ## Suffix(func->func, (uint8_t *)gpr_ptr))
+        (xmm_count ? ForwardCallX ## Suffix(func->func, (uint8_t *)gpr_ptr) \
+                   : ForwardCall ## Suffix(func->func, (uint8_t *)gpr_ptr))
 
     // Execute and convert return value
     switch (func->ret.type->primitive) {

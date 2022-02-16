@@ -52,7 +52,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     FunctionInfo *func = (FunctionInfo *)info.Data();
     LibraryData *lib = func->lib.get();
-    
+
     RG_DEFER { lib->tmp_alloc.ReleaseAll(); };
 
     // Sanity checks
@@ -73,6 +73,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         args_ptr = scratch_ptr - AlignLen(8 * std::max((Size)4, func->parameters.len), 16);
     } else {
         return_ptr = scratch_ptr - AlignLen(func->ret.type->size, 16);
+
         args_ptr = return_ptr - AlignLen(8 * std::max((Size)4, func->parameters.len + 1), 16);
         *(uint64_t *)args_ptr = (uint64_t)return_ptr;
     }

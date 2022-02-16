@@ -275,7 +275,8 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
         // That's enough extra space for pretty much every ABI supported, with 16 bytes of
         // bonus for each in case we need to put pointers and exta-align them.
-        extra_size = std::max(extra_size, func->scratch_size + AlignLen(8 * (func->parameters.len + 1), 16));
+        extra_size = std::max(extra_size, func->scratch_size +
+                                          AlignLen(8 * (func->parameters.len + 1), 16));
 
         if (!AnalyseFunction(func))
             return env.Null();
