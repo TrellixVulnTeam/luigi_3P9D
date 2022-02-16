@@ -14,6 +14,7 @@
 #include "libcc.hh"
 #include "call.hh"
 #include "ffi.hh"
+#include "util.hh"
 
 #include <napi.h>
 

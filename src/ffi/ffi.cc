@@ -14,6 +14,7 @@
 #include "libcc.hh"
 #include "ffi.hh"
 #include "call.hh"
+#include "util.hh"
 
 #ifdef _WIN32
     #ifndef NOMINMAX
