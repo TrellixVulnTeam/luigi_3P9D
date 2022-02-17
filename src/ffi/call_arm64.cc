@@ -41,34 +41,6 @@ extern "C" X0X1Ret ForwardCallXGG(const void *func, uint8_t *sp);
 extern "C" float ForwardCallXF(const void *func, uint8_t *sp);
 extern "C" HfaRet ForwardCallXDDDD(const void *func, uint8_t *sp);
 
-static void CountRegisters(const TypeInfo *type, int *out_gpr, int *out_vec)
-{
-    switch (type->primitive) {
-        case PrimitiveKind::Void: {} break;
-
-        case PrimitiveKind::Bool:
-        case PrimitiveKind::Int8:
-        case PrimitiveKind::UInt8:
-        case PrimitiveKind::Int16:
-        case PrimitiveKind::UInt16:
-        case PrimitiveKind::Int32:
-        case PrimitiveKind::UInt32:
-        case PrimitiveKind::Int64:
-        case PrimitiveKind::UInt64:
-        case PrimitiveKind::String:
-        case PrimitiveKind::Pointer: { *out_gpr += 1; } break;
-
-        case PrimitiveKind::Float32:
-        case PrimitiveKind::Float64: { *out_vec += 1; } break;
-
-        case PrimitiveKind::Record: {
-            for (const RecordMember &member: type->members) {
-                CountRegisters(member.type, out_gpr, out_vec);
-            }
-        } break;
-    }
-}
-
 static bool IsHFA(const TypeInfo *type)
 {
     if (type->primitive != PrimitiveKind::Record)
@@ -91,7 +63,6 @@ static bool IsHFA(const TypeInfo *type)
 static void AnalyseReturn(ParameterInfo *ret)
 {
     if (IsHFA(ret->type)) {
-        ret->hfa = true;
         ret->vec_count = ret->type->members.len;
     } else if (ret->type->size <= 16) {
         ret->gpr_count = ret->type->size / 8;
@@ -100,16 +71,18 @@ static void AnalyseReturn(ParameterInfo *ret)
 
 static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int vec_avail)
 {
-    int gpr_count = 0;
-    int vec_count = 0;
-    CountRegisters(param->type, &gpr_count, &vec_count);
+    if (IsHFA(param->type) && param->type->members.len <= vec_avail) {
+        param->vec_count = param->type->members.len;
+    } else if (param->type->size <= 16) {
+        int gpr_count = (param->type->size + 7) / 8;
 
-    if (gpr_count > gpr_avail || vec_count > vec_avail)
-        return;
+        if (gpr_count > gpr_avail)
+            return;
 
-    param->hfa = IsHFA(param->type);
-    param->gpr_count = gpr_count;
-    param->vec_count = vec_count;
+        param->gpr_count = gpr_count;
+    } else {
+        param->gpr_count = !!gpr_avail;
+    }
 }
 
 bool AnalyseFunction(FunctionInfo *func)
@@ -202,6 +175,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     // Stack pointer and register
     uint8_t *top_ptr = lib->stack.end();
+    uint8_t *scratch_ptr = top_ptr - func->scratch_size;
     uint8_t *return_ptr = nullptr;
     uint8_t *args_ptr = nullptr;
     uint64_t *gpr_ptr = nullptr, *vec_ptr = nullptr;
@@ -209,25 +183,25 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     int gpr_count = 0, vec_count = 0;
 
     // Return through registers unless it's too big
-    if (!func->ret.type->size || func->ret.hfa || func->ret.gpr_count) {
-        args_ptr = top_ptr - func->args_size - 1024; // XXX
+    if (!func->ret.type->size || func->ret.vec_count || func->ret.gpr_count) {
+        args_ptr = scratch_ptr - AlignLen(8 * func->parameters.len, 16);
         vec_ptr = (uint64_t *)args_ptr - 8;
         gpr_ptr = vec_ptr - 9;
         sp_ptr = (uint8_t *)(gpr_ptr - 7);
 
 #ifdef RG_DEBUG
-        memset(gpr_ptr, 0, top_ptr - (uint8_t *)gpr_ptr);
+        memset(sp_ptr, 0, top_ptr - sp_ptr);
 #endif
     } else {
-        return_ptr = top_ptr - AlignLen(func->ret.type->size, 16);
+        return_ptr = scratch_ptr - AlignLen(func->ret.type->size, 16);
 
-        args_ptr = return_ptr - func->args_size - 1024; // XXX
+        args_ptr = return_ptr - AlignLen(8 * func->parameters.len, 16);
         vec_ptr = (uint64_t *)args_ptr - 8;
         gpr_ptr = vec_ptr - 9;
         sp_ptr = (uint8_t *)(gpr_ptr - 7);
 
 #ifdef RG_DEBUG
-        memset(gpr_ptr, 0, top_ptr - (uint8_t *)gpr_ptr);
+        memset(sp_ptr, 0, top_ptr - sp_ptr);
 #endif
 
         gpr_ptr[8] = (uint64_t)return_ptr;
@@ -235,7 +209,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
     RG_ASSERT(AlignUp(lib->stack.ptr, 16) == lib->stack.ptr);
     RG_ASSERT(AlignUp(lib->stack.end(), 16) == lib->stack.end());
-    RG_ASSERT(AlignUp(args_ptr, 16) == args_ptr);
+    RG_ASSERT(AlignUp(sp_ptr, 16) == sp_ptr);
 
     // Push arguments
     for (Size i = 0; i < func->parameters.len; i++) {
@@ -331,52 +305,41 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                 Napi::Object obj = info[i].As<Napi::Object>();
 
-                if (param.hfa) {
+                if (param.vec_count) {
                     if (!PushHFA(obj, param.type, (uint8_t *)(vec_ptr + vec_count)))
                         return env.Null();
 
                     vec_count += param.vec_count;
-                } if (param.gpr_count || param.vec_count) {
-                    RG_ASSERT(param.type->size <= 16);
-                    RG_ASSERT(param.gpr_count <= 8 - gpr_count);
-                    RG_ASSERT(param.vec_count <= 8 - vec_count);
+                } else if (param.type->size <= 16) {
+                    if (param.gpr_count <= 8 - gpr_count) {
+                        RG_ASSERT(param.type->align <= 8);
 
-                    uint64_t buf[2] = {};
-                    if (!PushObject(obj, param.type, &lib->tmp_alloc, (uint8_t *)buf))
-                        return env.Null();
-
-                    if (param.gpr_first) {
-                        uint64_t *ptr = buf;
-
-                        gpr_ptr[gpr_count++] = *(ptr++);
-                        if (param.gpr_count == 2) {
-                            gpr_ptr[gpr_count++] = *(ptr++);
-                        } else if (param.vec_count == 1) {
-                            vec_ptr[vec_count++] = *(ptr++);
-                        }
+                        if (!PushObject(obj, param.type, &lib->tmp_alloc, (uint8_t *)(gpr_ptr + gpr_count)))
+                            return env.Null();
+                        gpr_count += param.gpr_count;
                     } else {
-                        uint64_t *ptr = buf;
-
-                        vec_ptr[vec_count++] = *(ptr++);
-                        if (param.vec_count == 2) {
-                            vec_ptr[vec_count++] = *(ptr++);
-                        } else if (param.gpr_count == 1) {
-                            gpr_ptr[gpr_count++] = *(ptr++);
-                        }
+                        args_ptr = AlignUp(args_ptr, param.type->align);
+                        if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
+                            return env.Null();
+                        args_ptr += AlignLen(param.type->size, 8);
                     }
-                } else if (param.type->size) {
-                    // int16_t align = std::max((int16_t)8, param.type->align);
-                    //
-                    // args_ptr = AlignUp(args_ptr, align);
-                    // if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
-                    //     return env.Null();
-                    // args_ptr += AlignLen(param.type->size, 8);
+                } else {
+                    uint8_t *ptr = scratch_ptr;
+                    scratch_ptr += AlignLen(param.type->size, 16);
 
-                    args_ptr = AlignUp(args_ptr, param.type->align);
-                    if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
+                    if (param.gpr_count) {
+                        RG_ASSERT(param.gpr_count == 1);
+                        RG_ASSERT(param.vec_count == 0);
+
+                        gpr_ptr[gpr_count++] = (uint64_t)ptr;
+                    } else {
+                        args_ptr = AlignUp(args_ptr, 8);
+                        *(uint8_t **)args_ptr = ptr;
+                        args_ptr += 8;
+                    }
+
+                    if (!PushObject(obj, param.type, &lib->tmp_alloc, ptr))
                         return env.Null();
-                    // args_ptr += param.type->size;
-                    args_ptr = AlignUp(args_ptr, 8);
                 }
             } break;
 
@@ -399,7 +362,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         }
     }
 
-    // DumpStack(func, MakeSpan((uint8_t *)gpr_ptr, top_ptr - (uint8_t *)gpr_ptr));
+    // DumpStack(func, MakeSpan(sp_ptr, top_ptr - sp_ptr));
 
 #define PERFORM_CALL(Suffix) \
         (vec_count ? ForwardCallX ## Suffix(func->func, sp_ptr) \
@@ -420,15 +383,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         } break;
 
         case PrimitiveKind::Record: {
-            if (func->ret.hfa) {
-                HfaRet ret = PERFORM_CALL(DDDD);
-
-                Napi::Object obj = PopHFA(env, (const uint8_t *)&ret, func->ret.type);
-                return obj;
-            } else if (func->ret.gpr_count) {
+            if (func->ret.gpr_count) {
                 X0X1Ret ret = PERFORM_CALL(GG);
 
                 Napi::Object obj = PopObject(env, (const uint8_t *)&ret, func->ret.type);
+                return obj;
+            } else if (func->ret.vec_count) {
+                HfaRet ret = PERFORM_CALL(DDDD);
+
+                Napi::Object obj = PopHFA(env, (const uint8_t *)&ret, func->ret.type);
                 return obj;
             } else if (func->ret.type->size) {
                 RG_ASSERT(return_ptr);
