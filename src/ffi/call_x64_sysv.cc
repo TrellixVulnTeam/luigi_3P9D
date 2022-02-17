@@ -158,7 +158,7 @@ bool AnalyseFunction(FunctionInfo *func)
     AnalyseParameter(&func->ret, 2, 2);
     func->ret.ret_stack = func->ret.type->size && !func->ret.gpr_count && !func->ret.xmm_count;
 
-    int gpr_avail = 6 - param.ret_stack;
+    int gpr_avail = 6 - func->ret.ret_stack;
     int xmm_avail = 8;
 
     for (ParameterInfo &param: func->parameters) {
