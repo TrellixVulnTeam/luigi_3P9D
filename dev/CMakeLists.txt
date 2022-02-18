@@ -2,14 +2,12 @@ cmake_minimum_required(VERSION 3.11)
 project(LuigiDev C CXX ASM)
 
 set(CMAKE_CXX_STANDARD 17)
-
 if(MSVC)
     enable_language(ASM_MASM)
-    add_compile_definitions(_CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
-    add_compile_options(/wd4200)
 endif()
 
 # FFI
+# ----------------------
 
 file(GLOB FFI_SRC ../src/ffi/*.cc)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -26,11 +24,19 @@ add_library(FFI SHARED ${FFI_SRC} ${CMAKE_JS_SRC})
 set_target_properties(FFI PROPERTIES PREFIX "" SUFFIX ".node")
 target_include_directories(FFI PRIVATE ${CMAKE_JS_INC} ../vendor/node-addon-api)
 target_link_libraries(FFI PRIVATE ${CMAKE_JS_LIB})
+
 if(WIN32)
+    target_compile_definitions(FFI PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
     target_link_libraries(FFI PRIVATE ws2_32)
+endif()
+if(MSVC)
+    target_compile_options(FFI PRIVATE /wd4200)
+else()
+    target_compile_options(FFI PRIVATE -Wno-missing-field-initializers)
 endif()
 
 # Raylib
+# ----------------------
 
 add_library(Raylib SHARED
     ../../vendor/raylib/src/rcore.c
@@ -44,8 +50,17 @@ add_library(Raylib SHARED
 )
 set_target_properties(Raylib PROPERTIES PREFIX "")
 target_include_directories(Raylib PRIVATE ${CMAKE_JS_INC} ../vendor/raylib/src/external/glfw/include)
-target_compile_definitions(Raylib PRIVATE PLATFORM_DESKTOP PLATFORM=PLATFORM_DESKTOP
-                                          GRAPHICS_API_OPENGL_21 GRAPHICS=GRAPHICS_API_OPENGL_21 BUILD_LIBTYPE_SHARED NDEBUG)
+target_compile_definitions(Raylib PRIVATE PLATFORM_DESKTOP GRAPHICS_API_OPENGL_21
+                                          BUILD_LIBTYPE_SHARED NDEBUG)
+
 if(WIN32)
+    target_compile_definitions(Raylib PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
     target_link_libraries(Raylib PRIVATE winmm)
+endif()
+if(MSVC)
+    target_compile_options(Raylib PRIVATE /wd4244 /wd4305)
+else()
+    target_compile_options(Raylib PRIVATE -Wno-sign-compare -Wno-old-style-declaration
+                                          -Wno-unused-function -Wno-missing-field-initializers
+                                          -Wno-unused-value -Wno-implicit-fallthrough -Wno-stringop-overflow)
 endif()
