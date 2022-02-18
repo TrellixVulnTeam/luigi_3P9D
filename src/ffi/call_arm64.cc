@@ -60,49 +60,43 @@ static bool IsHFA(const TypeInfo *type)
     return true;
 }
 
-static void AnalyseReturn(ParameterInfo *ret)
-{
-    if (IsHFA(ret->type)) {
-        ret->vec_count = ret->type->members.len;
-    } else if (ret->type->size <= 16) {
-        ret->gpr_count = ret->type->size / 8;
-    }
-}
-
-static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int vec_avail)
-{
-    if (IsHFA(param->type) && param->type->members.len <= vec_avail) {
-        param->vec_count = param->type->members.len;
-    } else if (param->type->size <= 16) {
-        int gpr_count = (param->type->size + 7) / 8;
-
-        if (gpr_count > gpr_avail)
-            return;
-
-        param->gpr_count = gpr_count;
-    } else {
-        param->gpr_count = !!gpr_avail;
-    }
-}
-
 bool AnalyseFunction(FunctionInfo *func)
 {
-    AnalyseReturn(&func->ret);
+    if (IsHFA(func->ret.type)) {
+        func->ret.vec_count = func->ret.type->members.len;
+    } else if (func->ret.type->size <= 16) {
+        func->ret.gpr_count = (func->ret.type->size + 7) / 8;
+    }
 
     int gpr_avail = 8;
     int vec_avail = 8;
 
     for (ParameterInfo &param: func->parameters) {
-        AnalyseParameter(&param, gpr_avail, vec_avail);
+        if (IsHFA(param.type)) {
+            if (param.type->members.len <= vec_avail) {
+                param.vec_count = param.type->members.len;
+            } else {
+                vec_avail = 0;
+            }
+        } else if (param.type->size <= 16) {
+            int gpr_count = (param.type->size + 7) / 8;
 
-        gpr_avail -= param.gpr_count;
-        vec_avail -= param.vec_count;
+            if (gpr_count <= gpr_avail) {
+                param.gpr_count = gpr_count;
+                gpr_avail -= gpr_count;
+            } else {
+                gpr_avail = 0;
+            }
+        } else if (gpr_avail) {
+            // Big types (more than 16 bytes) are replaced by a pointer
+            param.gpr_count = 1;
+        }
     }
 
     return true;
 }
 
-bool PushHFA(const Napi::Object &obj, const TypeInfo *type, uint8_t *dest)
+static bool PushHFA(const Napi::Object &obj, const TypeInfo *type, uint8_t *dest)
 {
     Napi::Env env = obj.Env();
 
@@ -135,7 +129,7 @@ bool PushHFA(const Napi::Object &obj, const TypeInfo *type, uint8_t *dest)
     return true;
 }
 
-Napi::Object PopHFA(napi_env env, const uint8_t *ptr, const TypeInfo *type)
+static Napi::Object PopHFA(napi_env env, const uint8_t *ptr, const TypeInfo *type)
 {
     RG_ASSERT(type->primitive == PrimitiveKind::Record);
 
@@ -311,13 +305,13 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                     vec_count += param.vec_count;
                 } else if (param.type->size <= 16) {
-                    if (param.gpr_count <= 8 - gpr_count) {
+                    if (param.gpr_count) {
                         RG_ASSERT(param.type->align <= 8);
 
                         if (!PushObject(obj, param.type, &lib->tmp_alloc, (uint8_t *)(gpr_ptr + gpr_count)))
                             return env.Null();
                         gpr_count += param.gpr_count;
-                    } else {
+                    } else if (param.type->size) {
                         args_ptr = AlignUp(args_ptr, param.type->align);
                         if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
                             return env.Null();
