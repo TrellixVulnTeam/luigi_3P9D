@@ -48,6 +48,7 @@
     call *%rax
     movq %rbx, %rsp
     popq %rbx
+    .cfi_def_cfa rsp, 8
     ret
     .cfi_endproc
 .endm

@@ -21,6 +21,7 @@ namespace RG {
 
 enum class PrimitiveKind {
     Void,
+
     Bool,
     Int8,
     UInt8,
@@ -33,9 +34,16 @@ enum class PrimitiveKind {
     Float32,
     Float64,
     String,
-    Record,
-    Pointer
+    Pointer,
+
+    Record
 };
+
+static inline bool IsIntegral(PrimitiveKind primitive)
+{
+    bool integral = ((int)primitive <= (int)PrimitiveKind::Pointer);
+    return integral;
+}
 
 struct TypeInfo;
 struct RecordMember;
@@ -86,6 +94,8 @@ struct ParameterInfo {
 #elif defined(__aarch64__)
     int8_t gpr_count;
     int8_t vec_count;
+#elif defined(__i386__) || defined(_M_IX86)
+    bool trivial; // Only matters for return value
 #endif
 };
 
@@ -101,7 +111,9 @@ struct FunctionInfo {
 
     // ABI-specific part
 
+#if defined(__aarch64__) || defined(__x86_64__) || defined(_WIN64)
     bool forward_fp;
+#endif
 };
 
 }

@@ -75,6 +75,35 @@
             '../../../src/ffi/call_arm64_fwd.S',
           ],
         }],
+        [ 'target_arch=="ia32" and OS=="win"', {
+          'sources': [
+            '../../../src/ffi/call_x86_fwd.asm',
+          ],
+          'rules': [
+            {
+              'rule_name': 'Assemble_FFI',
+              'message': 'Assembling <(RULE_INPUT_NAME)',
+              'extension': 'asm',
+              'inputs': [
+                '<(RULE_INPUT_PATH)',
+              ],
+              'outputs': [
+                '<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).obj',
+              ],
+              'action': [
+                'ml.exe',
+                '/nologo', '/c',
+                '/Fo<(INTERMEDIATE_DIR)/<(RULE_INPUT_ROOT).obj',
+                '<(RULE_INPUT_PATH)',
+              ],
+            }
+          ],
+        }],
+        [ 'target_arch=="ia32" and OS!="win"', {
+          'sources': [
+            '../../../src/ffi/call_x86_fwd.S',
+          ],
+        }],
       ]
     }
   ]

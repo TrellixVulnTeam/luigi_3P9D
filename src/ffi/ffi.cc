@@ -236,8 +236,8 @@ Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
             ThrowError<Napi::TypeError>(env, "Unexpected array of length %1 for '%2', expected 2 elements", value.Length(), func->name);
             return env.Null();
         }
-        if (!((Napi::Value)value[1]).IsArray()) {
-            ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetTypeName(((Napi::Value)value[1]).Type()), func->name);
+        if (!((Napi::Value)value[1u]).IsArray()) {
+            ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetTypeName(((Napi::Value)value[1u]).Type()), func->name);
             return env.Null();
         }
 
