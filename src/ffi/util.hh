@@ -51,7 +51,7 @@ T CopyNodeNumber(const Napi::Value &value)
 {
     RG_ASSERT(value.IsNumber() || value.IsBigInt());
 
-    if (value.IsNumber()) {
+    if (RG_LIKELY(value.IsNumber())) {
         return (T)value.As<Napi::Number>();
     } else if (value.IsBigInt()) {
         Napi::BigInt bigint = value.As<Napi::BigInt>();
