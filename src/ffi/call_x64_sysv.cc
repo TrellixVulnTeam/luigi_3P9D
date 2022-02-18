@@ -130,8 +130,10 @@ static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int xmm_avail)
 
     if (!classes.len)
         return;
-    if (classes.len > 2)
+    if (classes.len > 2) {
+        param->use_memory = true;
         return;
+    }
 
     int gpr_count = 0;
     int xmm_count = 0;
@@ -139,8 +141,10 @@ static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int xmm_avail)
     for (RegisterClass cls: classes) {
         RG_ASSERT(cls != RegisterClass::NoClass);
 
-        if (cls == RegisterClass::Memory)
+        if (cls == RegisterClass::Memory) {
+            param->use_memory = true;
             return;
+        }
 
         gpr_count += (cls == RegisterClass::Integer);
         xmm_count += (cls == RegisterClass::SSE);
@@ -150,15 +154,16 @@ static void AnalyseParameter(ParameterInfo *param, int gpr_avail, int xmm_avail)
         param->gpr_count = (int8_t)gpr_count;
         param->xmm_count = (int8_t)xmm_count;
         param->gpr_first = (classes[0] == RegisterClass::Integer);
+    } else {
+        param->use_memory = true;
     }
 }
 
 bool AnalyseFunction(FunctionInfo *func)
 {
     AnalyseParameter(&func->ret, 2, 2);
-    func->ret.ret_ptr = func->ret.type->size && !func->ret.gpr_count && !func->ret.xmm_count;
 
-    int gpr_avail = 6 - func->ret.ret_ptr;
+    int gpr_avail = 6 - func->ret.use_memory;
     int xmm_avail = 8;
 
     for (ParameterInfo &param: func->parameters) {
@@ -167,6 +172,8 @@ bool AnalyseFunction(FunctionInfo *func)
         gpr_avail -= param.gpr_count;
         xmm_avail -= param.xmm_count;
     }
+
+    func->forward_fp = (xmm_avail < 8);
 
     return true;
 }
@@ -191,16 +198,17 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     uint8_t *return_ptr = nullptr;
     uint8_t *args_ptr = nullptr;
     uint64_t *gpr_ptr = nullptr, *xmm_ptr = nullptr;
-    int gpr_count = 0, xmm_count = 0;
+    uint8_t *sp_ptr = nullptr;
 
     // Return through registers unless it's too big
-    if (!func->ret.ret_ptr) {
+    if (!func->ret.use_memory) {
         args_ptr = top_ptr - func->scratch_size;
         xmm_ptr = (uint64_t *)args_ptr - 8;
         gpr_ptr = xmm_ptr - 6;
+        sp_ptr = (uint8_t *)gpr_ptr;
 
 #ifdef RG_DEBUG
-        memset(gpr_ptr, 0, top_ptr - (uint8_t *)gpr_ptr);
+        memset(sp_ptr, 0, top_ptr - sp_ptr);
 #endif
     } else {
         return_ptr = top_ptr - AlignLen(func->ret.type->size, 16);
@@ -208,12 +216,13 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         args_ptr = return_ptr - func->scratch_size;
         xmm_ptr = (uint64_t *)args_ptr - 8;
         gpr_ptr = xmm_ptr - 6;
+        sp_ptr = (uint8_t *)gpr_ptr;
 
 #ifdef RG_DEBUG
-        memset(gpr_ptr, 0, top_ptr - (uint8_t *)gpr_ptr);
+        memset(sp_ptr, 0, top_ptr - sp_ptr);
 #endif
 
-        gpr_ptr[gpr_count++] = (uint64_t)return_ptr;
+        *(gpr_ptr++) = (uint64_t)return_ptr;
     }
 
     RG_ASSERT(AlignUp(lib->stack.ptr, 16) == lib->stack.ptr);
@@ -230,17 +239,16 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Bool: {
                 if (!value.IsBoolean()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected boolean", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argmument %2, expected boolean", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                bool b = info[i].As<Napi::Boolean>();
+                bool b = value.As<Napi::Boolean>();
 
-                if (RG_LIKELY(gpr_count < 6)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)b;
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)b;
                 } else {
-                    *args_ptr = (uint8_t)b;
-                    args_ptr += 1;
+                    *(args_ptr++) = (uint8_t)b;
                 }
             } break;
             case PrimitiveKind::Int8:
@@ -251,12 +259,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             case PrimitiveKind::UInt32:
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
-                int64_t v;
-                if (!CopyNodeNumber(info[i], &v))
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
                     return env.Null();
+                }
 
-                if (RG_LIKELY(gpr_count < 6)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)v;
+                int64_t v = CopyNodeNumber<int64_t>(value);
+
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)v;
                 } else {
                     args_ptr = AlignUp(args_ptr, param.type->align);
                     memcpy(args_ptr, &v, param.type->size); // Little Endian
@@ -264,12 +275,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
             } break;
             case PrimitiveKind::Float32: {
-                float f;
-                if (!CopyNodeNumber(info[i], &f))
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
                     return env.Null();
+                }
 
-                if (RG_LIKELY(xmm_count < 8)) {
-                    memcpy(xmm_ptr + xmm_count++, &f, 4);
+                float f = CopyNodeNumber<float>(value);
+
+                if (RG_LIKELY(param.xmm_count)) {
+                    memcpy(xmm_ptr++, &f, 4);
                 } else {
                     args_ptr = AlignUp(args_ptr, 4);
                     memcpy(args_ptr, &f, 4);
@@ -277,12 +291,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
             } break;
             case PrimitiveKind::Float64: {
-                double d;
-                if (!CopyNodeNumber(info[i], &d))
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
                     return env.Null();
+                }
 
-                if (RG_LIKELY(xmm_count < 8)) {
-                    memcpy(xmm_ptr + xmm_count++, &d, 8);
+                double d = CopyNodeNumber<double>(value);
+
+                if (RG_LIKELY(param.xmm_count)) {
+                    memcpy(xmm_ptr++, &d, 8);
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
                     memcpy(args_ptr, &d, 8);
@@ -291,14 +308,14 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::String: {
                 if (!value.IsString()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected string", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                const char *str = CopyNodeString(info[i], &lib->tmp_alloc);
+                const char *str = CopyNodeString(value, &lib->tmp_alloc);
 
-                if (RG_LIKELY(gpr_count < 6)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)str;
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)str;
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
                     *(uint64_t *)args_ptr = (uint64_t)str;
@@ -308,16 +325,14 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Record: {
                 if (!value.IsObject()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected object", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                Napi::Object obj = info[i].As<Napi::Object>();
+                Napi::Object obj = value.As<Napi::Object>();
 
                 if (param.gpr_count || param.xmm_count) {
                     RG_ASSERT(param.type->size <= 16);
-                    RG_ASSERT(param.gpr_count <= 6 - gpr_count);
-                    RG_ASSERT(param.xmm_count <= 8 - xmm_count);
 
                     uint64_t buf[2] = {};
                     if (!PushObject(obj, param.type, &lib->tmp_alloc, (uint8_t *)buf))
@@ -326,23 +341,23 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     if (param.gpr_first) {
                         uint64_t *ptr = buf;
 
-                        gpr_ptr[gpr_count++] = *(ptr++);
+                        *(gpr_ptr++) = *(ptr++);
                         if (param.gpr_count == 2) {
-                            gpr_ptr[gpr_count++] = *(ptr++);
+                            *(gpr_ptr++) = *(ptr++);
                         } else if (param.xmm_count == 1) {
-                            xmm_ptr[xmm_count++] = *(ptr++);
+                            *(xmm_ptr++) = *(ptr++);
                         }
                     } else {
                         uint64_t *ptr = buf;
 
-                        xmm_ptr[xmm_count++] = *(ptr++);
+                        *(xmm_ptr++) = *(ptr++);
                         if (param.xmm_count == 2) {
-                            xmm_ptr[xmm_count++] = *(ptr++);
+                            *(xmm_ptr++) = *(ptr++);
                         } else if (param.gpr_count == 1) {
-                            gpr_ptr[gpr_count++] = *(ptr++);
+                            *(gpr_ptr++) = *(ptr++);
                         }
                     }
-                } else if (param.type->size) {
+                } else if (param.use_memory) {
                     args_ptr = AlignUp(args_ptr, param.type->align);
                     if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
                         return env.Null();
@@ -352,14 +367,14 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Pointer: {
                 if (!value.IsExternal()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected external", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                void *ptr = info[i].As<Napi::External<void>>();
+                void *ptr = value.As<Napi::External<void>>();
 
-                if (RG_LIKELY(gpr_count < 6)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)ptr;
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)ptr;
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
                     *(uint64_t *)args_ptr = (uint64_t)ptr;
@@ -369,11 +384,11 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
         }
     }
 
-    // DumpStack(func, MakeSpan((uint8_t *)gpr_ptr, top_ptr - (uint8_t *)gpr_ptr));
+    // DumpStack(func, MakeSpan(sp_ptr, top_ptr - sp_ptr));
 
 #define PERFORM_CALL(Suffix) \
-        (xmm_count ? ForwardCallX ## Suffix(func->func, (uint8_t *)gpr_ptr) \
-                   : ForwardCall ## Suffix(func->func, (uint8_t *)gpr_ptr))
+        (func->forward_fp ? ForwardCallX ## Suffix(func->func, sp_ptr) \
+                          : ForwardCall ## Suffix(func->func, sp_ptr))
 
     // Execute and convert return value
     switch (func->ret.type->primitive) {

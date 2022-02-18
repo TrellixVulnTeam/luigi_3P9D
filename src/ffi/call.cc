@@ -42,7 +42,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
             case PrimitiveKind::Bool: {
                 if (!value.IsBoolean()) {
-                    ThrowError<Napi::TypeError>(env, "Expected boolean value for member '%1', got %2", member.name, GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected boolean", GetTypeName(value.Type()), member.name);
                     return false;
                 }
 
@@ -58,56 +58,35 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             case PrimitiveKind::UInt32:
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
-                if (value.IsNumber()) {
-                    int64_t v = value.As<Napi::Number>();
-                    memcpy(dest, &v, member.type->size); // Little Endian
-                } else if (value.IsBigInt()) {
-                    Napi::BigInt bigint = value.As<Napi::BigInt>();
-
-                    bool lossless;
-                    uint64_t v = bigint.Uint64Value(&lossless);
-
-                    memcpy(dest, &v, member.type->size); // Little Endian
-                } else {
-                    ThrowError<Napi::TypeError>(env, "Expected number value for member '%1', got %2", member.name, GetTypeName(value.Type()));
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
                     return false;
                 }
+
+                int64_t v = CopyNodeNumber<int64_t>(value);
+                memcpy(dest, &v, member.type->size); // Little Endian
             } break;
             case PrimitiveKind::Float32: {
-                if (value.IsNumber()) {
-                    float f = value.As<Napi::Number>();
-                    memcpy(dest, &f, 4);
-                } else if (value.IsBigInt()) {
-                    Napi::BigInt bigint = value.As<Napi::BigInt>();
-
-                    bool lossless;
-                    float f = (float)bigint.Uint64Value(&lossless);
-
-                    memcpy(dest, &f, 4);
-                } else {
-                    ThrowError<Napi::TypeError>(env, "Expected number value for member '%1', got %2", member.name, GetTypeName(value.Type()));
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
                     return false;
                 }
+
+                float f = CopyNodeNumber<float>(value);
+                memcpy(dest, &f, 4);
             } break;
             case PrimitiveKind::Float64: {
-                if (value.IsNumber()) {
-                    double d = value.As<Napi::Number>();
-                    memcpy(dest, &d, 8);
-                } else if (value.IsBigInt()) {
-                    Napi::BigInt bigint = value.As<Napi::BigInt>();
-
-                    bool lossless;
-                    double d = (double)bigint.Uint64Value(&lossless);
-
-                    memcpy(dest, &d, 8);
-                } else {
-                    ThrowError<Napi::TypeError>(env, "Expected number value for member '%1', got %2", member.name, GetTypeName(value.Type()));
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
                     return false;
                 }
+
+                double d = CopyNodeNumber<double>(value);
+                memcpy(dest, &d, 8);
             } break;
             case PrimitiveKind::String: {
                 if (!value.IsString()) {
-                    ThrowError<Napi::TypeError>(env, "Expected string value for member '%1', got %2", member.name, GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected string", GetTypeName(value.Type()), member.name);
                     return false;
                 }
 
@@ -117,7 +96,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
             case PrimitiveKind::Record: {
                 if (!value.IsObject()) {
-                    ThrowError<Napi::TypeError>(env, "Expected object value for member '%1', got %2", member.name, GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected object", GetTypeName(value.Type()), member.name);
                     return false;
                 }
 
@@ -128,7 +107,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
             case PrimitiveKind::Pointer: {
                 if (!value.IsExternal()) {
-                    ThrowError<Napi::TypeError>(env, "Expected external value for member '%1', got %2", member.name, GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected external", GetTypeName(value.Type()), member.name);
                     return false;
                 }
 

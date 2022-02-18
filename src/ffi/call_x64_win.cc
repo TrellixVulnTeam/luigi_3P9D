@@ -41,6 +41,9 @@ bool AnalyseFunction(FunctionInfo *func)
 
     for (ParameterInfo &param: func->parameters) {
         param.regular = IsRegular(param.type->size);
+
+        func->forward_fp |= (param.type->primitive == PrimitiveKind::Float32 ||
+                             param.type->primitive == PrimitiveKind::Float64);
     }
 
     return true;
@@ -66,7 +69,6 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     uint8_t *scratch_ptr = top_ptr - func->scratch_size;
     uint8_t *return_ptr = nullptr;
     uint8_t *args_ptr = nullptr;
-    bool forward_xmm = false;
 
     // Reserve space for return value if needed
     if (func->ret.regular) {
@@ -92,11 +94,11 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Bool: {
                 if (!value.IsBoolean()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected boolean", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected boolean", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                bool b = info[i].As<Napi::Boolean>();
+                bool b = value.As<Napi::Boolean>();
                 *(bool *)(args_ptr + j) = b;
             } break;
             case PrimitiveKind::Int8:
@@ -107,43 +109,45 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             case PrimitiveKind::UInt32:
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
-                int64_t v;
-                if (!CopyNodeNumber(info[i], &v))
-                    return env.Null();
-
-                *(uint64_t *)(args_ptr + j) = (uint64_t)v;
-            } break;
-            case PrimitiveKind::Float32: {
-                float f;
-                if (!CopyNodeNumber(info[i], &f))
-                    return env.Null();
-
-                *(float *)(args_ptr + j) = f;
-
-                forward_xmm = true;
-            } break;
-            case PrimitiveKind::Float64: {
-                double d;
-                if (!CopyNodeNumber(info[i], &d))
-                    return env.Null();
-
-                *(double *)(args_ptr + j) = d;
-
-                forward_xmm = true;
-            } break;
-            case PrimitiveKind::String: {
-                if (!value.IsString()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected string", GetTypeName(value.Type()));
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                const char *str = CopyNodeString(info[i], &lib->tmp_alloc);
+                int64_t v = CopyNodeNumber<int64_t>(value);
+                *(uint64_t *)(args_ptr + j) = (uint64_t)v;
+            } break;
+            case PrimitiveKind::Float32: {
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
+                    return env.Null();
+                }
+
+                float f = CopyNodeNumber<float>(value);
+                *(float *)(args_ptr + j) = f;
+            } break;
+            case PrimitiveKind::Float64: {
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
+                    return env.Null();
+                }
+
+                double d = CopyNodeNumber<double>(value);
+                *(double *)(args_ptr + j) = d;
+            } break;
+            case PrimitiveKind::String: {
+                if (!value.IsString()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetTypeName(value.Type()), i + 1);
+                    return env.Null();
+                }
+
+                const char *str = CopyNodeString(value, &lib->tmp_alloc);
                 *(const char **)(args_ptr + j) = str;
             } break;
 
             case PrimitiveKind::Record: {
                 if (!value.IsObject()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected object", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
@@ -157,18 +161,18 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     scratch_ptr = AlignUp(scratch_ptr + param.type->size, 16);
                 }
 
-                Napi::Object obj = info[i].As<Napi::Object>();
+                Napi::Object obj = value.As<Napi::Object>();
                 if (!PushObject(obj, param.type, &lib->tmp_alloc, ptr))
                     return env.Null();
             } break;
 
             case PrimitiveKind::Pointer: {
                 if (!value.IsExternal()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected external", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                void *ptr = info[i].As<Napi::External<void>>();
+                void *ptr = value.As<Napi::External<void>>();
                 *(void **)(args_ptr + j) = ptr;
             } break;
         }
@@ -177,8 +181,8 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     // DumpStack(func, MakeSpan(args_ptr, top_ptr - args_ptr));
 
 #define PERFORM_CALL(Suffix) \
-        (forward_xmm ? ForwardCallX ## Suffix(func->func, args_ptr) \
-                     : ForwardCall ## Suffix(func->func, args_ptr))
+        (func->forward_fp ? ForwardCallX ## Suffix(func->func, args_ptr) \
+                          : ForwardCall ## Suffix(func->func, args_ptr))
 
     // Execute and convert return value
     switch (func->ret.type->primitive) {

@@ -47,28 +47,26 @@ static inline const char *GetTypeName(napi_valuetype type)
 }
 
 template <typename T>
-bool CopyNodeNumber(const Napi::Value &value, T *out_value)
+T CopyNodeNumber(const Napi::Value &value)
 {
+    RG_ASSERT(value.IsNumber() || value.IsBigInt());
+
     if (value.IsNumber()) {
-        *out_value = (T)value.As<Napi::Number>();
-        return true;
+        return (T)value.As<Napi::Number>();
     } else if (value.IsBigInt()) {
         Napi::BigInt bigint = value.As<Napi::BigInt>();
 
         bool lossless;
-        *out_value = (T)bigint.Uint64Value(&lossless);
-
-        return true;
-    } else {
-        Napi::Env env = value.Env();
-
-        ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected number", GetTypeName(value.Type()));
-        return false;
+        return (T)bigint.Uint64Value(&lossless);
     }
+
+    RG_UNREACHABLE();
 }
 
 static inline const char *CopyNodeString(const Napi::Value &value, Allocator *alloc)
 {
+    RG_ASSERT(value.IsString());
+
     Napi::Env env = value.Env();
     napi_status status;
 

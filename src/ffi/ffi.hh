@@ -79,7 +79,7 @@ struct ParameterInfo {
 #if defined(_WIN64)
     bool regular;
 #elif defined(__x86_64__)
-    bool ret_ptr;
+    bool use_memory;
     int8_t gpr_count;
     int8_t xmm_count;
     bool gpr_first;
@@ -97,9 +97,11 @@ struct FunctionInfo {
 
     ParameterInfo ret;
     HeapArray<ParameterInfo> parameters;
+    Size scratch_size; // Total size needed if all arguments were copied together (with align = 16)
 
-    // Total size needed if all arguments were copied together (with align = 16)
-    Size scratch_size; 
+    // ABI-specific part
+
+    bool forward_fp;
 };
 
 }

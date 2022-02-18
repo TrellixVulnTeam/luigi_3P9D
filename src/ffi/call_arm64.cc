@@ -46,7 +46,7 @@ static bool IsHFA(const TypeInfo *type)
     if (type->primitive != PrimitiveKind::Record)
         return false;
 
-    if (!type->members.len || type->members.len > 4)
+    if (type->members.len < 1 || type->members.len > 4)
         return false;
     if (type->members[0].type->primitive != PrimitiveKind::Float32 &&
             type->members[0].type->primitive != PrimitiveKind::Float64)
@@ -72,26 +72,55 @@ bool AnalyseFunction(FunctionInfo *func)
     int vec_avail = 8;
 
     for (ParameterInfo &param: func->parameters) {
-        if (IsHFA(param.type)) {
-            if (param.type->members.len <= vec_avail) {
-                param.vec_count = param.type->members.len;
-            } else {
-                vec_avail = 0;
-            }
-        } else if (param.type->size <= 16) {
-            int gpr_count = (param.type->size + 7) / 8;
+        switch (param.type->primitive) {
+            case PrimitiveKind::Void: { RG_UNREACHABLE(); } break;
 
-            if (gpr_count <= gpr_avail) {
-                param.gpr_count = gpr_count;
-                gpr_avail -= gpr_count;
-            } else {
-                gpr_avail = 0;
-            }
-        } else if (gpr_avail) {
-            // Big types (more than 16 bytes) are replaced by a pointer
-            param.gpr_count = 1;
+            case PrimitiveKind::Bool:
+            case PrimitiveKind::Int8:
+            case PrimitiveKind::UInt8:
+            case PrimitiveKind::Int16:
+            case PrimitiveKind::UInt16:
+            case PrimitiveKind::Int32:
+            case PrimitiveKind::UInt32:
+            case PrimitiveKind::Int64:
+            case PrimitiveKind::UInt64:
+            case PrimitiveKind::String:
+            case PrimitiveKind::Pointer: {
+                if (gpr_avail) {
+                    param.gpr_count = 1;
+                    gpr_avail--;
+                }
+            } break;
+
+            case PrimitiveKind::Float32:
+            case PrimitiveKind::Float64: {
+                if (vec_avail) {
+                    param.vec_count = 1;
+                    vec_avail--;
+                }
+            } break;
+
+            case PrimitiveKind::Record: {
+                if (IsHFA(param.type)) {
+                    int vec_count = (int)param.type->members.len;
+
+                    param.vec_count = std::min(vec_avail, vec_count);
+                    vec_avail -= vec_count;
+                } else if (param.type->size <= 16) {
+                    int gpr_count = (param.type->size + 7) / 8;
+
+                    param.gpr_count = std::min(gpr_avail, gpr_count);
+                    gpr_avail -= gpr_count;
+                } else if (gpr_avail) {
+                    // Big types (more than 16 bytes) are replaced by a pointer
+                    param.gpr_count = 1;
+                    gpr_avail -= 1;
+                }
+            } break;
         }
     }
+
+    func->forward_fp = (vec_avail < 8);
 
     return true;
 }
@@ -108,17 +137,19 @@ static bool PushHFA(const Napi::Object &obj, const TypeInfo *type, uint8_t *dest
         Napi::Value value = obj.Get(member.name);
 
         if (member.type->primitive == PrimitiveKind::Float32) {
-            float f;
-            if (!CopyNodeNumber(value, &f))
+            if (!value.IsNumber() && !value.IsBigInt()) {
+                ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
                 return false;
+            }
 
-            *(float *)dest = f;
+            *(float *)dest = CopyNodeNumber<float>(value);
         } else if (member.type->primitive == PrimitiveKind::Float64) {
-            double d;
-            if (!CopyNodeNumber(value, &d))
+            if (!value.IsNumber() && !value.IsBigInt()) {
+                ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
                 return false;
+            }
 
-            *(double *)dest = d;
+            *(double *)dest = CopyNodeNumber<double>(value);
         } else {
             RG_UNREACHABLE();
         }
@@ -174,7 +205,6 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     uint8_t *args_ptr = nullptr;
     uint64_t *gpr_ptr = nullptr, *vec_ptr = nullptr;
     uint8_t *sp_ptr = nullptr;
-    int gpr_count = 0, vec_count = 0;
 
     // Return through registers unless it's too big
     if (!func->ret.type->size || func->ret.vec_count || func->ret.gpr_count) {
@@ -215,17 +245,16 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Bool: {
                 if (!value.IsBoolean()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected boolean", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected boolean", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                bool b = info[i].As<Napi::Boolean>();
+                bool b = value.As<Napi::Boolean>();
 
-                if (RG_LIKELY(gpr_count < 8)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)b;
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)b;
                 } else {
-                    *args_ptr = (uint8_t)b;
-                    args_ptr += 1;
+                    *(args_ptr++) = (uint8_t)b;
                 }
             } break;
             case PrimitiveKind::Int8:
@@ -236,12 +265,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             case PrimitiveKind::UInt32:
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
-                int64_t v;
-                if (!CopyNodeNumber(info[i], &v))
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
                     return env.Null();
+                }
 
-                if (RG_LIKELY(gpr_count < 8)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)v;
+                int64_t v = CopyNodeNumber<int64_t>(value);
+
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)v;
                 } else {
                     args_ptr = AlignUp(args_ptr, param.type->align);
                     memcpy(args_ptr, &v, param.type->size); // Little Endian
@@ -249,12 +281,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
             } break;
             case PrimitiveKind::Float32: {
-                float f;
-                if (!CopyNodeNumber(info[i], &f))
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
                     return env.Null();
+                }
 
-                if (RG_LIKELY(vec_count < 8)) {
-                    memcpy(vec_ptr + vec_count++, &f, 4);
+                float f = CopyNodeNumber<float>(value);
+
+                if (RG_LIKELY(param.vec_count)) {
+                    memcpy(vec_ptr++, &f, 4);
                 } else {
                     args_ptr = AlignUp(args_ptr, 4);
                     memcpy(args_ptr, &f, 4);
@@ -262,12 +297,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
             } break;
             case PrimitiveKind::Float64: {
-                double d;
-                if (!CopyNodeNumber(info[i], &d))
+                if (!value.IsNumber() && !value.IsBigInt()) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
                     return env.Null();
+                }
 
-                if (RG_LIKELY(vec_count < 8)) {
-                    memcpy(vec_ptr + vec_count++, &d, 8);
+                double d = CopyNodeNumber<double>(value);
+
+                if (RG_LIKELY(param.vec_count)) {
+                    memcpy(vec_ptr++, &d, 8);
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
                     memcpy(args_ptr, &d, 8);
@@ -276,14 +314,14 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::String: {
                 if (!value.IsString()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected string", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                const char *str = CopyNodeString(info[i], &lib->tmp_alloc);
+                const char *str = CopyNodeString(value, &lib->tmp_alloc);
 
-                if (RG_LIKELY(gpr_count < 8)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)str;
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)str;
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
                     *(uint64_t *)args_ptr = (uint64_t)str;
@@ -293,24 +331,23 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Record: {
                 if (!value.IsObject()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected object", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                Napi::Object obj = info[i].As<Napi::Object>();
+                Napi::Object obj = value.As<Napi::Object>();
 
                 if (param.vec_count) {
-                    if (!PushHFA(obj, param.type, (uint8_t *)(vec_ptr + vec_count)))
+                    if (!PushHFA(obj, param.type, (uint8_t *)vec_ptr))
                         return env.Null();
-
-                    vec_count += param.vec_count;
+                    vec_ptr += param.vec_count;
                 } else if (param.type->size <= 16) {
                     if (param.gpr_count) {
                         RG_ASSERT(param.type->align <= 8);
 
-                        if (!PushObject(obj, param.type, &lib->tmp_alloc, (uint8_t *)(gpr_ptr + gpr_count)))
+                        if (!PushObject(obj, param.type, &lib->tmp_alloc, (uint8_t *)gpr_ptr))
                             return env.Null();
-                        gpr_count += param.gpr_count;
+                        gpr_ptr += param.gpr_count;
                     } else if (param.type->size) {
                         args_ptr = AlignUp(args_ptr, param.type->align);
                         if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
@@ -325,7 +362,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                         RG_ASSERT(param.gpr_count == 1);
                         RG_ASSERT(param.vec_count == 0);
 
-                        gpr_ptr[gpr_count++] = (uint64_t)ptr;
+                        *(gpr_ptr++) = (uint64_t)ptr;
                     } else {
                         args_ptr = AlignUp(args_ptr, 8);
                         *(uint8_t **)args_ptr = ptr;
@@ -339,14 +376,14 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Pointer: {
                 if (!value.IsExternal()) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value, expected external", GetTypeName(value.Type()));
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
                     return env.Null();
                 }
 
-                void *ptr = info[i].As<Napi::External<void>>();
+                void *ptr = value.As<Napi::External<void>>();
 
-                if (RG_LIKELY(gpr_count < 8)) {
-                    gpr_ptr[gpr_count++] = (uint64_t)ptr;
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)ptr;
                 } else {
                     args_ptr = AlignUp(args_ptr, 8);
                     *(uint64_t *)args_ptr = (uint64_t)ptr;
@@ -359,8 +396,8 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
     // DumpStack(func, MakeSpan(sp_ptr, top_ptr - sp_ptr));
 
 #define PERFORM_CALL(Suffix) \
-        (vec_count ? ForwardCallX ## Suffix(func->func, sp_ptr) \
-                   : ForwardCall ## Suffix(func->func, sp_ptr))
+        (func->forward_fp ? ForwardCallX ## Suffix(func->func, sp_ptr) \
+                          : ForwardCall ## Suffix(func->func, sp_ptr))
 
     // Execute and convert return value
     switch (func->ret.type->primitive) {
