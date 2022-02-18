@@ -69,7 +69,12 @@
           'sources': [
             '../../../src/ffi/call_x64_sysv_fwd.S',
           ],
-        }]
+        }],
+        [ 'target_arch=="arm64" or target_arch=="aarch64"', {
+          'sources': [
+            '../../../src/ffi/call_arm64_fwd.S',
+          ],
+        }],
       ]
     }
   ]
