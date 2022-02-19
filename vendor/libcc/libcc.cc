@@ -12,16 +12,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #include "libcc.hh"
-#if !defined(LIBCC_NO_MINIZ) && __has_include("../../../vendor/miniz/miniz.h")
+#if !defined(LIBCC_NO_MINIZ) && __has_include("vendor/miniz/miniz.h")
     #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
-    #include "../../../vendor/miniz/miniz.h"
+    #include "vendor/miniz/miniz.h"
 #endif
-#if !defined(LIBCC_NO_BROTLI) && __has_include("../../../vendor/brotli/c/include/brotli/decode.h")
-    #include "../../../vendor/brotli/c/include/brotli/decode.h"
-    #include "../../../vendor/brotli/c/include/brotli/encode.h"
+#if !defined(LIBCC_NO_BROTLI) && __has_include("vendor/brotli/c/include/brotli/decode.h")
+    #include "vendor/brotli/c/include/brotli/decode.h"
+    #include "vendor/brotli/c/include/brotli/encode.h"
 #endif
-#if __has_include("../../../vendor/dragonbox/include/dragonbox/dragonbox.h")
-    #include "../../../vendor/dragonbox/include/dragonbox/dragonbox.h"
+#if __has_include("vendor/dragonbox/include/dragonbox/dragonbox.h")
+    #include "vendor/dragonbox/include/dragonbox/dragonbox.h"
 #endif
 
 #ifdef _WIN32
@@ -2953,6 +2953,7 @@ bool FileIsVt100(FILE *fp)
                 }
 
                 if (emulation && win32_utf8) {
+                    SetConsoleCP(CP_UTF8); // Does not work yet, but it might some day
                     SetConsoleOutputCP(CP_UTF8);
                 }
 
@@ -4849,6 +4850,15 @@ void Fiber::FiberCallback(unsigned int high, unsigned int low)
 // ------------------------------------------------------------------------
 // Streams
 // ------------------------------------------------------------------------
+
+#ifdef _WIN32
+RG_INIT(BinaryStdIO)
+{
+    _setmode(_fileno(stdin), _O_BINARY);
+    _setmode(_fileno(stdout), _O_BINARY);
+    _setmode(_fileno(stderr), _O_BINARY);
+}
+#endif
 
 StreamReader stdin_st(stdin, "<stdin>");
 StreamWriter stdout_st(stdout, "<stdout>");

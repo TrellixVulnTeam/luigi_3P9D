@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see https://www.gnu.org/licenses/.
 
-#include "libcc.hh"
+#include "vendor/libcc/libcc.hh"
 #include "ffi.hh"
 #include "call.hh"
 #include "util.hh"

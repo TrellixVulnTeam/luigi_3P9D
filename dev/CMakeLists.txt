@@ -10,6 +10,7 @@ endif()
 # ----------------------
 
 file(GLOB FFI_SRC ../src/ffi/*.cc)
+list(APPEND FFI_SRC ../vendor/libcc/libcc.cc)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     if(WIN32)
         list(APPEND FFI_SRC ../src/ffi/call_x64_win_fwd.asm)
@@ -28,7 +29,7 @@ endif()
 
 add_library(FFI SHARED ${FFI_SRC} ${CMAKE_JS_SRC})
 set_target_properties(FFI PROPERTIES PREFIX "" SUFFIX ".node")
-target_include_directories(FFI PRIVATE ${CMAKE_JS_INC} ../vendor/node-addon-api)
+target_include_directories(FFI PRIVATE .. ${CMAKE_JS_INC} ../vendor/node-addon-api ..)
 target_link_libraries(FFI PRIVATE ${CMAKE_JS_LIB})
 
 if(WIN32)

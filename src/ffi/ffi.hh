@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "libcc.hh"
+#include "vendor/libcc/libcc.hh"
 
 #include <napi.h>
 

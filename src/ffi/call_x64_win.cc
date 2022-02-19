@@ -13,7 +13,7 @@
 
 #ifdef _WIN64
 
-#include "libcc.hh"
+#include "vendor/libcc/libcc.hh"
 #include "ffi.hh"
 #include "call.hh"
 #include "util.hh"

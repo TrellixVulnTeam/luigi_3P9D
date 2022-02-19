@@ -18,6 +18,7 @@
         }
       },
       'include_dirs': [
+        '../../..',
         '../../node-addon-api',
         '../src',
         '../tools/msvs/genfiles',
@@ -35,7 +36,7 @@
         '../../../src/ffi/call_x64_sysv.cc',
         '../../../src/ffi/call_x64_win.cc',
         '../../../src/ffi/ffi.cc',
-        '../../../src/ffi/libcc.cc',
+        '../../libcc/libcc.cc',
       ],
       'conditions': [
         [ 'v8_enable_handle_zapping==0', { # Hacky way to detect release builds, gyp sucks
