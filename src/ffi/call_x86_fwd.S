@@ -11,9 +11,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see https://www.gnu.org/licenses/.
 
-.global _ForwardCallG
-.global _ForwardCallF
-.global _ForwardCallD
+.global ForwardCallG
+.global ForwardCallF
+.global ForwardCallD
 
 // Copy function pointer to EAX, in order to save it through argument forwarding.
 // Save ESP in EBX (non-volatile), and use carefully assembled stack provided by caller.
@@ -26,23 +26,23 @@
     endbr32
     push %ebx
     .cfi_def_cfa esp, 8
-    movd 8(%esp), %eax
-    movd %esp, %ebx
+    movl 8(%esp), %eax
+    movl %esp, %ebx
     .cfi_def_cfa ebx, 8
-    movd 12(%esp), esp
+    movl 12(%esp), %esp
     call *%eax
-    movd %ebx, %esp
+    movl %ebx, %esp
     pop %ebx
     .cfi_def_cfa esp, 4
     ret
     .cfi_endproc
 .endm
 
-_ForwardCallG:
+ForwardCallG:
     forward
 
-_ForwardCallF:
+ForwardCallF:
     forward
 
-_ForwardCallD:
+ForwardCallD:
     forward
