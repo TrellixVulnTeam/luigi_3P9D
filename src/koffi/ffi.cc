@@ -342,6 +342,15 @@ static Napi::Object InitBaseTypes(Napi::Env env)
     RegisterPrimitiveType(instance, "uint", PrimitiveKind::UInt32, 4);
     RegisterPrimitiveType(instance, "int64", PrimitiveKind::Int64, 8);
     RegisterPrimitiveType(instance, "uint64", PrimitiveKind::UInt64, 8);
+#if ULONG_MAX == UINT64_MAX
+    RegisterPrimitiveType(instance, "long", PrimitiveKind::Int64, 8);
+    RegisterPrimitiveType(instance, "ulong", PrimitiveKind::UInt64, 8);
+#else
+    RegisterPrimitiveType(instance, "long", PrimitiveKind::Int32, 4);
+    RegisterPrimitiveType(instance, "ulong", PrimitiveKind::UInt32, 4);
+#endif
+    RegisterPrimitiveType(instance, "longlong", PrimitiveKind::Int64, 8);
+    RegisterPrimitiveType(instance, "ulonglong", PrimitiveKind::UInt64, 8);
     RegisterPrimitiveType(instance, "float32", PrimitiveKind::Float32, 4);
     RegisterPrimitiveType(instance, "float64", PrimitiveKind::Float64, 8);
     RegisterPrimitiveType(instance, "float", PrimitiveKind::Float32, 4);
