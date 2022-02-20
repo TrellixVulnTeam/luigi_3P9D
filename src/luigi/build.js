@@ -47,7 +47,7 @@ function main() {
 
     if (process.platform == 'win32') {
         run('vendor\\node\\vcbuild.bat without-intl no-cctest noetw' + (openssl_no_asm ? ' openssl-no-asm' : ''));
-        install('vendor/node/out/Release/node', './luigi.exe');
+        install('vendor/node/out/Release/node.exe', './luigi.exe');
     } else {
         run('vendor/node/configure --ninja --without-intl --without-dtrace  --without-etw --without-npm --without-corepack');
         run('make -C vendor/node');
