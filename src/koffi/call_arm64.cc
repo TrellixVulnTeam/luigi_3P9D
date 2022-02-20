@@ -328,6 +328,22 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     args_ptr += 8;
                 }
             } break;
+            case PrimitiveKind::Pointer: {
+                if (RG_UNLIKELY(!value.IsExternal())) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
+                    return env.Null();
+                }
+
+                void *ptr = value.As<Napi::External<void>>();
+
+                if (RG_LIKELY(param.gpr_count)) {
+                    *(gpr_ptr++) = (uint64_t)ptr;
+                } else {
+                    args_ptr = AlignUp(args_ptr, 8);
+                    *(uint64_t *)args_ptr = (uint64_t)ptr;
+                    args_ptr += 8;
+                }
+            } break;
 
             case PrimitiveKind::Record: {
                 if (RG_UNLIKELY(!value.IsObject())) {
@@ -371,23 +387,6 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
                     if (!PushObject(obj, param.type, &lib->tmp_alloc, ptr))
                         return env.Null();
-                }
-            } break;
-
-            case PrimitiveKind::Pointer: {
-                if (RG_UNLIKELY(!value.IsExternal())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
-                    return env.Null();
-                }
-
-                void *ptr = value.As<Napi::External<void>>();
-
-                if (RG_LIKELY(param.gpr_count)) {
-                    *(gpr_ptr++) = (uint64_t)ptr;
-                } else {
-                    args_ptr = AlignUp(args_ptr, 8);
-                    *(uint64_t *)args_ptr = (uint64_t)ptr;
-                    args_ptr += 8;
                 }
             } break;
         }
@@ -457,13 +456,12 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 case PrimitiveKind::Float32: { RG_UNREACHABLE(); } break;
                 case PrimitiveKind::Float64: { RG_UNREACHABLE(); } break;
                 case PrimitiveKind::String: return Napi::String::New(env, (const char *)ret.x0);
-
-                case PrimitiveKind::Record: { RG_UNREACHABLE(); } break;
-
                 case PrimitiveKind::Pointer: {
                     void *ptr = (void *)ret.x0;
                     return Napi::External<void>::New(env, ptr);
                 } break;
+
+                case PrimitiveKind::Record: { RG_UNREACHABLE(); } break;
             }
         } break;
     }

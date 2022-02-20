@@ -154,6 +154,16 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 *(const char **)args_ptr = str;
                 args_ptr += 4;
             } break;
+            case PrimitiveKind::Pointer: {
+                if (RG_UNLIKELY(!value.IsExternal())) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
+                    return env.Null();
+                }
+
+                void *ptr = value.As<Napi::External<void>>();
+                *(void **)args_ptr = ptr;
+                args_ptr += 4;
+            } break;
 
             case PrimitiveKind::Record: {
                 if (RG_UNLIKELY(!value.IsObject())) {
@@ -167,17 +177,6 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 if (!PushObject(obj, param.type, &lib->tmp_alloc, args_ptr))
                     return env.Null();
                 args_ptr += param.type->size;
-            } break;
-
-            case PrimitiveKind::Pointer: {
-                if (RG_UNLIKELY(!value.IsExternal())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
-                    return env.Null();
-                }
-
-                void *ptr = value.As<Napi::External<void>>();
-                *(void **)args_ptr = ptr;
-                args_ptr += 4;
             } break;
         }
     }
@@ -222,16 +221,15 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 case PrimitiveKind::Float32: { RG_UNREACHABLE(); } break;
                 case PrimitiveKind::Float64: { RG_UNREACHABLE(); } break;
                 case PrimitiveKind::String: return Napi::String::New(env, (const char *)ret.rax);
+                case PrimitiveKind::Pointer: {
+                    void *ptr = (void *)ret.rax;
+                    return Napi::External<void>::New(env, ptr);
+                } break;
 
                 case PrimitiveKind::Record: {
                     const uint8_t *ptr = return_ptr ? return_ptr : (const uint8_t *)&ret;
                     Napi::Object obj = PopObject(env, ptr, func->ret.type);
                     return obj;
-                } break;
-
-                case PrimitiveKind::Pointer: {
-                    void *ptr = (void *)ret.rax;
-                    return Napi::External<void>::New(env, ptr);
                 } break;
             }
         } break;
