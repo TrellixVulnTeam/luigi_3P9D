@@ -329,28 +329,43 @@ static Napi::Object InitBaseTypes(Napi::Env env)
     RegisterPrimitiveType(instance, "void", PrimitiveKind::Void, 0);
     RegisterPrimitiveType(instance, "bool", PrimitiveKind::Bool, 1);
     RegisterPrimitiveType(instance, "int8", PrimitiveKind::Int8, 1);
+    RegisterPrimitiveType(instance, "int8_t", PrimitiveKind::Int8, 1);
     RegisterPrimitiveType(instance, "uint8", PrimitiveKind::UInt8, 1);
+    RegisterPrimitiveType(instance, "uint8_t", PrimitiveKind::UInt8, 1);
     RegisterPrimitiveType(instance, "char", PrimitiveKind::Int8, 1);
     RegisterPrimitiveType(instance, "uchar", PrimitiveKind::UInt8, 1);
+    RegisterPrimitiveType(instance, "unsigned char", PrimitiveKind::UInt8, 1);
     RegisterPrimitiveType(instance, "int16", PrimitiveKind::Int16, 2);
+    RegisterPrimitiveType(instance, "int16_t", PrimitiveKind::Int16, 2);
     RegisterPrimitiveType(instance, "uint16", PrimitiveKind::UInt16, 2);
+    RegisterPrimitiveType(instance, "uint16_t", PrimitiveKind::UInt16, 2);
     RegisterPrimitiveType(instance, "short", PrimitiveKind::Int16, 2);
     RegisterPrimitiveType(instance, "ushort", PrimitiveKind::UInt16, 2);
+    RegisterPrimitiveType(instance, "unsigned short", PrimitiveKind::UInt16, 2);
     RegisterPrimitiveType(instance, "int32", PrimitiveKind::Int32, 4);
+    RegisterPrimitiveType(instance, "int32_t", PrimitiveKind::Int32, 4);
     RegisterPrimitiveType(instance, "uint32", PrimitiveKind::UInt32, 4);
+    RegisterPrimitiveType(instance, "uint32_t", PrimitiveKind::UInt32, 4);
     RegisterPrimitiveType(instance, "int", PrimitiveKind::Int32, 4);
     RegisterPrimitiveType(instance, "uint", PrimitiveKind::UInt32, 4);
+    RegisterPrimitiveType(instance, "unsigned int", PrimitiveKind::UInt32, 4);
     RegisterPrimitiveType(instance, "int64", PrimitiveKind::Int64, 8);
+    RegisterPrimitiveType(instance, "int64_t", PrimitiveKind::Int64, 8);
     RegisterPrimitiveType(instance, "uint64", PrimitiveKind::UInt64, 8);
+    RegisterPrimitiveType(instance, "uint64_t", PrimitiveKind::UInt64, 8);
 #if ULONG_MAX == UINT64_MAX
     RegisterPrimitiveType(instance, "long", PrimitiveKind::Int64, 8);
     RegisterPrimitiveType(instance, "ulong", PrimitiveKind::UInt64, 8);
+    RegisterPrimitiveType(instance, "unsigned long", PrimitiveKind::UInt64, 8);
 #else
     RegisterPrimitiveType(instance, "long", PrimitiveKind::Int32, 4);
     RegisterPrimitiveType(instance, "ulong", PrimitiveKind::UInt32, 4);
+    RegisterPrimitiveType(instance, "unsigned long", PrimitiveKind::UInt64, 4);
 #endif
     RegisterPrimitiveType(instance, "longlong", PrimitiveKind::Int64, 8);
+    RegisterPrimitiveType(instance, "long long", PrimitiveKind::Int64, 8);
     RegisterPrimitiveType(instance, "ulonglong", PrimitiveKind::UInt64, 8);
+    RegisterPrimitiveType(instance, "unsigned long long", PrimitiveKind::UInt64, 8);
     RegisterPrimitiveType(instance, "float32", PrimitiveKind::Float32, 4);
     RegisterPrimitiveType(instance, "float64", PrimitiveKind::Float64, 8);
     RegisterPrimitiveType(instance, "float", PrimitiveKind::Float32, 4);
@@ -360,7 +375,17 @@ static Napi::Object InitBaseTypes(Napi::Env env)
     Napi::Object types = Napi::Object::New(env);
     for (TypeInfo &type: instance->types) {
         Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, &type);
+
         types.Set(type.name, external);
+
+        if (strchr(type.name, ' ')) {
+            char name_buf[64] = {};
+            for (Size i = 0; type.name[i]; i++) {
+                RG_ASSERT(i < RG_SIZE(name_buf) - 1);
+                name_buf[i] = type.name[i] != ' ' ? type.name[i] : '_';
+            }
+            types.Set(name_buf, external);
+        }
     }
     types.Freeze();
 
