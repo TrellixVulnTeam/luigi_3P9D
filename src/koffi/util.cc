@@ -52,8 +52,10 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
     for (const RecordMember &member: type->members) {
         Napi::Value value = obj.Get(member.name);
 
-        if (value.IsUndefined())
+        if (RG_UNLIKELY(value.IsUndefined())) {
+            ThrowError<Napi::TypeError>(env, "Missing expected object property '%1'", member.name);
             return false;
+        }
 
         dest = AlignUp(dest, member.type->align);
 
