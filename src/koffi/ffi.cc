@@ -70,7 +70,7 @@ static const TypeInfo *ResolveType(const InstanceData *instance, Napi::Value val
     }
 }
 
-Napi::Value CreateStruct(const Napi::CallbackInfo &info)
+static Napi::Value CreateStructType(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     InstanceData *instance = env.GetInstanceData<InstanceData>();
@@ -126,7 +126,7 @@ Napi::Value CreateStruct(const Napi::CallbackInfo &info)
     return external;
 }
 
-Napi::Value CreatePointer(const Napi::CallbackInfo &info)
+static Napi::Value CreatePointerType(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     InstanceData *instance = env.GetInstanceData<InstanceData>();
@@ -153,7 +153,7 @@ Napi::Value CreatePointer(const Napi::CallbackInfo &info)
     return Napi::External<TypeInfo>::New(env, type);
 }
 
-Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
+static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
     InstanceData *instance = env.GetInstanceData<InstanceData>();
@@ -427,8 +427,8 @@ static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
     InstanceData *instance = new InstanceData();
     env_cxx.SetInstanceData(instance);
 
-    SetValue(env, target, "struct", Napi::Function::New(env_napi, CreateStruct));
-    SetValue(env, target, "pointer", Napi::Function::New(env_napi, CreatePointer));
+    SetValue(env, target, "struct", Napi::Function::New(env_napi, CreateStructType));
+    SetValue(env, target, "pointer", Napi::Function::New(env_napi, CreatePointerType));
     SetValue(env, target, "load", Napi::Function::New(env_napi, LoadSharedLibrary));
     SetValue(env, target, "internal", Napi::Boolean::New(env_napi, true));
 
@@ -445,8 +445,8 @@ static Napi::Object InitModule(Napi::Env env, Napi::Object exports)
     InstanceData *instance = new InstanceData();
     env.SetInstanceData(instance);
 
-    exports.Set("struct", Napi::Function::New(env, CreateStruct));
-    exports.Set("pointer", Napi::Function::New(env, CreatePointer));
+    exports.Set("struct", Napi::Function::New(env, CreateStructType));
+    exports.Set("pointer", Napi::Function::New(env, CreatePointerType));
     exports.Set("load", Napi::Function::New(env, LoadSharedLibrary));
     exports.Set("internal", Napi::Boolean::New(env, false));
 
