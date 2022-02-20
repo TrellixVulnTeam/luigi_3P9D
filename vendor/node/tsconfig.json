@@ -8,7 +8,7 @@
     "./typings/internalBinding/constants.d.ts",
     "./typings/internalBinding/fs.d.ts",
     "./typings/internalBinding/http_parser.d.ts",
-    "./typings/internalBinding/kofi.d.ts",
+    "./typings/internalBinding/koffi.d.ts",
     "./typings/internalBinding/messaging.d.ts",
     "./typings/internalBinding/options.d.ts",
     "./typings/internalBinding/os.d.ts",

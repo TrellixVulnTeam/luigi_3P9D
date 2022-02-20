@@ -88,7 +88,7 @@ const internalBindingAllowlist = new SafeSet([
   'icu',
   'inspector',
   'js_stream',
-  'kofi',
+  'koffi',
   'natives',
   'os',
   'pipe_wrap',

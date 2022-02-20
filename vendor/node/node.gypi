@@ -27,7 +27,7 @@
 
   'dependencies': [
     'deps/raylib.gyp:raylib',
-    'deps/kofi.gyp:kofi',
+    'deps/koffi.gyp:koffi',
   ],
 
   'conditions': [
@@ -35,14 +35,14 @@
       'xcode_settings': {
         'OTHER_LDFLAGS': [
           '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)raylib<(STATIC_LIB_SUFFIX)',
-          '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)kofi<(STATIC_LIB_SUFFIX)',
+          '-Wl,-force_load,<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)koffi<(STATIC_LIB_SUFFIX)',
         ],
       },
       'msvs_settings': {
         'VCLinkerTool': {
           'AdditionalOptions': [
             '/WHOLEARCHIVE:raylib<(STATIC_LIB_SUFFIX)',
-            '/WHOLEARCHIVE:kofi<(STATIC_LIB_SUFFIX)',
+            '/WHOLEARCHIVE:koffi<(STATIC_LIB_SUFFIX)',
           ],
         },
       },
@@ -51,7 +51,7 @@
           'ldflags': [
             '-Wl,--whole-archive',
             '<(obj_dir)/deps/<(STATIC_LIB_PREFIX)raylib<(STATIC_LIB_SUFFIX)',
-            '<(obj_dir)/deps/<(STATIC_LIB_PREFIX)kofi<(STATIC_LIB_SUFFIX)',
+            '<(obj_dir)/deps/<(STATIC_LIB_PREFIX)koffi<(STATIC_LIB_SUFFIX)',
             '-Wl,--no-whole-archive',
           ],
         }],

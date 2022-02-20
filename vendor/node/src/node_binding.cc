@@ -57,7 +57,7 @@
   V(inspector)                                                                 \
   V(js_stream)                                                                 \
   V(js_udp_wrap)                                                               \
-  V(kofi)                                                                      \
+  V(koffi)                                                                     \
   V(messaging)                                                                 \
   V(module_wrap)                                                               \
   V(native_module)                                                             \

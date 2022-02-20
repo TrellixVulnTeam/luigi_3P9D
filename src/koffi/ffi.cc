@@ -425,7 +425,7 @@ static Napi::Object InitModule(Napi::Env env, Napi::Object exports)
 #endif
 
 #if NODE_WANT_INTERNALS
-    NODE_MODULE_CONTEXT_AWARE_INTERNAL(kofi, InitInternal);
+    NODE_MODULE_CONTEXT_AWARE_INTERNAL(koffi, InitInternal);
 #else
-    NODE_API_MODULE(kofi, InitModule);
+    NODE_API_MODULE(koffi, InitModule);
 #endif
