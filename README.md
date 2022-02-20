@@ -592,6 +592,7 @@ To build Node, install the following dependencies:
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
+npm install # Only needed once
 npm run build # Add --no_asm if you havne't installed and exposed NASM in path
 ```
 
@@ -613,6 +614,7 @@ To build Node, install the following dependencies:
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
+npm install # Only needed once
 npm run build
 ```
 
@@ -633,6 +635,7 @@ macOS users can install the `Xcode Command Line Tools` by running `xcode-select 
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
+npm install # Only needed once
 npm run build
 ```
 
