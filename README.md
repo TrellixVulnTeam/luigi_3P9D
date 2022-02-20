@@ -561,12 +561,18 @@ To build Node, install the following dependencies:
   with the default optional components
 * The [NetWide Assembler](https://www.nasm.us/), for OpenSSL modules.
   If not installed in the default location, it needs to be manually added to `PATH`. You
-  can build without NASM, with `build.cmd --no_nasm`.
+  can build without NASM, with option `--no_asm`.
 
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
-build.cmd # Add --no_nasm if you havne't installed and exposed NASM in path
+npm run build # Add --no_asm if you havne't installed and exposed NASM in path
+```
+
+After that, you can run the modified binary like this:
+
+```sh
+luigi.exe src/luigi/luigi.js examples/mighty.luigi
 ```
 
 ### Linux
@@ -581,7 +587,13 @@ To build Node, install the following dependencies:
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
-./build.sh
+npm run build
+```
+
+After that, you can run the modified binary like this:
+
+```sh
+./luigi src/luigi/luigi.js examples/mighty.luigi
 ```
 
 ### macOS
@@ -599,23 +611,14 @@ More Developer Tools...`. This step will install `clang`, `clang++`, and
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
 ```sh
-./build.sh
+npm run build
 ```
 
-## Running Luigi
-
-Once the modified Node binary is ready, use it to run Luigi scripts like this:
+After that, you can run the modified binary like this:
 
 ```sh
-# First option (system Node)
-node src/luigi/luigi.js examples/mighty.luigi
-
-# Second option (built-in node)
-luigi.exe src/luigi/luigi.js examples/mighty.luigi # Windows
-./luigi src/luigi/luigi.js examples/mighty.luigi # POSIX systems (Linux, macOS, etc.)
+./luigi src/luigi/luigi.js examples/mighty.luigi
 ```
-
-As of now, Luigi does not yet support compilation to binaries or HTML/WebAssembly.
 
 # Examples
 

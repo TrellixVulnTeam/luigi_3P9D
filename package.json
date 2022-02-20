@@ -8,7 +8,8 @@
   },
   "scripts": {
     "prepare": "cmake-js",
-    "luigi": "node src/luigi/luigi.js"
+    "luigi": "node src/luigi/luigi.js",
+    "build": "node src/luigi/build.js"
   },
   "author": "",
   "license": "AGPL-3.0",
