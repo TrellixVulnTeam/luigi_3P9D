@@ -463,10 +463,12 @@ Function         | Parameters | Description
 
 # How to use
 
-There are two ways: the first allows to run Luigi code esily using Node.js, but will not give you
-the ability to produce redistribuable exectauble files.
+There are two ways: the first uses NPM and allows to run Luigi code esily using Node.js, but
+will not give you the ability to produce redistribuable executable files.
 
-## Node path (easier)
+The second one builds a modified Node.js binary.
+
+## With NPM (easier)
 
 This will allow to test Luigi quickly, and allows for faster development. But you won't be able
 to export build self-contained retributable binaries of your games.
@@ -486,8 +488,14 @@ First, make sure the following dependencies are met:
 
 Once these dependencies are met, simply run the follow command:
 
-```batch
-luigi.cmd examples\words\words\luigi
+```sh
+npm install
+```
+
+After that, running Luigi scripts can be done this way:
+
+```sh
+npm run luigi examples/words/words.luigi
 ```
 
 ### Linux
@@ -503,7 +511,13 @@ Make sure the following dependencies are met:
 Once these dependencies are met, simply run the follow command:
 
 ```sh
-./luigi.sh examples/words/words.luigi
+npm install
+```
+
+After that, running Luigi scripts can be done this way:
+
+```sh
+npm run luigi examples/words/words.luigi
 ```
 
 ### macOS
@@ -518,7 +532,13 @@ Make sure the following dependencies are met:
 Once these dependencies are met, simply run the follow command:
 
 ```sh
-./luigi.sh examples/words/words.luigi
+npm install
+```
+
+After that, running Luigi scripts can be done this way:
+
+```sh
+npm run luigi examples/words/words.luigi
 ```
 
 ## Build modified Node.js binary (harder)

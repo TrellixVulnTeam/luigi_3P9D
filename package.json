@@ -6,6 +6,13 @@
   "bin": {
     "luigi": "src/luigi/luigi.js"
   },
+  "scripts": {
+    "prepare": "cmake-js",
+    "luigi": "node src/luigi/luigi.js"
+  },
   "author": "",
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0",
+  "devDependencies": {
+    "cmake-js": "^6.3.0"
+  }
 }
