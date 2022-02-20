@@ -27,11 +27,18 @@ function main() {
     for (let i = 2; i < process.argv.length; i++) {
         let arg = process.argv[i];
 
-        if (process.platform == 'win32' && arg == '--no_asm') {
+        if (arg == '--help') {
+            print_usage();
+            process.exit(0);
+        } else if (arg == '--no_asm') {
+            if (process.platform != 'win32')
+                throw new Error('Option --no_asm is only valid on Windows');
+
             openssl_no_asm = true;
         } else {
-            if (arg[0] != '-') {
-
+            if (arg[0] == '-') {
+                print_usage();
+                process.exit(1);
             } else {
                 continue;
             }
@@ -58,4 +65,8 @@ function install(src, dest, mode = null) {
 
     if (mode != null && process.platform != 'win32')
         fs.chmodSync(dest, mode);
+}
+
+function print_usage() {
+    console.log('Usage: npm run build -- [--no_asm]');
 }

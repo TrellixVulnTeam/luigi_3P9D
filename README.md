@@ -593,7 +593,7 @@ Once these dependencies are met, open a command prompt in the repository and run
 
 ```sh
 npm install # Only needed once
-npm run build # Add --no_asm if you havne't installed and exposed NASM in path
+npm run build # Add `-- --no_asm` if you havne't installed and exposed NASM in path
 ```
 
 After that, you can run the modified binary like this:
