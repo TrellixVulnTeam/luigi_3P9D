@@ -69,5 +69,6 @@ if(MSVC)
 else()
     target_compile_options(Raylib PRIVATE -Wno-sign-compare -Wno-old-style-declaration
                                           -Wno-unused-function -Wno-missing-field-initializers
-                                          -Wno-unused-value -Wno-implicit-fallthrough -Wno-stringop-overflow)
+                                          -Wno-unused-value -Wno-implicit-fallthrough -Wno-stringop-overflow
+                                          -Wno-unused-result)
 endif()
