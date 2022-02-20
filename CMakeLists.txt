@@ -22,8 +22,15 @@ endif()
 # Koffi
 # ----------------------
 
-file(GLOB KOFFI_SRC src/koffi/*.cc)
-list(APPEND KOFFI_SRC vendor/libcc/libcc.cc)
+set(KOFFI_SRC
+    src/koffi/call_arm64.cc
+    src/koffi/call_x64_sysv.cc
+    src/koffi/call_x64_win.cc
+    src/koffi/call_x86.cc
+    src/koffi/ffi.cc
+    src/koffi/util.cc
+    vendor/libcc/libcc.cc
+)
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
     if(WIN32)
         list(APPEND KOFFI_SRC src/koffi/call_x64_win_fwd.asm)

@@ -12,13 +12,33 @@
 // along with this program. If not, see https://www.gnu.org/licenses/.
 
 #include "vendor/libcc/libcc.hh"
-#include "call.hh"
 #include "ffi.hh"
 #include "util.hh"
 
 #include <napi.h>
 
 namespace RG {
+
+const char *CopyNodeString(const Napi::Value &value, Allocator *alloc)
+{
+    RG_ASSERT(value.IsString());
+
+    Napi::Env env = value.Env();
+    napi_status status;
+
+    size_t len = 0;
+    status = napi_get_value_string_utf8(env, value, nullptr, 0, &len);
+    RG_ASSERT(status == napi_ok);
+
+    Span<char> buf;
+    buf.len = (Size)len + 1;
+    buf.ptr = (char *)Allocator::Allocate(alloc, buf.len);
+
+    status = napi_get_value_string_utf8(env, value, buf.ptr, (size_t)buf.len, &len);
+    RG_ASSERT(status == napi_ok);
+
+    return buf.ptr;
+}
 
 bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc, uint8_t *dest)
 {
@@ -93,6 +113,16 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
                 const char *str = CopyNodeString(value, alloc);
                 *(const char **)dest = str;
             } break;
+            case PrimitiveKind::Pointer: {
+                if (RG_UNLIKELY(!value.IsExternal())) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected external", GetTypeName(value.Type()), member.name);
+                    return false;
+                }
+
+                Napi::External external = value.As<Napi::External<void>>();
+                void *ptr = external.Data();
+                *(void **)dest = ptr;
+            } break;
 
             case PrimitiveKind::Record: {
                 if (RG_UNLIKELY(!value.IsObject())) {
@@ -103,17 +133,6 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
                 Napi::Object obj = value.As<Napi::Object>();
                 if (!PushObject(obj, member.type, alloc, dest))
                     return false;
-            } break;
-
-            case PrimitiveKind::Pointer: {
-                if (RG_UNLIKELY(!value.IsExternal())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected external", GetTypeName(value.Type()), member.name);
-                    return false;
-                }
-
-                Napi::External external = value.As<Napi::External<void>>();
-                void *ptr = external.Data();
-                *(void **)dest = ptr;
             } break;
         }
 
@@ -187,15 +206,14 @@ Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type)
                 const char *str = *(const char **)ptr;
                 obj.Set(member.name, Napi::String::New(env, str));
             } break;
+            case PrimitiveKind::Pointer: {
+                void *ptr2 = *(void **)ptr;
+                obj.Set(member.name, Napi::External<void>::New(env, ptr2));
+            } break;
 
             case PrimitiveKind::Record: {
                 Napi::Object obj2 = PopObject(env, ptr, member.type);
                 obj.Set(member.name, obj2);
-            } break;
-
-            case PrimitiveKind::Pointer: {
-                void *ptr2 = *(void **)ptr;
-                obj.Set(member.name, Napi::External<void>::New(env, ptr2));
             } break;
         }
 

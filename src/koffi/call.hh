@@ -19,32 +19,7 @@
 
 namespace RG {
 
-struct TypeInfo;
 struct FunctionInfo;
-
-static inline Size AlignLen(Size len, Size align)
-{
-    Size aligned = (len + align - 1) / align * align;
-    return aligned;
-}
-
-static inline uint8_t *AlignUp(uint8_t *ptr, Size align)
-{
-    uint8_t *aligned = (uint8_t *)(((uintptr_t)ptr + align - 1) / align * align);
-    return aligned;
-}
-static inline const uint8_t *AlignUp(const uint8_t *ptr, Size align)
-{
-    const uint8_t *aligned = (const uint8_t *)(((uintptr_t)ptr + align - 1) / align * align);
-    return aligned;
-}
-
-bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc, uint8_t *dest);
-Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type);
-
-void DumpStack(const FunctionInfo *func, Span<const uint8_t> sp);
-
-// ABI specific
 
 bool AnalyseFunction(FunctionInfo *func);
 Napi::Value TranslateCall(const Napi::CallbackInfo &info);

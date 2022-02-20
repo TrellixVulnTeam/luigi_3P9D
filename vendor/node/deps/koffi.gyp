@@ -32,10 +32,10 @@
         'include_dirs': [ '../../../src' ]
       },
       'sources': [
-        '../../../src/koffi/call.cc',
         '../../../src/koffi/call_x64_sysv.cc',
         '../../../src/koffi/call_x64_win.cc',
         '../../../src/koffi/ffi.cc',
+        '../../../src/koffi/util.cc',
         '../../libcc/libcc.cc',
       ],
       'conditions': [
