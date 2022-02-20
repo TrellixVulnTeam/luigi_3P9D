@@ -48,7 +48,6 @@
   V(contextify)                                                                \
   V(credentials)                                                               \
   V(errors)                                                                    \
-  V(ffi)                                                                       \
   V(fs)                                                                        \
   V(fs_dir)                                                                    \
   V(fs_event_wrap)                                                             \
@@ -58,6 +57,7 @@
   V(inspector)                                                                 \
   V(js_stream)                                                                 \
   V(js_udp_wrap)                                                               \
+  V(kofi)                                                                      \
   V(messaging)                                                                 \
   V(module_wrap)                                                               \
   V(native_module)                                                             \

@@ -15,26 +15,26 @@
 
 const process = require('process');
 const path = require('path');
-const ffi = (() => {
+const kofi = (() => {
     try {
-        return process.binding('ffi');
+        return process.binding('kofi');
     } catch (err) {
         // Prevent esbuild from trying to pick this up
-        let path = '../../build/Release/FFI.node';
+        let path = '../../build/Release/kofi.node';
         return require(path);
     }
 })();
 const { run_function } = require('./lu_vm.js');
 
-const Image = ffi.struct('Image', {
-    data: ffi.pointer('void'),
+const Image = kofi.struct('Image', {
+    data: kofi.pointer('void'),
     width: 'int',
     height: 'int',
     mipmaps: 'int',
     format: 'int'
 });
 
-const GlyphInfo = ffi.struct('GlyphInfo', {
+const GlyphInfo = kofi.struct('GlyphInfo', {
     value: 'int',
     offsetX: 'int',
     offsetY: 'int',
@@ -42,39 +42,39 @@ const GlyphInfo = ffi.struct('GlyphInfo', {
     image: Image
 });
 
-const Color = ffi.struct('Color', {
+const Color = kofi.struct('Color', {
     r: 'uchar',
     g: 'uchar',
     b: 'uchar',
     a: 'uchar'
 });
 
-const Vector2 = ffi.struct('Vector2', {
+const Vector2 = kofi.struct('Vector2', {
     x: 'float',
     y: 'float'
 });
 
-const Vector3 = ffi.struct('Vector3', {
+const Vector3 = kofi.struct('Vector3', {
     x: 'float',
     y: 'float',
     z: 'float'
 });
 
-const Vector4 = ffi.struct('Vector4', {
+const Vector4 = kofi.struct('Vector4', {
     x: 'float',
     y: 'float',
     z: 'float',
     w: 'float'
 });
 
-const Rectangle = ffi.struct('Rectangle', {
+const Rectangle = kofi.struct('Rectangle', {
     x: 'float',
     y: 'float',
     width: 'float',
     height: 'float'
 });
 
-const Texture = ffi.struct('Texture', {
+const Texture = kofi.struct('Texture', {
     id: 'uint',
     width: 'int',
     height: 'int',
@@ -82,19 +82,19 @@ const Texture = ffi.struct('Texture', {
     format: 'int'
 });
 
-const Font = ffi.struct('Font', {
+const Font = kofi.struct('Font', {
     baseSize: 'int',
     glyphCount: 'int',
     glyphPadding: 'int',
     texture: Texture,
-    recs: ffi.pointer(Rectangle),
-    glyphs: ffi.pointer(GlyphInfo)
+    recs: kofi.pointer(Rectangle),
+    glyphs: kofi.pointer(GlyphInfo)
 });
 
 const raylib = (() => {
-    let filename = ffi.internal ? null : path.normalize(`${__dirname}/../../build/Release/Raylib${process.platform == 'win32' ? '.dll' : '.so'}`);
+    let filename = kofi.internal ? null : path.normalize(`${__dirname}/../../build/Release/Raylib${process.platform == 'win32' ? '.dll' : '.so'}`);
 
-    let lib = ffi.load(filename, {
+    let lib = kofi.load(filename, {
         SetTraceLogLevel: ['void', ['int']],
         InitWindow: ['void', ['int', 'int', 'string']],
         SetWindowState: ['void', ['uint']],

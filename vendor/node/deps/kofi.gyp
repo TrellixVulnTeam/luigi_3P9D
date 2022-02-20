@@ -1,7 +1,7 @@
 {
   'targets': [
     {
-      'target_name': 'ffi',
+      'target_name': 'kofi',
       'type': 'static_library',
       'defines': [
         'NODE_WANT_INTERNALS=1',
@@ -32,10 +32,10 @@
         'include_dirs': [ '../../../src' ]
       },
       'sources': [
-        '../../../src/ffi/call.cc',
-        '../../../src/ffi/call_x64_sysv.cc',
-        '../../../src/ffi/call_x64_win.cc',
-        '../../../src/ffi/ffi.cc',
+        '../../../src/kofi/call.cc',
+        '../../../src/kofi/call_x64_sysv.cc',
+        '../../../src/kofi/call_x64_win.cc',
+        '../../../src/kofi/ffi.cc',
         '../../libcc/libcc.cc',
       ],
       'conditions': [
@@ -44,11 +44,11 @@
         }],
         [ 'target_arch=="x64" and OS=="win"', {
           'sources': [
-            '../../../src/ffi/call_x64_win_fwd.asm',
+            '../../../src/kofi/call_x64_win_fwd.asm',
           ],
           'rules': [
             {
-              'rule_name': 'Assemble_FFI',
+              'rule_name': 'Assemble',
               'message': 'Assembling <(RULE_INPUT_NAME)',
               'extension': 'asm',
               'inputs': [
@@ -68,21 +68,21 @@
         }],
         [ 'target_arch=="x64" and OS!="win"', {
           'sources': [
-            '../../../src/ffi/call_x64_sysv_fwd.S',
+            '../../../src/kofi/call_x64_sysv_fwd.S',
           ],
         }],
         [ 'target_arch=="arm64" or target_arch=="aarch64"', {
           'sources': [
-            '../../../src/ffi/call_arm64_fwd.S',
+            '../../../src/kofi/call_arm64_fwd.S',
           ],
         }],
         [ 'target_arch=="ia32" and OS=="win"', {
           'sources': [
-            '../../../src/ffi/call_x86_fwd.asm',
+            '../../../src/kofi/call_x86_fwd.asm',
           ],
           'rules': [
             {
-              'rule_name': 'Assemble_FFI',
+              'rule_name': 'Assemble',
               'message': 'Assembling <(RULE_INPUT_NAME)',
               'extension': 'asm',
               'inputs': [
@@ -102,7 +102,7 @@
         }],
         [ 'target_arch=="ia32" and OS!="win"', {
           'sources': [
-            '../../../src/ffi/call_x86_fwd.S',
+            '../../../src/kofi/call_x86_fwd.S',
           ],
         }],
       ]
