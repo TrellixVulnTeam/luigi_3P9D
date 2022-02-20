@@ -503,26 +503,20 @@ Function         | Parameters | Description
 
 # How to use
 
-There are two ways: the first uses NPM and allows to run Luigi code esily using Node.js, but
-will not give you the ability to produce redistribuable executable files.
+There are two ways: the first uses NPM and allows to run Luigi code esily using Node.js, but will not give you the ability to produce redistribuable executable files.
 
 The second one builds a modified Node.js binary.
 
 ## With NPM (easier)
 
-This will allow to test Luigi quickly, and allows for faster development. But you won't be able
-to export build self-contained retributable binaries of your games.
+This will allow to test Luigi quickly, and allows for faster development. But you won't be able to build self-contained redistributable binaries of your games.
 
 ### Windows
 
 First, make sure the following dependencies are met:
 
 * [Python 3.8](https://www.python.org/downloads/) or newer
-* The "Desktop development with C++" workload from
-  [Visual Studio 2022 or 2019](https://visualstudio.microsoft.com/downloads/) or
-  the "C++ build tools" workload from the
-  [Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022),
-  with the default optional components
+* The "Desktop development with C++" workload from [Visual Studio 2022 or 2019](https://visualstudio.microsoft.com/downloads/) or the "C++ build tools" workload from the [Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022), with the default optional components.
 * [CMake meta build system](https://cmake.org/)
 * [Node 16 LTS](https://nodejs.org/), but a newer version should work too
 
@@ -583,25 +577,17 @@ npm run luigi examples/words/words.luigi
 
 ## Build modified Node.js binary (harder)
 
-Luigi uses a modified Node.js LTS binary that include a few additional modules, you need to
-build it first.
+Luigi uses a modified Node.js LTS binary that include a few additional modules, you need to build it first.
 
-With this version, you will __soon__ be able to export build self-contained retributable
-binaries of your games.
+With this version, you will __soon__ be able to build self-contained redistributable binaries of your games.
 
 ### Windows
 
 To build Node, install the following dependencies:
 
 * [Python 3.8](https://www.python.org/downloads/) or newer
-* The "Desktop development with C++" workload from
-  [Visual Studio 2022 or 2019](https://visualstudio.microsoft.com/downloads/) or
-  the "C++ build tools" workload from the
-  [Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022),
-  with the default optional components
-* The [NetWide Assembler](https://www.nasm.us/), for OpenSSL modules.
-  If not installed in the default location, it needs to be manually added to `PATH`. You
-  can build without NASM, with option `--no_asm`.
+* The "Desktop development with C++" workload from [Visual Studio 2022 or 2019](https://visualstudio.microsoft.com/downloads/) or the "C++ build tools" workload from the [Build Tools](https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022), with the default optional components.
+* The [NetWide Assembler](https://www.nasm.us/), for OpenSSL modules. If not installed in the default location, it needs to be manually added to `PATH`. You can build without NASM, with option `--no_asm`.
 
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
@@ -642,11 +628,7 @@ After that, you can run the modified binary like this:
 * Xcode Command Line Tools >= 11 for macOS
 * [Ninja](https://ninja-build.org/) build system
 
-macOS users can install the `Xcode Command Line Tools` by running
-`xcode-select --install`. Alternatively, if you already have the full Xcode
-installed, you can find them under the menu `Xcode -> Open Developer Tool ->
-More Developer Tools...`. This step will install `clang`, `clang++`, and
-`make`.
+macOS users can install the `Xcode Command Line Tools` by running `xcode-select --install`. Alternatively, if you already have the full Xcode installed, you can find them under the menu `Xcode -> Open Developer Tool -> More Developer Tools...`. This step will install `clang`, clang++`, and `make`.
 
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
