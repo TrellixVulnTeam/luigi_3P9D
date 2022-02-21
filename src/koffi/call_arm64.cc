@@ -128,6 +128,7 @@ bool AnalyseFunction(FunctionInfo *func)
 static bool PushHFA(const Napi::Object &obj, const TypeInfo *type, uint8_t *dest)
 {
     Napi::Env env = obj.Env();
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
 
     RG_ASSERT(obj.IsObject());
     RG_ASSERT(type->primitive == PrimitiveKind::Record);
