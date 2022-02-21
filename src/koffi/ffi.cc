@@ -236,32 +236,46 @@ static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         Napi::Array value = ((Napi::Value)functions[key]).As<Napi::Array>();
 
         func->name = DuplicateString(key.c_str(), &lib->str_alloc).ptr;
+        func->decorated_name = func->name;
         func->lib = lib;
 
         if (!value.IsArray()) {
             ThrowError<Napi::TypeError>(env, "Unexpexted %1 value for signature of '%2', expected an array", GetValueType(instance, value), func->name);
             return env.Null();
         }
-        if (value.Length() != 2) {
-            ThrowError<Napi::TypeError>(env, "Unexpected array of length %1 for '%2', expected 2 elements", value.Length(), func->name);
-            return env.Null();
-        }
-        if (!((Napi::Value)value[1u]).IsArray()) {
-            ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetValueType(instance, (Napi::Value)value[1u]), func->name);
+        if (value.Length() < 2 || value.Length() > 3) {
+            ThrowError<Napi::TypeError>(env, "Unexpected array of length %1 for '%2', expected 2 or 3 elements", value.Length(), func->name);
             return env.Null();
         }
 
-#ifdef _WIN32
-        func->func = (void *)GetProcAddress((HMODULE)lib->module, key.c_str());
-#else
-        func->func = dlsym(lib->module, key.c_str());
-#endif
-        if (!func->func) {
-            ThrowError<Napi::Error>(env, "Cannot find function '%1' in shared library", key.c_str());
-            return env.Null();
-        }
+        Napi::Array parameters;
 
-        Napi::Array parameters = ((Napi::Value)value[1u]).As<Napi::Array>();
+        if (((Napi::Value)value[1u]).IsString()) {
+            std::string conv = ((Napi::Value)value[1u]).As<Napi::String>();
+
+            if (conv == "cdecl" || conv == "__cdecl") {
+                func->convention = CallConvention::Default;
+            } else if (conv == "stdcall" || conv == "__stdcall") {
+                func->convention = CallConvention::Stdcall;
+            } else {
+                ThrowError<Napi::Error>(env, "Unknown calling convention '%1'", conv.c_str());
+                return env.Null();
+            }
+
+            if (!((Napi::Value)value[2u]).IsArray()) {
+                ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetValueType(instance, (Napi::Value)value[1u]), func->name);
+                return env.Null();
+            }
+
+            parameters = ((Napi::Value)value[2u]).As<Napi::Array>();
+        } else {
+            if (!((Napi::Value)value[1u]).IsArray()) {
+                ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetValueType(instance, (Napi::Value)value[1u]), func->name);
+                return env.Null();
+            }
+
+            parameters = ((Napi::Value)value[1u]).As<Napi::Array>();
+        }
 
         func->ret.type = ResolveType(instance, value[0u]);
         if (!func->ret.type)
@@ -290,6 +304,16 @@ static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
 
         if (!AnalyseFunction(func))
             return env.Null();
+
+#ifdef _WIN32
+        func->func = (void *)GetProcAddress((HMODULE)lib->module, func->decorated_name);
+#else
+        func->func = dlsym(lib->module, func->decorated_name);
+#endif
+        if (!func->func) {
+            ThrowError<Napi::Error>(env, "Cannot find function '%1' in shared library", key.c_str());
+            return env.Null();
+        }
 
         Napi::Function wrapper = Napi::Function::New(env, TranslateCall, key.c_str(), (void *)func);
         wrapper.AddFinalizer([](Napi::Env, FunctionInfo *func) { delete func; }, func);

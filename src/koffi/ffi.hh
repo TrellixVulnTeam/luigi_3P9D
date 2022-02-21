@@ -79,6 +79,11 @@ public:
     BlockAllocator str_alloc;
 };
 
+enum class CallConvention {
+    Default,
+    Stdcall
+};
+
 struct ParameterInfo {
     const TypeInfo *type;
 
@@ -101,9 +106,11 @@ struct ParameterInfo {
 
 struct FunctionInfo {
     const char *name;
+    const char *decorated_name;
     std::shared_ptr<LibraryData> lib;
 
     void *func;
+    CallConvention convention;
 
     ParameterInfo ret;
     HeapArray<ParameterInfo> parameters;

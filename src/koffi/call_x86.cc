@@ -28,6 +28,17 @@ extern "C" double ForwardCallD(const void *func, uint8_t *sp);
 
 bool AnalyseFunction(FunctionInfo *func)
 {
+#ifdef _WIN32
+    if (func->convention == CallConvention::Stdcall) {
+        Size total = 0;
+        for (const ParameterInfo &param: func->parameters) {
+            total += param.type->size;
+        }
+
+        func->decorated_name = Fmt(&func->lib->str_alloc, "_%1@%2", func->name, total).ptr;
+    }
+#endif
+
     if (IsIntegral(func->ret.type->primitive)) {
         func->ret.trivial = true;
     } else if (func->ret.type->members.len == 1 && IsIntegral(func->ret.type->members[0].type->primitive)) {
