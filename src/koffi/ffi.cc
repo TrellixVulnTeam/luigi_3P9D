@@ -85,6 +85,7 @@ static Napi::Value CreateStructType(const Napi::CallbackInfo &info)
     }
 
     TypeInfo *type = instance->types.AppendDefault();
+    RG_DEFER_N(err_guard) { instance->types.RemoveLast(1); };
 
     std::string name = info[0].As<Napi::String>();
     Napi::Object obj = info[1].As<Napi::Object>();
@@ -114,10 +115,12 @@ static Napi::Value CreateStructType(const Napi::CallbackInfo &info)
 
     type->size = (int16_t)AlignLen(type->size, type->align);
 
+    // If the insert succeeds, we cannot fail anymore
     if (!instance->types_map.TrySet(type).second) {
         ThrowError<Napi::Error>(env, "Duplicate type name '%1'", type->name);
         return env.Null();
     }
+    err_guard.Disable();
 
     Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, type);
     SetValueTag(external, instance, &TypeInfoMarker);
@@ -139,14 +142,21 @@ static Napi::Value CreatePointerType(const Napi::CallbackInfo &info)
     if (!ref)
         return env.Null();
 
-    TypeInfo *type = instance->types.AppendDefault();
+    char name_buf[256];
+    Fmt(name_buf, "%1%2*", ref->name, ref->primitive == PrimitiveKind::Pointer ? "" : " ");
 
-    type->name = Fmt(&instance->str_alloc, "%1%2*", ref->name, ref->primitive == PrimitiveKind::Pointer ? "" : " ").ptr;
+    TypeInfo *type = instance->types_map.FindValue(name_buf, nullptr);
 
-    type->primitive = PrimitiveKind::Pointer;
-    type->size = sizeof(void *);
-    type->align = sizeof(void *);
-    type->ref = ref;
+    if (!type) {
+        type = instance->types.AppendDefault();
+
+        type->name = DuplicateString(name_buf, &instance->str_alloc).ptr;
+
+        type->primitive = PrimitiveKind::Pointer;
+        type->size = sizeof(void *);
+        type->align = sizeof(void *);
+        type->ref = ref;
+    }
 
     Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, type);
     SetValueTag(external, instance, &TypeInfoMarker);

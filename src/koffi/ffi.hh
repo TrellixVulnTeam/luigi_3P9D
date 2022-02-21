@@ -118,7 +118,7 @@ struct FunctionInfo {
 
 struct InstanceData {
     BucketArray<TypeInfo> types;
-    HashTable<const char *, const TypeInfo *> types_map;
+    HashTable<const char *, TypeInfo *> types_map;
 
     uint64_t tag_lower;
 
