@@ -138,14 +138,14 @@ static bool PushHFA(const Napi::Object &obj, const TypeInfo *type, uint8_t *dest
 
         if (member.type->primitive == PrimitiveKind::Float32) {
             if (!value.IsNumber() && !value.IsBigInt()) {
-                ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
+                ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetValueType(instance, value), member.name);
                 return false;
             }
 
             *(float *)dest = CopyNodeNumber<float>(value);
         } else if (member.type->primitive == PrimitiveKind::Float64) {
             if (!value.IsNumber() && !value.IsBigInt()) {
-                ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
+                ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetValueType(instance, value), member.name);
                 return false;
             }
 
@@ -246,7 +246,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Bool: {
                 if (RG_UNLIKELY(!value.IsBoolean())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected boolean", GetTypeName(value.Type()), i + 1);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected boolean", GetValueType(instance, value), i + 1);
                     return env.Null();
                 }
 
@@ -267,7 +267,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
                 if (RG_UNLIKELY(!value.IsNumber() && !value.IsBigInt())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetValueType(instance, value), i + 1);
                     return env.Null();
                 }
 
@@ -283,7 +283,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::Float32: {
                 if (RG_UNLIKELY(!value.IsNumber() && !value.IsBigInt())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetValueType(instance, value), i + 1);
                     return env.Null();
                 }
 
@@ -299,7 +299,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::Float64: {
                 if (RG_UNLIKELY(!value.IsNumber() && !value.IsBigInt())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetTypeName(value.Type()), i + 1);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected number", GetValueType(instance, value), i + 1);
                     return env.Null();
                 }
 
@@ -315,7 +315,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::String: {
                 if (RG_UNLIKELY(!value.IsString())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetTypeName(value.Type()), i + 1);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected string", GetValueType(instance, value), i + 1);
                     return env.Null();
                 }
 
@@ -331,7 +331,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
             } break;
             case PrimitiveKind::Pointer: {
                 if (RG_UNLIKELY(!CheckValueTag(value, instance, param.type))) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected %3", GetTypeName(value.Type()), i + 1, param.type->name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected %3", GetValueType(instance, value), i + 1, param.type->name);
                     return env.Null();
                 }
 
@@ -348,7 +348,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 
             case PrimitiveKind::Record: {
                 if (RG_UNLIKELY(!value.IsObject())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetTypeName(value.Type()), i + 1);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected object", GetValueType(instance, value), i + 1);
                     return env.Null();
                 }
 

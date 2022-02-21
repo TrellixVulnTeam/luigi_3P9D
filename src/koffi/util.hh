@@ -47,23 +47,8 @@ static void ThrowError(Napi::Env env, const char *msg, Args... args)
     T::New(env, buf).ThrowAsJavaScriptException();
 }
 
-static inline const char *GetTypeName(napi_valuetype type)
-{
-    switch (type) {
-        case napi_undefined: return "undefined";
-        case napi_null: return "null";
-        case napi_boolean: return "boolean";
-        case napi_number: return "number";
-        case napi_string: return "string";
-        case napi_symbol: return "symbol";
-        case napi_object: return "object";
-        case napi_function: return "fucntion";
-        case napi_external: return "external";
-        case napi_bigint: return "bigint";
-    }
-
-    return "unknown";
-}
+// Can be slow, only use for error messages
+const char *GetValueType(const InstanceData *instance, Napi::Value value);
 
 void SetValueTag(Napi::Value value, const InstanceData *instance, const void *marker);
 bool CheckValueTag(Napi::Value value, const InstanceData *instance, const void *marker);

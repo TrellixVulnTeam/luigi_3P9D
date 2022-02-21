@@ -61,7 +61,7 @@ static const TypeInfo *ResolveType(const InstanceData *instance, Napi::Value val
 
         return type;
     } else {
-        ThrowError<Napi::TypeError>(value.Env(), "Unexpected %1 value as type specifier, expected string or type", GetTypeName(value.Type()));
+        ThrowError<Napi::TypeError>(value.Env(), "Unexpected %1 value as type specifier, expected string or type", GetValueType(instance, value));
         return nullptr;
     }
 }
@@ -76,11 +76,11 @@ static Napi::Value CreateStructType(const Napi::CallbackInfo &info)
         return env.Null();
     }
     if (!info[0].IsString()) {
-        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for name, expected string", GetTypeName(info[0].Type()));
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for name, expected string", GetValueType(instance, info[0]));
         return env.Null();
     }
     if (!info[1].IsObject()) {
-        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for members, expected object", GetTypeName(info[1].Type()));
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for members, expected object", GetValueType(instance, info[1]));
         return env.Null();
     }
 
@@ -174,11 +174,11 @@ static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         return env.Null();
     }
     if (!info[0].IsString() && !info[0].IsNull()) {
-        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for filename, expected string or null", GetTypeName(info[0].Type()));
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for filename, expected string or null", GetValueType(instance, info[0]));
         return env.Null();
     }
     if (!info[1].IsObject()) {
-        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for functions, expected object", GetTypeName(info[1].Type()));
+        ThrowError<Napi::TypeError>(env, "Unexpected %1 value for functions, expected object", GetValueType(instance, info[1]));
         return env.Null();
     }
 
@@ -238,7 +238,7 @@ static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
         func->lib = lib;
 
         if (!value.IsArray()) {
-            ThrowError<Napi::TypeError>(env, "Unexpexted %1 value for signature of '%2', expected an array", GetTypeName(value.Type()), func->name);
+            ThrowError<Napi::TypeError>(env, "Unexpexted %1 value for signature of '%2', expected an array", GetValueType(instance, value), func->name);
             return env.Null();
         }
         if (value.Length() != 2) {
@@ -246,7 +246,7 @@ static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
             return env.Null();
         }
         if (!((Napi::Value)value[1u]).IsArray()) {
-            ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetTypeName(((Napi::Value)value[1u]).Type()), func->name);
+            ThrowError<Napi::TypeError>(env, "Unexpected %1 value for parameters of '%2', expected an array", GetValueType(instance, (Napi::Value)value[1u]), func->name);
             return env.Null();
         }
 

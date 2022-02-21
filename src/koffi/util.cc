@@ -19,6 +19,29 @@
 
 namespace RG {
 
+const char *GetValueType(const InstanceData *instance, Napi::Value value)
+{
+    for (const TypeInfo &type: instance->types) {
+        if (CheckValueTag(value, instance, &type))
+            return type.name;
+    }
+
+    switch (value.Type()) {
+        case napi_undefined: return "undefined";
+        case napi_null: return "null";
+        case napi_boolean: return "boolean";
+        case napi_number: return "number";
+        case napi_string: return "string";
+        case napi_symbol: return "symbol";
+        case napi_object: return "object";
+        case napi_function: return "fucntion";
+        case napi_external: return "external";
+        case napi_bigint: return "bigint";
+    }
+
+    return "unknown";
+}
+
 void SetValueTag(Napi::Value value, const InstanceData *instance, const void *marker)
 {
     napi_type_tag tag = { instance->tag_lower, (uint64_t)marker };
@@ -82,7 +105,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
             case PrimitiveKind::Bool: {
                 if (RG_UNLIKELY(!value.IsBoolean())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected boolean", GetTypeName(value.Type()), member.name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected boolean", GetValueType(instance, value), member.name);
                     return false;
                 }
 
@@ -99,7 +122,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             case PrimitiveKind::Int64:
             case PrimitiveKind::UInt64: {
                 if (RG_UNLIKELY(!value.IsNumber() && !value.IsBigInt())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetValueType(instance, value), member.name);
                     return false;
                 }
 
@@ -108,7 +131,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             } break;
             case PrimitiveKind::Float32: {
                 if (RG_UNLIKELY(!value.IsNumber() && !value.IsBigInt())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetValueType(instance, value), member.name);
                     return false;
                 }
 
@@ -117,7 +140,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             } break;
             case PrimitiveKind::Float64: {
                 if (RG_UNLIKELY(!value.IsNumber() && !value.IsBigInt())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetTypeName(value.Type()), member.name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected number", GetValueType(instance, value), member.name);
                     return false;
                 }
 
@@ -126,7 +149,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             } break;
             case PrimitiveKind::String: {
                 if (RG_UNLIKELY(!value.IsString())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected string", GetTypeName(value.Type()), member.name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected string", GetValueType(instance, value), member.name);
                     return false;
                 }
 
@@ -135,7 +158,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
             } break;
             case PrimitiveKind::Pointer: {
                 if (RG_UNLIKELY(!CheckValueTag(value, instance, member.type))) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for member '%2', expected %3", GetTypeName(value.Type()), member.name, member.type->name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for member '%2', expected %3", GetValueType(instance, value), member.name, member.type->name);
                     return false;
                 }
 
@@ -146,7 +169,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
 
             case PrimitiveKind::Record: {
                 if (RG_UNLIKELY(!value.IsObject())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected object", GetTypeName(value.Type()), member.name);
+                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected object", GetValueType(instance, value), member.name);
                     return false;
                 }
 
