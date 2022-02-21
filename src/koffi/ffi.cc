@@ -177,43 +177,41 @@ static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
     Napi::Object obj = Napi::Object::New(env);
 
     // Load shared library
-    {
 #ifdef _WIN32
-        if (info[0].IsString()) {
-            std::u16string filename = info[0].As<Napi::String>();
-            lib->module = LoadLibraryW((LPCWSTR)filename.c_str());
+    if (info[0].IsString()) {
+        std::u16string filename = info[0].As<Napi::String>();
+        lib->module = LoadLibraryW((LPCWSTR)filename.c_str());
 
-            if (!lib->module) {
-                ThrowError<Napi::Error>(env, "Failed to load shared library: %1", GetWin32ErrorString());
-                return env.Null();
-            }
-        } else {
-            lib->module = GetModuleHandle(nullptr);
-            RG_ASSERT(lib->module);
+        if (!lib->module) {
+            ThrowError<Napi::Error>(env, "Failed to load shared library: %1", GetWin32ErrorString());
+            return env.Null();
         }
-
-#else
-        if (info[0].IsString()) {
-            std::string filename = info[0].As<Napi::String>();
-            lib->module = dlopen(filename.c_str(), RTLD_NOW);
-
-            if (!lib->module) {
-                const char *msg = dlerror();
-
-                if (StartsWith(msg, filename.c_str()))
-                    msg += filename.length();
-                while (strchr(": ", msg[0])) {
-                    msg++;
-                }
-
-                ThrowError<Napi::Error>(env, "Failed to load shared library: %1", msg);
-                return env.Null();
-            }
-        } else {
-            lib->module = RTLD_DEFAULT;
-        }
-#endif
+    } else {
+        lib->module = GetModuleHandle(nullptr);
+        RG_ASSERT(lib->module);
     }
+#else
+    if (info[0].IsString()) {
+        std::string filename = info[0].As<Napi::String>();
+        lib->module = dlopen(filename.c_str(), RTLD_NOW);
+
+        if (!lib->module) {
+            const char *msg = dlerror();
+
+            if (StartsWith(msg, filename.c_str())) {
+                msg += filename.length();
+            }
+            while (strchr(": ", msg[0])) {
+                msg++;
+            }
+
+            ThrowError<Napi::Error>(env, "Failed to load shared library: %1", msg);
+            return env.Null();
+        }
+    } else {
+        lib->module = RTLD_DEFAULT;
+    }
+#endif
 
     Napi::Object functions = info[1].As<Napi::Array>();
     Napi::Array keys = functions.GetPropertyNames();
