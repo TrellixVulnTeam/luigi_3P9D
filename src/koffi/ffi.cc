@@ -24,6 +24,7 @@
         #define WIN32_LEAN_AND_MEAN
     #endif
     #include <windows.h>
+    #include <ntsecapi.h>
 #else
     #include <dlfcn.h>
     #include <unistd.h>
@@ -37,12 +38,7 @@
 
 namespace RG {
 
-struct InstanceData {
-    BucketArray<TypeInfo> types;
-    HashTable<const char *, const TypeInfo *> types_map;
-
-    BlockAllocator str_alloc;
-};
+static const int TypeInfoMarker;
 
 static const TypeInfo *ResolveType(const InstanceData *instance, Napi::Value value)
 {
@@ -57,7 +53,7 @@ static const TypeInfo *ResolveType(const InstanceData *instance, Napi::Value val
         }
 
         return type;
-    } else if (value.IsExternal()) {
+    } else if (CheckValueTag(value, instance, &TypeInfoMarker)) {
         Napi::External<TypeInfo> external = value.As<Napi::External<TypeInfo>>();
 
         const TypeInfo *type = external.Data();
@@ -65,7 +61,7 @@ static const TypeInfo *ResolveType(const InstanceData *instance, Napi::Value val
 
         return type;
     } else {
-        ThrowError<Napi::TypeError>(value.Env(), "Unexpected %1 value as type specifier, expected string or external", GetTypeName(value.Type()));
+        ThrowError<Napi::TypeError>(value.Env(), "Unexpected %1 value as type specifier, expected string or type", GetTypeName(value.Type()));
         return nullptr;
     }
 }
@@ -95,6 +91,7 @@ static Napi::Value CreateStructType(const Napi::CallbackInfo &info)
     Napi::Array keys = obj.GetPropertyNames();
 
     type->name = DuplicateString(name.c_str(), &instance->str_alloc).ptr;
+
     type->primitive = PrimitiveKind::Record;
     type->align = 1;
 
@@ -122,7 +119,9 @@ static Napi::Value CreateStructType(const Napi::CallbackInfo &info)
         return env.Null();
     }
 
-    Napi::External external = Napi::External<TypeInfo>::New(env, type);
+    Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, type);
+    SetValueTag(external, instance, &TypeInfoMarker);
+
     return external;
 }
 
@@ -147,10 +146,12 @@ static Napi::Value CreatePointerType(const Napi::CallbackInfo &info)
     type->primitive = PrimitiveKind::Pointer;
     type->size = sizeof(void *);
     type->align = sizeof(void *);
-
     type->ref = ref;
 
-    return Napi::External<TypeInfo>::New(env, type);
+    Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, type);
+    SetValueTag(external, instance, &TypeInfoMarker);
+
+    return external;
 }
 
 static Napi::Value LoadSharedLibrary(const Napi::CallbackInfo &info)
@@ -375,6 +376,7 @@ static Napi::Object InitBaseTypes(Napi::Env env)
     Napi::Object types = Napi::Object::New(env);
     for (TypeInfo &type: instance->types) {
         Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, &type);
+        SetValueTag(external, instance, &TypeInfoMarker);
 
         types.Set(type.name, external);
 
@@ -427,6 +429,8 @@ static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
     InstanceData *instance = new InstanceData();
     env_cxx.SetInstanceData(instance);
 
+    FillRandom(&instance->tag_lower, RG_SIZE(instance->tag_lower));
+
     SetValue(env, target, "struct", Napi::Function::New(env_napi, CreateStructType));
     SetValue(env, target, "pointer", Napi::Function::New(env_napi, CreatePointerType));
     SetValue(env, target, "load", Napi::Function::New(env_napi, LoadSharedLibrary));
@@ -444,6 +448,8 @@ static Napi::Object InitModule(Napi::Env env, Napi::Object exports)
 
     InstanceData *instance = new InstanceData();
     env.SetInstanceData(instance);
+
+    FillRandom(&instance->tag_lower, RG_SIZE(instance->tag_lower));
 
     exports.Set("struct", Napi::Function::New(env, CreateStructType));
     exports.Set("pointer", Napi::Function::New(env, CreatePointerType));

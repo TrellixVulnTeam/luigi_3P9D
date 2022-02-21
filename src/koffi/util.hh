@@ -19,6 +19,8 @@
 
 namespace RG {
 
+struct InstanceData;
+
 static inline Size AlignLen(Size len, Size align)
 {
     Size aligned = (len + align - 1) / align * align;
@@ -63,6 +65,9 @@ static inline const char *GetTypeName(napi_valuetype type)
     return "unknown";
 }
 
+void SetValueTag(Napi::Value value, const InstanceData *instance, const void *marker);
+bool CheckValueTag(Napi::Value value, const InstanceData *instance, const void *marker);
+
 template <typename T>
 T CopyNodeNumber(const Napi::Value &value)
 {
@@ -83,7 +88,7 @@ T CopyNodeNumber(const Napi::Value &value)
 const char *CopyNodeString(const Napi::Value &value, Allocator *alloc);
 
 bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc, uint8_t *dest);
-Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type);
+Napi::Object PopObject(Napi::Env env, const uint8_t *ptr, const TypeInfo *type);
 
 void DumpStack(const FunctionInfo *func, Span<const uint8_t> sp);
 

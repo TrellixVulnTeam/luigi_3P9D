@@ -181,6 +181,7 @@ bool AnalyseFunction(FunctionInfo *func)
 Napi::Value TranslateCall(const Napi::CallbackInfo &info)
 {
     Napi::Env env = info.Env();
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
 
     FunctionInfo *func = (FunctionInfo *)info.Data();
     LibraryData *lib = func->lib.get();
@@ -323,8 +324,8 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 }
             } break;
             case PrimitiveKind::Pointer: {
-                if (RG_UNLIKELY(!value.IsExternal())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected external", GetTypeName(value.Type()), i + 1);
+                if (RG_UNLIKELY(!CheckValueTag(value, instance, param.type))) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected %3", GetTypeName(value.Type()), i + 1, param.type->name);
                     return env.Null();
                 }
 
@@ -454,7 +455,11 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 case PrimitiveKind::String: return Napi::String::New(env, (const char *)ret.rax);
                 case PrimitiveKind::Pointer: {
                     void *ptr = (void *)ret.rax;
-                    return Napi::External<void>::New(env, ptr);
+
+                    Napi::External<void> external = Napi::External<void>::New(env, ptr);
+                    SetValueTag(external, instance, func->ret.type);
+
+                    return external;
                 } break;
 
                 case PrimitiveKind::Record: { RG_UNREACHABLE(); } break;

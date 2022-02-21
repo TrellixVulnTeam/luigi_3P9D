@@ -47,10 +47,10 @@ static inline bool IsIntegral(PrimitiveKind primitive)
 
 struct TypeInfo;
 struct RecordMember;
-struct FunctionInfo;
 
 struct TypeInfo {
     const char *name;
+    napi_type_tag tag;
 
     PrimitiveKind primitive;
     int16_t size;
@@ -114,6 +114,15 @@ struct FunctionInfo {
 #if defined(__aarch64__) || defined(__x86_64__) || defined(_WIN64)
     bool forward_fp;
 #endif
+};
+
+struct InstanceData {
+    BucketArray<TypeInfo> types;
+    HashTable<const char *, const TypeInfo *> types_map;
+
+    uint64_t tag_lower;
+
+    BlockAllocator str_alloc;
 };
 
 }

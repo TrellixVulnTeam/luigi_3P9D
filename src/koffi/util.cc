@@ -19,6 +19,23 @@
 
 namespace RG {
 
+void SetValueTag(Napi::Value value, const InstanceData *instance, const void *marker)
+{
+    napi_type_tag tag = { instance->tag_lower, (uint64_t)marker };
+    napi_status status = napi_type_tag_object(value.Env(), value, &tag);
+    RG_ASSERT(status == napi_ok);
+}
+
+bool CheckValueTag(Napi::Value value, const InstanceData *instance, const void *marker)
+{
+    bool match = false;
+
+    napi_type_tag tag = { instance->tag_lower, (uint64_t)marker };
+    napi_check_object_type_tag(value.Env(), value, &tag, &match);
+
+    return match;
+}
+
 const char *CopyNodeString(const Napi::Value &value, Allocator *alloc)
 {
     RG_ASSERT(value.IsString());
@@ -43,6 +60,7 @@ const char *CopyNodeString(const Napi::Value &value, Allocator *alloc)
 bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc, uint8_t *dest)
 {
     Napi::Env env = obj.Env();
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
 
     RG_ASSERT(obj.IsObject());
     RG_ASSERT(type->primitive == PrimitiveKind::Record);
@@ -116,8 +134,8 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
                 *(const char **)dest = str;
             } break;
             case PrimitiveKind::Pointer: {
-                if (RG_UNLIKELY(!value.IsExternal())) {
-                    ThrowError<Napi::TypeError>(env, "Unexpected value %1 for member '%2', expected external", GetTypeName(value.Type()), member.name);
+                if (RG_UNLIKELY(!CheckValueTag(value, instance, member.type))) {
+                    ThrowError<Napi::TypeError>(env, "Unexpected %1 value for member '%2', expected %3", GetTypeName(value.Type()), member.name, member.type->name);
                     return false;
                 }
 
@@ -144,8 +162,10 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
     return true;
 }
 
-Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type)
+Napi::Object PopObject(Napi::Env env, const uint8_t *ptr, const TypeInfo *type)
 {
+    InstanceData *instance = env.GetInstanceData<InstanceData>();
+
     RG_ASSERT(type->primitive == PrimitiveKind::Record);
 
     Napi::Object obj = Napi::Object::New(env);
@@ -210,7 +230,11 @@ Napi::Object PopObject(napi_env env, const uint8_t *ptr, const TypeInfo *type)
             } break;
             case PrimitiveKind::Pointer: {
                 void *ptr2 = *(void **)ptr;
-                obj.Set(member.name, Napi::External<void>::New(env, ptr2));
+
+                Napi::External<void> external = Napi::External<void>::New(env, ptr2);
+                SetValueTag(external, instance, member.type);
+
+                obj.Set(member.name, external);
             } break;
 
             case PrimitiveKind::Record: {
