@@ -53,7 +53,7 @@ static const TypeInfo *ResolveType(const InstanceData *instance, Napi::Value val
         }
 
         return type;
-    } else if (CheckValueTag(value, instance, &TypeInfoMarker)) {
+    } else if (CheckValueTag(instance, value, &TypeInfoMarker)) {
         Napi::External<TypeInfo> external = value.As<Napi::External<TypeInfo>>();
 
         const TypeInfo *type = external.Data();
@@ -123,7 +123,7 @@ static Napi::Value CreateStructType(const Napi::CallbackInfo &info)
     err_guard.Disable();
 
     Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, type);
-    SetValueTag(external, instance, &TypeInfoMarker);
+    SetValueTag(instance, external, &TypeInfoMarker);
 
     return external;
 }
@@ -159,7 +159,7 @@ static Napi::Value CreatePointerType(const Napi::CallbackInfo &info)
     }
 
     Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, type);
-    SetValueTag(external, instance, &TypeInfoMarker);
+    SetValueTag(instance, external, &TypeInfoMarker);
 
     return external;
 }
@@ -384,7 +384,7 @@ static Napi::Object InitBaseTypes(Napi::Env env)
     Napi::Object types = Napi::Object::New(env);
     for (TypeInfo &type: instance->types) {
         Napi::External<TypeInfo> external = Napi::External<TypeInfo>::New(env, &type);
-        SetValueTag(external, instance, &TypeInfoMarker);
+        SetValueTag(instance, external, &TypeInfoMarker);
 
         types.Set(type.name, external);
 

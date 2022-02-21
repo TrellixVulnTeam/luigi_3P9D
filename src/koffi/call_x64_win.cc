@@ -146,7 +146,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                 *(const char **)(args_ptr + j) = str;
             } break;
             case PrimitiveKind::Pointer: {
-                if (RG_UNLIKELY(!CheckValueTag(value, instance, param.type))) {
+                if (RG_UNLIKELY(!CheckValueTag(instance, value, param.type))) {
                     ThrowError<Napi::TypeError>(env, "Unexpected %1 value for argument %2, expected %3", GetValueType(instance, value), i + 1, param.type->name);
                     return env.Null();
                 }
@@ -219,7 +219,7 @@ Napi::Value TranslateCall(const Napi::CallbackInfo &info)
                     void *ptr = (void *)rax;
 
                     Napi::External<void> external = Napi::External<void>::New(env, ptr);
-                    SetValueTag(external, instance, func->ret.type);
+                    SetValueTag(instance, external, func->ret.type);
 
                     return external;
                 } break;

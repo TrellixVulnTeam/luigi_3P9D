@@ -50,8 +50,8 @@ static void ThrowError(Napi::Env env, const char *msg, Args... args)
 // Can be slow, only use for error messages
 const char *GetValueType(const InstanceData *instance, Napi::Value value);
 
-void SetValueTag(Napi::Value value, const InstanceData *instance, const void *marker);
-bool CheckValueTag(Napi::Value value, const InstanceData *instance, const void *marker);
+void SetValueTag(const InstanceData *instance, Napi::Value value, const void *marker);
+bool CheckValueTag(const InstanceData *instance, Napi::Value value, const void *marker);
 
 template <typename T>
 T CopyNodeNumber(const Napi::Value &value)

@@ -22,7 +22,7 @@ namespace RG {
 const char *GetValueType(const InstanceData *instance, Napi::Value value)
 {
     for (const TypeInfo &type: instance->types) {
-        if (CheckValueTag(value, instance, &type))
+        if (CheckValueTag(instance, value, &type))
             return type.name;
     }
 
@@ -42,14 +42,14 @@ const char *GetValueType(const InstanceData *instance, Napi::Value value)
     return "unknown";
 }
 
-void SetValueTag(Napi::Value value, const InstanceData *instance, const void *marker)
+void SetValueTag(const InstanceData *instance, Napi::Value value, const void *marker)
 {
     napi_type_tag tag = { instance->tag_lower, (uint64_t)marker };
     napi_status status = napi_type_tag_object(value.Env(), value, &tag);
     RG_ASSERT(status == napi_ok);
 }
 
-bool CheckValueTag(Napi::Value value, const InstanceData *instance, const void *marker)
+bool CheckValueTag(const InstanceData *instance, Napi::Value value, const void *marker)
 {
     bool match = false;
 
@@ -157,7 +157,7 @@ bool PushObject(const Napi::Object &obj, const TypeInfo *type, Allocator *alloc,
                 *(const char **)dest = str;
             } break;
             case PrimitiveKind::Pointer: {
-                if (RG_UNLIKELY(!CheckValueTag(value, instance, member.type))) {
+                if (RG_UNLIKELY(!CheckValueTag(instance, value, member.type))) {
                     ThrowError<Napi::TypeError>(env, "Unexpected %1 value for member '%2', expected %3", GetValueType(instance, value), member.name, member.type->name);
                     return false;
                 }
@@ -255,7 +255,7 @@ Napi::Object PopObject(Napi::Env env, const uint8_t *ptr, const TypeInfo *type)
                 void *ptr2 = *(void **)ptr;
 
                 Napi::External<void> external = Napi::External<void>::New(env, ptr2);
-                SetValueTag(external, instance, member.type);
+                SetValueTag(instance, external, member.type);
 
                 obj.Set(member.name, external);
             } break;
