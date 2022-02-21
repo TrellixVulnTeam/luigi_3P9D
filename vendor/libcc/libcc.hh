@@ -3892,9 +3892,6 @@ static inline bool ExecuteCommandLine(const char *cmd_line, Span<const char> in_
                               (HeapArray<uint8_t> *)out_buf, out_code);
 }
 
-void FillRandom(void *buf, Size len);
-static inline void FillRandom(Span<uint8_t> buf) { FillRandom(buf.ptr, buf.len); }
-
 void WaitDelay(int64_t delay);
 
 enum class WaitForResult {
@@ -3923,6 +3920,31 @@ bool NotifySystemd();
             return ret; \
         })()
 #endif
+
+// ------------------------------------------------------------------------
+// Random
+// ------------------------------------------------------------------------
+
+class FastRandom {
+    uint64_t state[4];
+
+public:
+    FastRandom();
+    FastRandom(uint64_t seed);
+
+    void Fill(void *buf, Size len);
+    void Fill(Span<uint8_t> buf) { Fill(buf.ptr, buf.len); }
+
+    int GetInt(int min, int max);
+
+private:
+    uint64_t Next();
+};
+
+void ZeroMemorySafe(void *ptr, Size len);
+void FillRandomSafe(void *buf, Size len);
+static inline void FillRandomSafe(Span<uint8_t> buf) { FillRandomSafe(buf.ptr, buf.len); }
+int GetRandomIntSafe(int min, int max);
 
 // ------------------------------------------------------------------------
 // Sockets

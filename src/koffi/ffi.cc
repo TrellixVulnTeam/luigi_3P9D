@@ -462,7 +462,7 @@ static void InitInternal(v8::Local<v8::Object> target, v8::Local<v8::Value>,
     InstanceData *instance = new InstanceData();
     env_cxx.SetInstanceData(instance);
 
-    FillRandom(&instance->tag_lower, RG_SIZE(instance->tag_lower));
+    FillRandomSafe(&instance->tag_lower, RG_SIZE(instance->tag_lower));
 
     SetValue(env, target, "struct", Napi::Function::New(env_napi, CreateStructType));
     SetValue(env, target, "pointer", Napi::Function::New(env_napi, CreatePointerType));
@@ -482,7 +482,7 @@ static Napi::Object InitModule(Napi::Env env, Napi::Object exports)
     InstanceData *instance = new InstanceData();
     env.SetInstanceData(instance);
 
-    FillRandom(&instance->tag_lower, RG_SIZE(instance->tag_lower));
+    FillRandomSafe(&instance->tag_lower, RG_SIZE(instance->tag_lower));
 
     exports.Set("struct", Napi::Function::New(env, CreateStructType));
     exports.Set("pointer", Napi::Function::New(env, CreatePointerType));

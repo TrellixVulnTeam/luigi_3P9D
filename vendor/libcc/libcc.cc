@@ -590,19 +590,13 @@ int64_t GetUnixTime()
     return (int64_t)emscripten_get_now();
 #elif defined(__linux__)
     struct timespec ts;
-    if (clock_gettime(CLOCK_REALTIME_COARSE, &ts) < 0) {
-        LogError("clock_gettime(CLOCK_REALTIME_COARSE) failed: %1", strerror(errno));
-        abort();
-    }
+    RG_CRITICAL(clock_gettime(CLOCK_REALTIME_COARSE, &ts) == 0, "clock_gettime(CLOCK_REALTIME_COARSE) failed: %1", strerror(errno));
 
     int64_t time = (int64_t)ts.tv_sec * 1000 + (int64_t)ts.tv_nsec / 1000000;
     return time;
 #else
     struct timespec ts;
-    if (clock_gettime(CLOCK_REALTIME, &ts) < 0) {
-        LogError("clock_gettime(CLOCK_REALTIME) failed: %1", strerror(errno));
-        abort();
-    }
+    RG_CRITICAL(clock_gettime(CLOCK_REALTIME, &ts) == 0, "clock_gettime(CLOCK_REALTIME) failed: %1", strerror(errno));
 
     int64_t time = (int64_t)ts.tv_sec * 1000 + (int64_t)ts.tv_nsec / 1000000;
     return time;
@@ -617,18 +611,12 @@ int64_t GetMonotonicTime()
     return (int64_t)emscripten_get_now();
 #elif defined(__linux__)
     struct timespec ts;
-    if (clock_gettime(CLOCK_MONOTONIC_COARSE, &ts) < 0) {
-        LogError("clock_gettime(CLOCK_MONOTONIC_COARSE) failed: %1", strerror(errno));
-        abort();
-    }
+    RG_CRITICAL(clock_gettime(CLOCK_MONOTONIC_COARSE, &ts) == 0, "clock_gettime(CLOCK_MONOTONIC_COARSE) failed: %1", strerror(errno));
 
     return (int64_t)ts.tv_sec * 1000 + (int64_t)ts.tv_nsec / 1000000;
 #else
     struct timespec ts;
-    if (clock_gettime(CLOCK_MONOTONIC, &ts) < 0) {
-        LogError("clock_gettime(CLOCK_MONOTONIC) failed: %1", strerror(errno));
-        abort();
-    }
+    RG_CRITICAL(clock_gettime(CLOCK_MONOTONIC, &ts) == 0, "clock_gettime(CLOCK_MONOTONIC) failed: %1", strerror(errno));
 
     return (int64_t)ts.tv_sec * 1000 + (int64_t)ts.tv_nsec / 1000000;
 #endif
@@ -964,17 +952,24 @@ static Span<char> ExponentiateFloat(Span<char> buf, int K, int min_prec, int max
 
 // NaN and Inf are handled by caller
 template <typename T>
-Span<const char> FormatFloatingPoint(T value, int min_prec, int max_prec, char out_buf[128])
+Span<const char> FormatFloatingPoint(T value, bool non_zero, int min_prec, int max_prec, char out_buf[128])
 {
 #ifdef JKJ_HEADER_DRAGONBOX
-    auto v = jkj::dragonbox::to_decimal(value, jkj::dragonbox::policy::sign::ignore);
+    if (non_zero) {
+        auto v = jkj::dragonbox::to_decimal(value, jkj::dragonbox::policy::sign::ignore);
 
-    Span<char> buf = FormatUnsignedToDecimal(v.significand, out_buf);
-    int KK = (int)buf.len + v.exponent;
+        Span<char> buf = FormatUnsignedToDecimal(v.significand, out_buf);
+        int KK = (int)buf.len + v.exponent;
 
-    if (!v.significand) {
-        buf.ptr[0] = '0';
+        if (KK > -6 && KK <= 21) {
+            return PrettifyFloat(buf, v.exponent, min_prec, max_prec);
+        } else {
+            return ExponentiateFloat(buf, v.exponent, min_prec, max_prec);
+        }
+    } else {
+        Span<char> buf = MakeSpan(out_buf, 128);
 
+        buf[0] = '0';
         if (min_prec) {
             buf.ptr[1] = '.';
             memset_safe(buf.ptr + 2, '0', min_prec);
@@ -984,10 +979,6 @@ Span<const char> FormatFloatingPoint(T value, int min_prec, int max_prec, char o
         }
 
         return buf;
-    } else if (KK > -6 && KK <= 21) {
-        return PrettifyFloat(buf, v.exponent, min_prec, max_prec);
-    } else {
-        return ExponentiateFloat(buf, v.exponent, min_prec, max_prec);
     }
 #else
     #ifdef _MSC_VER
@@ -1066,10 +1057,10 @@ static inline void ProcessArg(const FmtArg &arg, AppendFunc append)
                             out_buf.Append('-');
                         }
 
-                        out_buf.Append(FormatFloatingPoint(-u.f, arg.u.f.min_prec, arg.u.f.max_prec, num_buf));
+                        out_buf.Append(FormatFloatingPoint(-u.f, true, arg.u.f.min_prec, arg.u.f.max_prec, num_buf));
                         out = out_buf;
                     } else {
-                        out = FormatFloatingPoint(u.f, arg.u.f.min_prec, arg.u.f.max_prec, num_buf);
+                        out = FormatFloatingPoint(u.f, u.u32, arg.u.f.min_prec, arg.u.f.max_prec, num_buf);
                     }
                 }
             } break;
@@ -1097,10 +1088,10 @@ static inline void ProcessArg(const FmtArg &arg, AppendFunc append)
                             out_buf.Append('-');
                         }
 
-                        out_buf.Append(FormatFloatingPoint(-u.d, arg.u.d.min_prec, arg.u.d.max_prec, num_buf));
+                        out_buf.Append(FormatFloatingPoint(-u.d, true, arg.u.d.min_prec, arg.u.d.max_prec, num_buf));
                         out = out_buf;
                     } else {
-                        out = FormatFloatingPoint(u.d, arg.u.d.min_prec, arg.u.d.max_prec, num_buf);
+                        out = FormatFloatingPoint(u.d, u.u64, arg.u.d.min_prec, arg.u.d.max_prec, num_buf);
                     }
                 }
             } break;
@@ -1128,22 +1119,22 @@ static inline void ProcessArg(const FmtArg &arg, AppendFunc append)
                     size /= 1073741824.0;
 
                     int prec = 1 + (size < 9.9995) + (size < 99.995);
-                    out_buf.Append(FormatFloatingPoint(size, prec, prec, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, true, prec, prec, num_buf));
                     out_buf.Append(" GiB");
                 } else if (size >= 1048524.0) {
                     size /= 1048576.0;
 
                     int prec = 1 + (size < 9.9995) + (size < 99.995);
-                    out_buf.Append(FormatFloatingPoint(size, prec, prec, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, true, prec, prec, num_buf));
                     out_buf.Append(" MiB");
                 } else if (size >= 1023.95) {
                     size /= 1024.0;
 
                     int prec = 1 + (size < 9.9995) + (size < 99.995);
-                    out_buf.Append(FormatFloatingPoint(size, prec, prec, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, true, prec, prec, num_buf));
                     out_buf.Append(" kiB");
                 } else {
-                    out_buf.Append(FormatFloatingPoint(size, 0, 0, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, arg.u.i, 0, 0, num_buf));
                     out_buf.Append(" B");
                 }
 
@@ -1166,22 +1157,22 @@ static inline void ProcessArg(const FmtArg &arg, AppendFunc append)
                     size /= 1000000000.0;
 
                     int prec = 1 + (size < 9.9995) + (size < 99.995);
-                    out_buf.Append(FormatFloatingPoint(size, prec, prec, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, true, prec, prec, num_buf));
                     out_buf.Append(" GB");
                 } else if (size >= 999950.0) {
                     size /= 1000000.0;
 
                     int prec = 1 + (size < 9.9995) + (size < 99.995);
-                    out_buf.Append(FormatFloatingPoint(size, prec, prec, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, true, prec, prec, num_buf));
                     out_buf.Append(" MB");
                 } else if (size >= 999.95) {
                     size /= 1000.0;
 
                     int prec = 1 + (size < 9.9995) + (size < 99.995);
-                    out_buf.Append(FormatFloatingPoint(size, prec, prec, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, true, prec, prec, num_buf));
                     out_buf.Append(" kB");
                 } else {
-                    out_buf.Append(FormatFloatingPoint(size, 0, 0, num_buf));
+                    out_buf.Append(FormatFloatingPoint(size, arg.u.i, 0, 0, num_buf));
                     out_buf.Append(" B");
                 }
 
@@ -1253,11 +1244,8 @@ static inline void ProcessArg(const FmtArg &arg, AppendFunc append)
                 for (Size j = 0; j < arg.u.random_len; j++) {
                     static const char *chars = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-                    // We don't want to depend on libsodium here, so use C++ crap instead
-                    static std::default_random_engine rnd_generator((int)GetUnixTime());
-                    static std::uniform_int_distribution<int> rnd_distribution(0, (int)strlen(chars) - 1);
-
-                    out_buf.Append(chars[rnd_distribution(rnd_generator)]);
+                    int rnd = GetRandomIntSafe(0, (int)strlen(chars));
+                    out_buf.Append(chars[rnd]);
                 }
 
                 out = out_buf;
@@ -4077,22 +4065,6 @@ bool ExecuteCommandLine(const char *cmd_line, Span<const uint8_t> in_buf, Size m
     return true;
 }
 
-void FillRandom(void *buf, Size len)
-{
-    RG_ASSERT(len < UINT32_MAX);
-
-#ifdef _WIN32
-    BOOLEAN success = RtlGenRandom(buf, (ULONG)len);
-    RG_ASSERT(success);
-#else
-    for (Size i = 0; i < len; i += 256) {
-        Size call_len = std::min((Size)256, len - i);
-        int ret = getentropy((uint8_t *)buf + i, (size_t)call_len);
-        RG_ASSERT(!ret);
-    }
-#endif
-}
-
 #ifdef _WIN32
 
 static HANDLE wait_msg_event = CreateEvent(nullptr, TRUE, FALSE, nullptr);
@@ -4295,6 +4267,225 @@ bool NotifySystemd()
     return true;
 }
 #endif
+
+// ------------------------------------------------------------------------
+// Random
+// ------------------------------------------------------------------------
+
+static inline uint32_t ROTL32(uint32_t v, int n)
+{
+    return (v << n) | (v >> (32 - n));
+}
+
+static inline uint64_t ROTL64(uint64_t v, int n) {
+    return (v << n) | (v >> (64 - n));
+}
+
+FastRandom::FastRandom()
+{
+    do {
+        FillRandomSafe(state, RG_SIZE(state));
+    } while (std::all_of(std::begin(state), std::end(state), [](uint64_t v) { return !v; }));
+}
+
+FastRandom::FastRandom(uint64_t seed)
+{
+    // splitmix64 generator to seed xoshiro256++, as recommended
+
+    seed += 0x9e3779b97f4a7c15;
+
+    for (int i = 0; i < 4; i++) {
+        seed = (seed ^ (seed >> 30)) * 0xbf58476d1ce4e5b9;
+        seed = (seed ^ (seed >> 27)) * 0x94d049bb133111eb;
+        state[i] = seed ^ (seed >> 31);
+    }
+}
+
+void FastRandom::Fill(void *out_buf, Size len)
+{
+    for (Size i = 0; i < len; i += 8) {
+        uint64_t rnd = Next();
+
+        Size copy_len = std::min(RG_SIZE(rnd), len - i);
+        memcpy((uint8_t *)out_buf + i, &rnd, copy_len);
+    }
+}
+
+int FastRandom::GetInt(int min, int max)
+{
+    int range = max - min;
+    RG_ASSERT(range >= 2);
+
+    unsigned int treshold = (UINT_MAX - UINT_MAX % range);
+
+    unsigned int x;
+    do {
+        Fill(&x, RG_SIZE(x));
+    } while (x >= treshold);
+    x %= range;
+
+    return min + (int)x;
+}
+
+uint64_t FastRandom::Next()
+{
+    // xoshiro256++ by David Blackman and Sebastiano Vigna (vigna@acm.org)
+    // Hopefully I did not screw it up :)
+
+    uint64_t result = ROTL64(state[0] + state[3], 23) + state[0];
+    uint64_t t = state[1] << 17;
+
+    state[2] ^= state[0];
+    state[3] ^= state[1];
+    state[1] ^= state[2];
+    state[0] ^= state[3];
+    state[2] ^= t;
+    state[3] = ROTL64(state[3], 45);
+
+    return result;
+}
+
+static RG_THREAD_LOCAL Size rnd_remain;
+static RG_THREAD_LOCAL int64_t rnd_time;
+#ifndef _WIN32
+static RG_THREAD_LOCAL pid_t rnd_pid;
+#endif
+static RG_THREAD_LOCAL uint32_t rnd_state[16];
+
+static void InitChaCha20(uint32_t state[16], uint32_t key[8], uint32_t iv[2])
+{
+    static const char magic[] = "expand 32-byte k";
+
+    // Sensitive to endianness
+    memcpy(state, magic, 16);
+    memcpy(state + 4, key, 32);
+    state[12] = 0;
+    state[13] = 0;
+    memcpy(state + 14, iv, 8);
+}
+
+static void RunChaCha20(uint32_t state[16], uint32_t out_buf[16])
+{
+    uint32_t x[16];
+    memcpy(x, state, RG_SIZE(x));
+
+    for (Size i = 0; i < 20; i += 2) {
+        x[0] += x[4];   x[12] = ROTL32(x[12] ^ x[0], 16);
+        x[1] += x[5];   x[13] = ROTL32(x[13] ^ x[1], 16);
+        x[2] += x[6];   x[14] = ROTL32(x[14] ^ x[2], 16);
+        x[3] += x[7];   x[15] = ROTL32(x[15] ^ x[3], 16);
+
+        x[8]  += x[12]; x[4]  = ROTL32(x[4] ^ x[8],  12);
+        x[9]  += x[13]; x[5]  = ROTL32(x[5] ^ x[9],  12);
+        x[10] += x[14]; x[6]  = ROTL32(x[6] ^ x[10], 12);
+        x[11] += x[15]; x[7]  = ROTL32(x[7] ^ x[11], 12);
+
+        x[0] += x[4];   x[12] = ROTL32(x[12] ^ x[0], 8);
+        x[1] += x[5];   x[13] = ROTL32(x[13] ^ x[1], 8);
+        x[2] += x[6];   x[14] = ROTL32(x[14] ^ x[2], 8);
+        x[3] += x[7];   x[15] = ROTL32(x[15] ^ x[3], 8);
+
+        x[8]  += x[12]; x[4]  = ROTL32(x[4] ^ x[8],  7);
+        x[9]  += x[13]; x[5]  = ROTL32(x[5] ^ x[9],  7);
+        x[10] += x[14]; x[6]  = ROTL32(x[6] ^ x[10], 7);
+        x[11] += x[15]; x[7]  = ROTL32(x[7] ^ x[11], 7);
+
+        x[0] += x[5];   x[15] = ROTL32(x[15] ^ x[0], 16);
+        x[1] += x[6];   x[12] = ROTL32(x[12] ^ x[1], 16);
+        x[2] += x[7];   x[13] = ROTL32(x[13] ^ x[2], 16);
+        x[3] += x[4];   x[14] = ROTL32(x[14] ^ x[3], 16);
+
+        x[10] += x[15]; x[5]  = ROTL32(x[5] ^ x[10], 12);
+        x[11] += x[12]; x[6]  = ROTL32(x[6] ^ x[11], 12);
+        x[8]  += x[13]; x[7]  = ROTL32(x[7] ^ x[8],  12);
+        x[9]  += x[14]; x[4]  = ROTL32(x[4] ^ x[9],  12);
+
+        x[0] += x[5];   x[15] = ROTL32(x[15] ^ x[0], 8);
+        x[1] += x[6];   x[12] = ROTL32(x[12] ^ x[1], 8);
+        x[2] += x[7];   x[13] = ROTL32(x[13] ^ x[2], 8);
+        x[3] += x[4];   x[14] = ROTL32(x[14] ^ x[3], 8);
+
+        x[10] += x[15]; x[5]  = ROTL32(x[5] ^ x[10], 7);
+        x[11] += x[12]; x[6]  = ROTL32(x[6] ^ x[11], 7);
+        x[8]  += x[13]; x[7]  = ROTL32(x[7] ^ x[8],  7);
+        x[9]  += x[14]; x[4]  = ROTL32(x[4] ^ x[9],  7);
+    }
+
+    for (Size i = 0; i < RG_LEN(x); i++) {
+        out_buf[i] = LittleEndian(x[i] + state[i]);
+    }
+
+    state[12]++;
+    state[13] += !state[12];
+}
+
+void ZeroMemorySafe(void *ptr, Size len)
+{
+#ifdef _WIN32
+    SecureZeroMemory(ptr, (SIZE_T)len);
+#else
+    memset_safe(ptr, 0, (size_t)len);
+    __asm__ __volatile__("" : : "r"(ptr) : "memory");
+#endif
+}
+
+void FillRandomSafe(void *out_buf, Size len)
+{
+    bool reseed = false;
+
+    // Reseed every 4 megabytes, or every hour, or after a fork
+    reseed |= (rnd_remain <= 0);
+    reseed |= (GetMonotonicTime() - rnd_time > 3600 * 1000);
+#ifndef _WIN32
+    reseed |= (getpid() != rnd_pid);
+#endif
+
+    if (reseed) {
+        struct { uint32_t key[8]; uint32_t iv[2]; } buf;
+
+        memset(rnd_state, 0, RG_SIZE(rnd_state));
+#ifdef _WIN32
+        RG_CRITICAL(RtlGenRandom(&buf, RG_SIZE(buf)), "RtlGenRandom() failed: %s", GetWin32ErrorString());
+#else
+        RG_CRITICAL(getentropy(&buf, RG_SIZE(buf)) == 0, "getentropy() failed: %s", strerror(errno));
+#endif
+
+        InitChaCha20(rnd_state, buf.key, buf.iv);
+        ZeroMemorySafe(&buf, RG_SIZE(buf));
+
+        rnd_remain = Mebibytes(4);
+        rnd_time = GetMonotonicTime();
+#ifndef _WIN32
+        rnd_pid = getpid();
+#endif
+    }
+
+    for (Size i = 0; i < len; i += 64) {
+        uint32_t buf[16];
+        RunChaCha20(rnd_state, buf);
+
+        Size copy_len = std::min(RG_SIZE(buf), len - i);
+        memcpy((uint8_t *)out_buf + i, buf, copy_len);
+    }
+
+    rnd_remain -= len;
+}
+
+int GetRandomIntSafe(int min, int max)
+{
+    int range = max - min;
+    RG_ASSERT(range >= 2);
+
+    unsigned int treshold = (UINT_MAX - UINT_MAX % range);
+
+    unsigned int x;
+    do {
+        FillRandomSafe(&x, RG_SIZE(x));
+    } while (x >= treshold);
+    x %= range;
+
+    return min + (int)x;
+}
 
 // ------------------------------------------------------------------------
 // Sockets
