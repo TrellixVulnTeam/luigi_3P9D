@@ -9,5 +9,5 @@
 build/
 node_modules/
 
-/luigi
-/luigi.exe
+/luigi/luigi
+/luigi/luigi.exe

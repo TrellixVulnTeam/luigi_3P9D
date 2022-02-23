@@ -20,8 +20,8 @@ const koffi = (() => {
         return process.binding('koffi');
     } catch (err) {
         // Prevent esbuild from trying to pick this up
-        let path = '../../build/Release/koffi.node';
-        return require(path);
+        let name = 'koffi';
+        return require(name);
     }
 })();
 const { run_function } = require('./lu_vm.js');
@@ -92,7 +92,13 @@ const Font = koffi.struct('Font', {
 });
 
 const raylib = (() => {
-    let filename = koffi.internal ? null : path.normalize(`${__dirname}/../../build/Release/Raylib${process.platform == 'win32' ? '.dll' : '.so'}`);
+    let filename;
+    if (koffi.internal) {
+        filename = null;
+    } else {
+        filename = require.resolve('koffi');
+        filename = path.join(path.dirname(filename), 'Raylib' + (process.platform == 'win32' ? '.dll' : '.so'));
+    }
 
     let lib = koffi.load(filename, {
         SetTraceLogLevel: ['void', ['int']],
@@ -310,7 +316,8 @@ function init() {
     raylib.SetWindowState(StateFlags.WINDOW_HIDDEN);
     raylib.InitWindow(width, height, 'Luigi');
 
-    default_font = raylib.LoadFont('src/luigi/std_opensans.ttf');
+    let filename = path.join(path.dirname(__filename), 'std_opensans.ttf');
+    default_font = raylib.LoadFont(filename);
 }
 init();
 
