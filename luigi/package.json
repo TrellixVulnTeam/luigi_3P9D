@@ -1,6 +1,6 @@
 {
   "name": "luigi",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Educational toy programming language implemented in JS",
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "build": "node src/build.js"
   },
   "license": "AGPL-3.0",
-  "devDependencies": {
+  "dependencies": {
     "cmake-js": "^6.3.0"
   }
 }
