@@ -33,17 +33,17 @@ PLAYER_SCALE = 0.15
 WALL_SCALE = 0.4
 GRAVITY = 0.05
 SPRITES = {
-    player = load_image("luigi/examples/words/assets/player.png")
-    brick = load_image("luigi/examples/words/assets/iron.png")
+    player = load_image("assets/player.png")
+    brick = load_image("assets/iron.png")
 }
 BACKGROUNDS = [
-    load_image("luigi/examples/words/assets/aurora.png")
-    load_image("luigi/examples/words/assets/flames.png")
-    load_image("luigi/examples/words/assets/forest.png")
-    load_image("luigi/examples/words/assets/lonely.png")
-    load_image("luigi/examples/words/assets/nebula.png")
-    load_image("luigi/examples/words/assets/starfield.png")
-    load_image("luigi/examples/words/assets/station.png")
+    load_image("assets/aurora.png")
+    load_image("assets/flames.png")
+    load_image("assets/forest.png")
+    load_image("assets/lonely.png")
+    load_image("assets/nebula.png")
+    load_image("assets/starfield.png")
+    load_image("assets/station.png")
 ]
 
 walls = null

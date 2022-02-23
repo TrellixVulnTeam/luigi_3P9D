@@ -15,6 +15,7 @@
 
 const process = require('process');
 const fs = require('fs');
+const path = require('path');
 const luigi = require('./index.js');
 
 function main() {
@@ -24,7 +25,12 @@ function main() {
     }
 
     try {
-        let code = fs.readFileSync(process.argv[2]).toString('utf-8');
+        let filename = process.argv[2];
+        let dirname = path.dirname(filename);
+
+        let code = fs.readFileSync(filename).toString('utf-8');
+        process.chdir(dirname);
+
         luigi.run(code);
     } catch (err) {
         console.error(err.message);
