@@ -1,6 +1,6 @@
 {
   "name": "luigi",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Educational toy programming language implemented in JS",
   "repository": {
     "type": "git",
