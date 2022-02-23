@@ -1,5 +1,10 @@
 {
   "name": "luigi",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Koromix/luigi.git"
+  },
+  "author": "Niels Martignène <niels.martignene@protonmail.com>",
   "workspaces": [
     "koffi",
     "luigi"

@@ -1,7 +1,12 @@
 {
   "name": "luigi",
-  "version": "0.9.0",
-  "description": "",
+  "version": "0.9.1",
+  "description": "Educational toy programming language implemented in JS",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Koromix/luigi.git"
+  },
+  "author": "Niels Martignène <niels.martignene@protonmail.com>",
   "main": "src/index.js",
   "bin": {
     "luigi": "src/luigi.js"
@@ -10,6 +15,5 @@
     "luigi": "node src/luigi.js",
     "build": "node src/build.js"
   },
-  "author": "",
   "license": "AGPL-3.0"
 }
