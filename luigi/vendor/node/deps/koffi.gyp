@@ -105,6 +105,11 @@
             '../../../../koffi/src/call_x86_fwd.S',
           ],
         }],
+        [ 'target_arch=="arm" or target_arch=="armv7"', {
+          'sources': [
+            '../../../../koffi/src/call_arm32_fwd.S',
+          ],
+        }],
       ]
     }
   ]
