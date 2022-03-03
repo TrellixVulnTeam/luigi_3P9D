@@ -10,7 +10,6 @@
     "luigi"
   ],
   "scripts": {
-    "prepare": "cmake-js -d koffi && cmake-js -d luigi",
     "luigi": "node luigi/src/luigi.js"
   }
 }
