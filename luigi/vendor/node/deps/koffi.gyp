@@ -6,6 +6,7 @@
       'defines': [
         'NODE_WANT_INTERNALS=1',
         'NAPI_DISABLE_CPP_EXCEPTIONS',
+        'FELIX_TARGET=koffi',
       ],
       'cflags_cc!': [ '-std=gnu++0x' ],
       'cflags_cc': [ '-std=c++17 -Wno-missing-field-initializers', ],
