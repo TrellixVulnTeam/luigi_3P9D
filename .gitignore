@@ -10,3 +10,5 @@ node_modules/
 /luigi/vendor/node/deps/*.targets
 /luigi/luigi
 /luigi/luigi.exe
+
+/koffi/test/qemu/
