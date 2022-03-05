@@ -2,12 +2,11 @@
 *.vcxproj*
 *.target.mk
 
-/vendor/node/deps/*.props
-/vendor/node/deps/*.xml
-/vendor/node/deps/*.targets
-
 build/
 node_modules/
 
+/luigi/vendor/node/deps/*.props
+/luigi/vendor/node/deps/*.xml
+/luigi/vendor/node/deps/*.targets
 /luigi/luigi
 /luigi/luigi.exe
