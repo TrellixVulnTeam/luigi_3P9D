@@ -12,7 +12,8 @@
     "luigi": "src/luigi.js"
   },
   "scripts": {
-    "install": "cmake-js",
+    "install": "node ../shared/cmake.js",
+
     "luigi": "node src/luigi.js",
     "build": "node src/build.js"
   },
