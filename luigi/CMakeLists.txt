@@ -27,7 +27,7 @@ add_library(raylib SHARED
     vendor/raylib/src/raudio.c
 )
 set_target_properties(raylib PROPERTIES PREFIX "")
-target_include_directories(raylib PRIVATE ${CMAKE_JS_INC} vendor/raylib/src/external/glfw/include)
+target_include_directories(raylib PRIVATE vendor/raylib/src/external/glfw/include)
 target_compile_definitions(raylib PRIVATE PLATFORM_DESKTOP GRAPHICS_API_OPENGL_21
                                           BUILD_LIBTYPE_SHARED NDEBUG)
 

@@ -12,13 +12,10 @@
     "luigi": "src/luigi.js"
   },
   "scripts": {
-    "install": "node ../shared/cmake.js",
+    "install": "node ../jscmk/jscmk.js",
 
     "luigi": "node src/luigi.js",
     "build": "node src/build.js"
   },
-  "license": "AGPL-3.0",
-  "dependencies": {
-    "cmake-js": "^6.3.0"
-  }
+  "license": "AGPL-3.0"
 }

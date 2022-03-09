@@ -6,6 +6,7 @@
   },
   "author": "Niels Martignène <niels.martignene@protonmail.com>",
   "workspaces": [
+    "jscmk",
     "koffi",
     "luigi"
   ],
