@@ -12,7 +12,7 @@
     "luigi": "src/luigi.js"
   },
   "scripts": {
-    "install": "node ../jscmk/jscmk.js",
+    "install": "node ../cnoke/cnoke.js",
 
     "luigi": "node src/luigi.js",
     "build": "node src/build.js"

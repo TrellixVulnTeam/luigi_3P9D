@@ -1,5 +1,5 @@
 {
-  "name": "jscmk",
+  "name": "cnoke",
   "version": "0.9.6",
   "description": "Simple alternative to cmake.js",
   "keywords": [
@@ -14,6 +14,6 @@
     "url": "https://github.com/Koromix/luigi.git"
   },
   "author": "Niels Martignène <niels.martignene@protonmail.com>",
-  "bin": "jscmk.js",
+  "bin": "cnoke.js",
   "license": "AGPL-3.0"
 }

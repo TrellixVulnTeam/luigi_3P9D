@@ -131,7 +131,7 @@ async function main() {
 }
 
 function print_usage() {
-    let help = `Usage: jscmk [command] [options...]
+    let help = `Usage: cnoke [command] [options...]
 
 Commands:
     configure                    Configure CMake build
@@ -148,7 +148,6 @@ Configure options:
     -a, --arch <ARCH>            Change architecture
                                  (default: ${process.arch})
 
-Build options:
         --debug                  Build in debug mode
 `;
 
@@ -216,9 +215,9 @@ async function configure() {
         } break;
     }
 
+    args.push(`-DCMAKE_BUILD_TYPE=${debug ? 'Debug' : 'Release'}`);
     args.push(`-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${bin_dir}`);
     args.push(`-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${bin_dir}`);
-
     args.push('--no-warn-unused-cli');
 
     let ret = spawnSync('cmake', args, { cwd: build_dir, stdio: 'inherit' });
