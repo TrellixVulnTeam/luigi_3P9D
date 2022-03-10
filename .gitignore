@@ -17,4 +17,6 @@ node_modules/
 /luigi/luigi
 /luigi/luigi.exe
 
-/koffi/test/qemu/
+/koffi/test/*.zst
+/koffi/test/qemu/*
+!/koffi/test/qemu/.gitkeep
