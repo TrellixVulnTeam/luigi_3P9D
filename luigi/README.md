@@ -27,7 +27,7 @@
   - [Math](#math)
   - [Random](#random)
   - [Drawing](#drawing)
-- [How to use](#how-to-use)
+- [Get started](#get-started)
   - [With NPM (easier)](#with-npm-easier)
     - [Windows](#windows)
     - [Linux](#linux)
@@ -501,7 +501,7 @@ Function         | Parameters | Description
 
 ## Drawing
 
-# How to use
+# Get started
 
 There are two ways: the first uses NPM and allows to run Luigi code esily using Node.js, but will not give you the ability to produce redistribuable executable files.
 
