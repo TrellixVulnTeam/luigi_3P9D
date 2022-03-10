@@ -5,6 +5,11 @@
 build/
 node_modules/
 
+/package-lock.json
+/cnoke/package-lock.json
+/koffi/package-lock.json
+/luigi/package-lock.json
+
 /luigi/vendor/node/deps/*.props
 /luigi/vendor/node/deps/*.xml
 /luigi/vendor/node/deps/*.targets
