@@ -1,4 +1,4 @@
-This repository contains two Node.js projects (and maybe more in the future).
+This repository contains three Node.js projects (and maybe more in the future).
 
 Project                                                     | Description
 ------------------------------------------------------------|-------------------------------------------------------------
