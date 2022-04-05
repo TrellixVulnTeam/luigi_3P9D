@@ -12,10 +12,13 @@
     "luigi": "src/luigi.js"
   },
   "scripts": {
-    "install": "node ../cnoke/cnoke.js",
+    "install": "cnoke.js",
 
     "luigi": "node src/luigi.js",
     "build": "node src/build.js"
   },
-  "license": "AGPL-3.0"
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "cnoke": "^0.9.22"
+  }
 }
