@@ -1,6 +1,6 @@
 {
   "name": "luigi",
-  "version": "0.9.6",
+  "version": "0.9.7",
   "description": "Educational toy programming language implemented in JS",
   "repository": {
     "type": "git",
@@ -12,7 +12,7 @@
     "luigi": "src/luigi.js"
   },
   "scripts": {
-    "install": "cnoke.js",
+    "install": "cnoke",
 
     "luigi": "node src/luigi.js",
     "build": "node src/build.js"
