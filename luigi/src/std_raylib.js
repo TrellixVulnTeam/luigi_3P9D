@@ -91,7 +91,7 @@ const Font = koffi.struct('Font', {
     glyphs: koffi.pointer(GlyphInfo)
 });
 
-const raylib = (() => {
+let lib = (() => {
     let filename;
     if (koffi.internal) {
         filename = null;
@@ -100,53 +100,52 @@ const raylib = (() => {
         filename = path.join(path.dirname(filename), '../../luigi/build/raylib' + (process.platform == 'win32' ? '.dll' : '.so'));
     }
 
-    let lib = koffi.load(filename, {
-        SetTraceLogLevel: ['void', ['int']],
-        InitWindow: ['void', ['int', 'int', 'string']],
-        SetWindowState: ['void', ['uint']],
-        ClearWindowState: ['void', ['uint']],
-        IsWindowState: ['bool', ['uint']],
-        SetTargetFPS: ['void', ['int']],
-        SetWindowTitle: ['void', ['string']],
-        SetWindowSize: ['void', ['int', 'int']],
-        ClearBackground: ['void', [Color]],
-        BeginDrawing: ['void', []],
-        EndDrawing: ['void', []],
-        WindowShouldClose: ['bool', []],
-        GetScreenWidth: ['int', []],
-        GetScreenHeight: ['int', []],
-
-        LoadFont: [Font, ['string']],
-        MeasureText: ['int', ['string', 'int']],
-        MeasureTextEx: [Vector2, [Font, 'string', 'float', 'float']],
-        DrawText: ['void', ['string', 'int', 'int', 'int', Color]],
-        DrawTextEx: ['void', [Font, 'string', Vector2, 'float', 'float', Color]],
-
-        DrawRectangleRounded: ['void', [Rectangle, 'float', 'int', Color]],
-        DrawTexture: ['void', [Texture, 'int', 'int', Color]],
-        LoadImage: [Image, ['string']],
-        LoadTexture: [Texture, ['string']],
-        LoadTextureFromImage: [Texture, [Image]],
-        DrawLine: ['void', ['int', 'int', 'int', 'int', Color]],
-
-        IsKeyPressed: ['bool', ['int']],
-        IsKeyReleased: ['bool', ['int']],
-        IsKeyDown: ['bool', ['int']],
-        GetMousePosition: [Vector2, []],
-        IsMouseButtonPressed: ['bool', ['int']],
-        IsMouseButtonReleased: ['bool', ['int']],
-        IsMouseButtonDown: ['bool', ['int']],
-        GetMouseWheelMove: ['float', []],
-
-        rlPushMatrix: ['void', []],
-        rlPopMatrix: ['void', []],
-        rlTranslatef: ['void', ['float', 'float', 'float']],
-        rlRotatef: ['void', ['float', 'float', 'float', 'float']],
-        rlScalef: ['void', ['float', 'float', 'float']]
-    });
-
+    let lib = koffi.load(filename);
     return lib;
 })();
+
+const SetTraceLogLevel = lib.func('SetTraceLogLevel', 'void', ['int']);
+const InitWindow = lib.func('InitWindow', 'void', ['int', 'int', 'string']);
+const SetWindowState = lib.func('SetWindowState', 'void', ['uint']);
+const ClearWindowState = lib.func('ClearWindowState', 'void', ['uint']);
+const IsWindowState = lib.func('IsWindowState', 'bool', ['uint']);
+const SetTargetFPS = lib.func('SetTargetFPS', 'void', ['int']);
+const SetWindowTitle = lib.func('SetWindowTitle', 'void', ['string']);
+const SetWindowSize = lib.func('SetWindowSize', 'void', ['int', 'int']);
+const ClearBackground = lib.func('ClearBackground', 'void', [Color]);
+const BeginDrawing = lib.func('BeginDrawing', 'void', []);
+const EndDrawing = lib.func('EndDrawing', 'void', []);
+const WindowShouldClose = lib.func('WindowShouldClose', 'bool', []);
+const GetScreenWidth = lib.func('GetScreenWidth', 'int', []);
+const GetScreenHeight = lib.func('GetScreenHeight', 'int', []);
+
+const LoadFont = lib.func('LoadFont', Font, ['string']);
+const MeasureText = lib.func('MeasureText', 'int', ['string', 'int']);
+const MeasureTextEx = lib.func('MeasureTextEx', Vector2, [Font, 'string', 'float', 'float']);
+const DrawText = lib.func('DrawText', 'void', ['string', 'int', 'int', 'int', Color]);
+const DrawTextEx = lib.func('DrawTextEx', 'void', [Font, 'string', Vector2, 'float', 'float', Color]);
+
+const DrawRectangleRounded = lib.func('DrawRectangleRounded', 'void', [Rectangle, 'float', 'int', Color]);
+const DrawTexture = lib.func('DrawTexture', 'void', [Texture, 'int', 'int', Color]);
+const LoadImage = lib.func('LoadImage', Image, ['string']);
+const LoadTexture = lib.func('LoadTexture', Texture, ['string']);
+const LoadTextureFromImage = lib.func('LoadTextureFromImage', Texture, [Image]);
+const DrawLine = lib.func('DrawLine', 'void', ['int', 'int', 'int', 'int', Color]);
+
+const IsKeyPressed = lib.func('IsKeyPressed', 'bool', ['int']);
+const IsKeyReleased = lib.func('IsKeyReleased', 'bool', ['int']);
+const IsKeyDown = lib.func('IsKeyDown', 'bool', ['int']);
+const GetMousePosition = lib.func('GetMousePosition', Vector2, []);
+const IsMouseButtonPressed = lib.func('IsMouseButtonPressed', 'bool', ['int']);
+const IsMouseButtonReleased = lib.func('IsMouseButtonReleased', 'bool', ['int']);
+const IsMouseButtonDown = lib.func('IsMouseButtonDown', 'bool', ['int']);
+const GetMouseWheelMove = lib.func('GetMouseWheelMove', 'float', []);
+
+const rlPushMatrix = lib.func('rlPushMatrix', 'void', []);
+const rlPopMatrix = lib.func('rlPopMatrix', 'void', []);
+const rlTranslatef = lib.func('rlTranslatef', 'void', ['float', 'float', 'float']);
+const rlRotatef = lib.func('rlRotatef', 'void', ['float', 'float', 'float', 'float']);
+const rlScalef = lib.func('rlScalef', 'void', ['float', 'float', 'float']);
 
 // Enumerations
 
@@ -312,12 +311,12 @@ function init() {
     let width = 1280;
     let height = 720;
 
-    raylib.SetTraceLogLevel(LogLevel.WARNING);
-    raylib.SetWindowState(StateFlags.WINDOW_HIDDEN);
-    raylib.InitWindow(width, height, 'Luigi');
+    SetTraceLogLevel(LogLevel.WARNING);
+    SetWindowState(StateFlags.WINDOW_HIDDEN);
+    InitWindow(width, height, 'Luigi');
 
     let filename = path.join(path.dirname(__filename), 'std_opensans.ttf');
-    default_font = raylib.LoadFont(filename);
+    default_font = LoadFont(filename);
 }
 init();
 
@@ -326,9 +325,9 @@ exports.run_window = function(title, params, func) {
     let fps = (params.fps != null) ? params.fps : 60;
 
     if (fps != null)
-        raylib.SetTargetFPS(fps);
-    raylib.SetWindowTitle(title);
-    raylib.ClearWindowState(StateFlags.WINDOW_HIDDEN);
+        SetTargetFPS(fps);
+    SetWindowTitle(title);
+    ClearWindowState(StateFlags.WINDOW_HIDDEN);
 
     let web = (typeof window !== 'undefined' && typeof window.document !== 'undefined');
 
@@ -344,18 +343,18 @@ exports.run_window = function(title, params, func) {
         window.requestAnimationFrame(run_frame);
     } else {
         do {
-            raylib.BeginDrawing();
-            raylib.ClearBackground(background);
+            BeginDrawing();
+            ClearBackground(background);
 
             run_function(func, []);
 
-            raylib.EndDrawing();
-        } while (!raylib.WindowShouldClose());
+            EndDrawing();
+        } while (!WindowShouldClose());
     }
 };
 
 exports.is_fullscreen = function() {
-    return raylib.IsWindowState(StateFlags.WINDOW_UNDECORATED);
+    return IsWindowState(StateFlags.WINDOW_UNDECORATED);
 };
 
 exports.set_fullscreen = function(fullscreen) {
@@ -365,18 +364,18 @@ exports.set_fullscreen = function(fullscreen) {
     let windowed = StateFlags.WINDOW_RESIZABLE;
 
     if (fullscreen) {
-        raylib.SetWindowState(full);
-        raylib.ClearWindowState(windowed);
+        SetWindowState(full);
+        ClearWindowState(windowed);
     } else {
-        raylib.SetWindowState(windowed);
-        raylib.ClearWindowState(full);
+        SetWindowState(windowed);
+        ClearWindowState(full);
     }
 };
 
 exports.get_window_size = function() {
     let dimensions = {
-        width: raylib.GetScreenWidth(),
-        height: raylib.GetScreenHeight()
+        width: GetScreenWidth(),
+        height: GetScreenHeight()
     }
 
     return dimensions;
@@ -386,13 +385,13 @@ exports.draw_text = function(x, y, params, text) {
     let size = (params.size != null) ? params.size : 32;
     let color = find_color(params.color);
 
-    let vec = raylib.MeasureTextEx(default_font, text, size, 1);
+    let vec = MeasureTextEx(default_font, text, size, 1);
     let [dx, dy] = align(vec.x, size, params.align);
 
-    raylib.rlPushMatrix();
+    rlPushMatrix();
     transform(x, y, params);
-    raylib.DrawTextEx(default_font, text, {x: dx, y: dy}, size, 1, color);
-    raylib.rlPopMatrix();
+    DrawTextEx(default_font, text, {x: dx, y: dy}, size, 1, color);
+    rlPopMatrix();
 
     let dimensions = {
         width: vec.x,
@@ -405,7 +404,7 @@ exports.draw_text = function(x, y, params, text) {
 exports.measure_text = function(text, size) {
     size = (size != null) ? size : 40;
 
-    let vec = raylib.MeasureTextEx(default_font, text, size, 1);
+    let vec = MeasureTextEx(default_font, text, size, 1);
     let dimensions = {
         width: vec.x,
         height: vec.y
@@ -421,15 +420,15 @@ exports.draw_rectangle = function(x, y, width, height, params) {
 
     let rect = {x: dx, y: dy, width: width, height: height};
 
-    raylib.rlPushMatrix();
+    rlPushMatrix();
     transform(x, y, params);
-    raylib.DrawRectangleRounded(rect, roundness, 100, color);
-    raylib.rlPopMatrix();
+    DrawRectangleRounded(rect, roundness, 100, color);
+    rlPopMatrix();
 };
 
 exports.load_image = function(path) {
-    // let img = raylib.LoadImage(path);
-    let tex = raylib.LoadTexture(path);
+    // let img = LoadImage(path);
+    let tex = LoadTexture(path);
 
     let sprite = {
         width: tex.width,
@@ -443,23 +442,23 @@ exports.load_image = function(path) {
 exports.draw_image = function(x, y, params, img) {
     let [dx, dy] = align(img.width, img.height, params.align);
 
-    raylib.rlPushMatrix();
+    rlPushMatrix();
     transform(x, y, params);
-    raylib.DrawTexture(img.tex, dx, dy, Colors.WHITE);
-    raylib.rlPopMatrix();
+    DrawTexture(img.tex, dx, dy, Colors.WHITE);
+    rlPopMatrix();
 };
 
 exports.draw_line = function(x1, y1, x2, y2, params) {
     let color = find_color(params.color);
-    raylib.DrawLine(x1, y1, x2, y2, color);
+    DrawLine(x1, y1, x2, y2, color);
 };
 
 function transform(x, y, params) {
-    raylib.rlTranslatef(x, y, 0.0);
+    rlTranslatef(x, y, 0.0);
     if (params.rotate != null)
-        raylib.rlRotatef(params.rotate + 90.0, 0, 0, 1);
+        rlRotatef(params.rotate + 90.0, 0, 0, 1);
     if (params.scale != null)
-        raylib.rlScalef(params.scale, params.scale, 0);
+        rlScalef(params.scale, params.scale, 0);
 };
 
 // Input
@@ -469,9 +468,9 @@ exports.get_key = function(name) {
     let keys = find_key(name);
 
     let state = {
-        pressed: keys.some(key => raylib.IsKeyPressed(key)),
-        released: keys.some(key => raylib.IsKeyReleased(key)),
-        down: keys.some(key => raylib.IsKeyDown(key))
+        pressed: keys.some(key => IsKeyPressed(key)),
+        released: keys.some(key => IsKeyReleased(key)),
+        down: keys.some(key => IsKeyDown(key))
     };
 
     return state;
@@ -479,36 +478,36 @@ exports.get_key = function(name) {
 
 exports.is_key_down = function(name) {
     let keys = find_key(name);
-    return keys.some(key => raylib.IsKeyDown(key));
+    return keys.some(key => IsKeyDown(key));
 };
 
 exports.is_key_pressed = function(name) {
     let keys = find_key(name);
-    return keys.some(key => raylib.IsKeyPressed(key));
+    return keys.some(key => IsKeyPressed(key));
 };
 
 exports.get_mouse = function() {
     let buttons = [0, 1, 2];
 
-    let pos = raylib.GetMousePosition();
+    let pos = GetMousePosition();
 
     let state = {
         x: pos.x,
         y: pos.y,
 
-        pressed: buttons.map(btn => raylib.IsMouseButtonPressed(btn)),
-        released: buttons.map(btn => raylib.IsMouseButtonReleased(btn)),
-        down: buttons.map(btn => raylib.IsMouseButtonDown(btn)),
+        pressed: buttons.map(btn => IsMouseButtonPressed(btn)),
+        released: buttons.map(btn => IsMouseButtonReleased(btn)),
+        down: buttons.map(btn => IsMouseButtonDown(btn)),
 
-        wheel: raylib.GetMouseWheelMove()
+        wheel: GetMouseWheelMove()
     };
 
     return state;
 };
 
-exports.is_mouse_down = function(btn) { return raylib.IsMouseButtonDown(btn); };
-exports.is_mouse_pressed = function(btn) { return raylib.IsMouseButtonPressed(btn); };
-exports.get_mouse_pos = function() { return raylib.GetMousePosition(); };
+exports.is_mouse_down = function(btn) { return IsMouseButtonDown(btn); };
+exports.is_mouse_pressed = function(btn) { return IsMouseButtonPressed(btn); };
+exports.get_mouse_pos = function() { return GetMousePosition(); };
 
 // Utility
 
