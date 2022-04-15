@@ -104,48 +104,48 @@ let lib = (() => {
     return lib;
 })();
 
-const SetTraceLogLevel = lib.func('SetTraceLogLevel', 'void', ['int']);
-const InitWindow = lib.func('InitWindow', 'void', ['int', 'int', 'string']);
-const SetWindowState = lib.func('SetWindowState', 'void', ['uint']);
-const ClearWindowState = lib.func('ClearWindowState', 'void', ['uint']);
-const IsWindowState = lib.func('IsWindowState', 'bool', ['uint']);
-const SetTargetFPS = lib.func('SetTargetFPS', 'void', ['int']);
-const SetWindowTitle = lib.func('SetWindowTitle', 'void', ['string']);
-const SetWindowSize = lib.func('SetWindowSize', 'void', ['int', 'int']);
-const ClearBackground = lib.func('ClearBackground', 'void', [Color]);
-const BeginDrawing = lib.func('BeginDrawing', 'void', []);
-const EndDrawing = lib.func('EndDrawing', 'void', []);
-const WindowShouldClose = lib.func('WindowShouldClose', 'bool', []);
-const GetScreenWidth = lib.func('GetScreenWidth', 'int', []);
-const GetScreenHeight = lib.func('GetScreenHeight', 'int', []);
+const SetTraceLogLevel = lib.cdecl('SetTraceLogLevel', 'void', ['int']);
+const InitWindow = lib.cdecl('InitWindow', 'void', ['int', 'int', 'string']);
+const SetWindowState = lib.cdecl('SetWindowState', 'void', ['uint']);
+const ClearWindowState = lib.cdecl('ClearWindowState', 'void', ['uint']);
+const IsWindowState = lib.cdecl('IsWindowState', 'bool', ['uint']);
+const SetTargetFPS = lib.cdecl('SetTargetFPS', 'void', ['int']);
+const SetWindowTitle = lib.cdecl('SetWindowTitle', 'void', ['string']);
+const SetWindowSize = lib.cdecl('SetWindowSize', 'void', ['int', 'int']);
+const ClearBackground = lib.cdecl('ClearBackground', 'void', [Color]);
+const BeginDrawing = lib.cdecl('BeginDrawing', 'void', []);
+const EndDrawing = lib.cdecl('EndDrawing', 'void', []);
+const WindowShouldClose = lib.cdecl('WindowShouldClose', 'bool', []);
+const GetScreenWidth = lib.cdecl('GetScreenWidth', 'int', []);
+const GetScreenHeight = lib.cdecl('GetScreenHeight', 'int', []);
 
-const LoadFont = lib.func('LoadFont', Font, ['string']);
-const MeasureText = lib.func('MeasureText', 'int', ['string', 'int']);
-const MeasureTextEx = lib.func('MeasureTextEx', Vector2, [Font, 'string', 'float', 'float']);
-const DrawText = lib.func('DrawText', 'void', ['string', 'int', 'int', 'int', Color]);
-const DrawTextEx = lib.func('DrawTextEx', 'void', [Font, 'string', Vector2, 'float', 'float', Color]);
+const LoadFont = lib.cdecl('LoadFont', Font, ['string']);
+const MeasureText = lib.cdecl('MeasureText', 'int', ['string', 'int']);
+const MeasureTextEx = lib.cdecl('MeasureTextEx', Vector2, [Font, 'string', 'float', 'float']);
+const DrawText = lib.cdecl('DrawText', 'void', ['string', 'int', 'int', 'int', Color]);
+const DrawTextEx = lib.cdecl('DrawTextEx', 'void', [Font, 'string', Vector2, 'float', 'float', Color]);
 
-const DrawRectangleRounded = lib.func('DrawRectangleRounded', 'void', [Rectangle, 'float', 'int', Color]);
-const DrawTexture = lib.func('DrawTexture', 'void', [Texture, 'int', 'int', Color]);
-const LoadImage = lib.func('LoadImage', Image, ['string']);
-const LoadTexture = lib.func('LoadTexture', Texture, ['string']);
-const LoadTextureFromImage = lib.func('LoadTextureFromImage', Texture, [Image]);
-const DrawLine = lib.func('DrawLine', 'void', ['int', 'int', 'int', 'int', Color]);
+const DrawRectangleRounded = lib.cdecl('DrawRectangleRounded', 'void', [Rectangle, 'float', 'int', Color]);
+const DrawTexture = lib.cdecl('DrawTexture', 'void', [Texture, 'int', 'int', Color]);
+const LoadImage = lib.cdecl('LoadImage', Image, ['string']);
+const LoadTexture = lib.cdecl('LoadTexture', Texture, ['string']);
+const LoadTextureFromImage = lib.cdecl('LoadTextureFromImage', Texture, [Image]);
+const DrawLine = lib.cdecl('DrawLine', 'void', ['int', 'int', 'int', 'int', Color]);
 
-const IsKeyPressed = lib.func('IsKeyPressed', 'bool', ['int']);
-const IsKeyReleased = lib.func('IsKeyReleased', 'bool', ['int']);
-const IsKeyDown = lib.func('IsKeyDown', 'bool', ['int']);
-const GetMousePosition = lib.func('GetMousePosition', Vector2, []);
-const IsMouseButtonPressed = lib.func('IsMouseButtonPressed', 'bool', ['int']);
-const IsMouseButtonReleased = lib.func('IsMouseButtonReleased', 'bool', ['int']);
-const IsMouseButtonDown = lib.func('IsMouseButtonDown', 'bool', ['int']);
-const GetMouseWheelMove = lib.func('GetMouseWheelMove', 'float', []);
+const IsKeyPressed = lib.cdecl('IsKeyPressed', 'bool', ['int']);
+const IsKeyReleased = lib.cdecl('IsKeyReleased', 'bool', ['int']);
+const IsKeyDown = lib.cdecl('IsKeyDown', 'bool', ['int']);
+const GetMousePosition = lib.cdecl('GetMousePosition', Vector2, []);
+const IsMouseButtonPressed = lib.cdecl('IsMouseButtonPressed', 'bool', ['int']);
+const IsMouseButtonReleased = lib.cdecl('IsMouseButtonReleased', 'bool', ['int']);
+const IsMouseButtonDown = lib.cdecl('IsMouseButtonDown', 'bool', ['int']);
+const GetMouseWheelMove = lib.cdecl('GetMouseWheelMove', 'float', []);
 
-const rlPushMatrix = lib.func('rlPushMatrix', 'void', []);
-const rlPopMatrix = lib.func('rlPopMatrix', 'void', []);
-const rlTranslatef = lib.func('rlTranslatef', 'void', ['float', 'float', 'float']);
-const rlRotatef = lib.func('rlRotatef', 'void', ['float', 'float', 'float', 'float']);
-const rlScalef = lib.func('rlScalef', 'void', ['float', 'float', 'float']);
+const rlPushMatrix = lib.cdecl('rlPushMatrix', 'void', []);
+const rlPopMatrix = lib.cdecl('rlPopMatrix', 'void', []);
+const rlTranslatef = lib.cdecl('rlTranslatef', 'void', ['float', 'float', 'float']);
+const rlRotatef = lib.cdecl('rlRotatef', 'void', ['float', 'float', 'float', 'float']);
+const rlScalef = lib.cdecl('rlScalef', 'void', ['float', 'float', 'float']);
 
 // Enumerations
 
