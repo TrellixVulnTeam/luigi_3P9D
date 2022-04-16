@@ -97,7 +97,14 @@ let lib = (() => {
         filename = null;
     } else {
         filename = require.resolve('koffi');
-        filename = path.join(path.dirname(filename), '../../luigi/build/raylib' + (process.platform == 'win32' ? '.dll' : '.so'));
+
+        if (process.platform == 'win32') {
+            filename = path.join(path.dirname(filename), '../../luigi/build/raylib.dll');
+        } else if (process.platform == 'darwin') {
+            filename = path.join(path.dirname(filename), '../../luigi/build/raylib.dylib');
+        } else {
+            filename = path.join(path.dirname(filename), '../../luigi/build/raylib.so');
+        }
     }
 
     let lib = koffi.load(filename);
