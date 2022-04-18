@@ -1,10 +1,10 @@
 {
   "name": "luiggi",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "Educational toy programming language implemented in JS",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Koromix/luiggi.git"
+    "url": "https://github.com/Koromix/luigi.git"
   },
   "author": "Niels Martignène <niels.martignene@protonmail.com>",
   "main": "src/index.js",
