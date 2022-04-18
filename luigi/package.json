@@ -1,6 +1,6 @@
 {
   "name": "luigi",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Educational toy programming language implemented in JS",
   "repository": {
     "type": "git",
@@ -21,5 +21,13 @@
   "dependencies": {
     "cnoke": "^0.9.24",
     "koffi": "^0.9.21"
-  }
+  },
+  "files": [
+    "examples",
+    "src",
+    "vendor/raylib",
+    "LICENSE.txt",
+    "README.md",
+    "CMakeLists.txt"
+  ]
 }
