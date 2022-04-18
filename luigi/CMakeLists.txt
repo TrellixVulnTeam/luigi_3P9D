@@ -31,10 +31,6 @@ target_include_directories(raylib PRIVATE vendor/raylib/src/external/glfw/includ
 target_compile_definitions(raylib PRIVATE PLATFORM_DESKTOP GRAPHICS_API_OPENGL_21
                                           BUILD_LIBTYPE_SHARED NDEBUG)
 
-if(WIN32)
-    target_compile_definitions(raylib PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
-    target_link_libraries(raylib PRIVATE winmm)
-endif()
 if(MSVC)
     target_compile_options(raylib PRIVATE /wd4244 /wd4305)
 else()
@@ -42,4 +38,20 @@ else()
                                           -Wno-unused-function -Wno-missing-field-initializers
                                           -Wno-unused-value -Wno-implicit-fallthrough -Wno-stringop-overflow
                                           -Wno-unused-result)
+endif()
+
+if(WIN32)
+    target_compile_definitions(raylib PRIVATE _CRT_SECURE_NO_WARNINGS _CRT_NONSTDC_NO_DEPRECATE)
+    target_link_libraries(raylib PRIVATE winmm)
+endif()
+
+if(CMAKE_SYSTEM_NAME MATCHES "BSD")
+    target_include_directories(raylib PRIVATE /usr/local/include)
+endif()
+
+if(APPLE)
+    target_compile_options(raylib PRIVATE -Wno-unknown-warning-option -Wno-macro-redefined)
+    target_compile_definitions(raylib PRIVATE GL_SILENCE_DEPRECATION)
+    set_source_files_properties(vendor/raylib/src/rglfw.c PROPERTIES COMPILE_FLAGS "-x objective-c")
+    target_link_libraries(raylib PRIVATE "-framework Cocoa" "-framework IOKit" "-framework CoreFoundation" "-framework OpenGL")
 endif()
