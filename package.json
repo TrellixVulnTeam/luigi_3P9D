@@ -8,9 +8,6 @@
   "workspaces": [
     "cnoke",
     "koffi",
-    "luigi"
-  ],
-  "scripts": {
-    "luigi": "node luigi/src/luigi.js"
-  }
+    "luiggi"
+  ]
 }

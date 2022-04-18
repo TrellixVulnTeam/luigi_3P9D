@@ -99,11 +99,11 @@ let lib = (() => {
         filename = require.resolve('koffi');
 
         if (process.platform == 'win32') {
-            filename = path.join(path.dirname(filename), '../../luigi/build/raylib.dll');
+            filename = path.join(path.dirname(filename), '../../luiggi/build/raylib.dll');
         } else if (process.platform == 'darwin') {
-            filename = path.join(path.dirname(filename), '../../luigi/build/raylib.dylib');
+            filename = path.join(path.dirname(filename), '../../luiggi/build/raylib.dylib');
         } else {
-            filename = path.join(path.dirname(filename), '../../luigi/build/raylib.so');
+            filename = path.join(path.dirname(filename), '../../luiggi/build/raylib.so');
         }
     }
 
@@ -320,7 +320,7 @@ function init() {
 
     SetTraceLogLevel(LogLevel.WARNING);
     SetWindowState(StateFlags.WINDOW_HIDDEN);
-    InitWindow(width, height, 'Luigi');
+    InitWindow(width, height, 'Luiggi');
 
     let filename = path.join(path.dirname(__filename), 'std_opensans.ttf');
     default_font = LoadFont(filename);

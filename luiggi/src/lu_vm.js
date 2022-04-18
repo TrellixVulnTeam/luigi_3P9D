@@ -27,7 +27,7 @@ exports.execute = function(_functions, _globals = {}) {
     globals = Object.assign({}, default_func.memory, _globals);
     depth = -1;
 
-    return run_luigi(default_func, globals);
+    return run_luiggi(default_func, globals);
 };
 
 exports.run_function = function(func, args) {
@@ -47,7 +47,7 @@ exports.run_function = function(func, args) {
                 locals[param] = value;
             }
 
-            return run_luigi(func, locals);
+            return run_luiggi(func, locals);
         } else {
             try {
                 let ret = func.native(...args);
@@ -67,7 +67,7 @@ exports.run_function = function(func, args) {
     }
 }
 
-function run_luigi(func, locals) {
+function run_luiggi(func, locals) {
     let values = [];
     let addr = 0;
 

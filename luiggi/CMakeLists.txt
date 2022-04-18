@@ -12,7 +12,7 @@
 # along with this program. If not, see https://www.gnu.org/licenses/.
 
 cmake_minimum_required(VERSION 3.12)
-project(luigi C)
+project(luiggi C)
 
 # ---- Raylib ----
 

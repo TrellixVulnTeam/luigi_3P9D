@@ -40,7 +40,7 @@
 
 # Introduction
 
-Luigi is an educational toy programming language implemented in JS, with four main goals:
+Luiggi is an educational toy programming language implemented in JS, with four main goals:
 
 * Show a simple and relatively efficient implementation of a programming language:
   - Simple lexer (tokenizer) implemented directly in JS.
@@ -69,7 +69,7 @@ Multi-line comments are explicitly not supported, in order to support context-in
 
 Identifiers start with a letter or an underscore, and may contain letters, digits and underscores. Identifiers starting with a double underscore `__` are not allowed. Case is sensitive.
 
-Reserved keywords cannot be used as variable or function identifiers. The following list shows all reserved keywords used in Luigi:
+Reserved keywords cannot be used as variable or function identifiers. The following list shows all reserved keywords used in Luiggi:
 
 ```
 func if then else end while for in to break continue return
@@ -87,14 +87,14 @@ CONST = 2 # Error: Cannot assign to constant variable "CONST"
 
 A block is a list of statements, which are executed sequentially.
 
-Newlines (`\n`) are meaningful in Luigi, they are used to separate statements:
+Newlines (`\n`) are meaningful in Luiggi, they are used to separate statements:
 
 ```ruby
 log("Hello")
 log("World")
 ```
 
-Luigi strives to support multi-line statements where appropriate, such as in the middle of an unfinished expression:
+Luiggi strives to support multi-line statements where appropriate, such as in the middle of an unfinished expression:
 
 ```ruby
 log("Hello " +
@@ -110,7 +110,7 @@ foo = (1 + 2) * 6 # Declares the variable foo, and assign 18 to it
 foo = "Hello" + " World" # Assign "Hello World" to foo
 ```
 
-Assignment in Luigi is a statement. Contrary to other languages such as C, it is not possible to assign values to a variable in the middle of an expression.
+Assignment in Luiggi is a statement. Contrary to other languages such as C, it is not possible to assign values to a variable in the middle of an expression.
 
 ## Control flow
 
@@ -118,7 +118,7 @@ Branching statements and expressions decide whether or not to execute some code 
 
 ### Truth
 
-Luigi considers the following expression results as false:
+Luiggi considers the following expression results as false:
 
 * The boolean value `false` is false.
 * The null value `null` is false.
@@ -163,7 +163,7 @@ Single-line `if <expr> then <statement>` constructs cannot use `else`.
 
 ### While statement
 
-There are two loop statements in Luigi, and they should be familiar if you've used other imperative languages.
+There are two loop statements in Luiggi, and they should be familiar if you've used other imperative languages.
 
 The simplest is the `while` statement. It executes a chunk of code as long as a condition continues to hold. For example:
 
@@ -274,7 +274,7 @@ A boolean value represents truth or falsehood. There are two boolean literals, `
 
 #### Numbers
 
-Luigi has a single numeric type: double-precision floating point.
+Luiggi has a single numeric type: double-precision floating point.
 
 ```ruby
 12
@@ -408,8 +408,8 @@ log(vec.x) # 1
 You can change an element by assigning a value to it:
 
 ```ruby
-vec.name = "Luigi"
-log(vec.name) # Luigi
+vec.name = "Luiggi"
+log(vec.name) # Luiggi
 ```
 
 ## Operators
@@ -503,13 +503,13 @@ Function         | Parameters | Description
 
 # Get started
 
-There are two ways: the first uses NPM and allows to run Luigi code esily using Node.js, but will not give you the ability to produce redistribuable executable files.
+There are two ways: the first uses NPM and allows to run Luiggi code esily using Node.js, but will not give you the ability to produce redistribuable executable files.
 
 The second one builds a modified Node.js binary.
 
 ## With NPM (easier)
 
-This will allow to test Luigi quickly, and allows for faster development. But you won't be able to build self-contained redistributable binaries of your games.
+This will allow to test Luiggi quickly, and allows for faster development. But you won't be able to build self-contained redistributable binaries of your games.
 
 ### Windows
 
@@ -526,10 +526,10 @@ Once these dependencies are met, simply run the follow command:
 npm install
 ```
 
-After that, running Luigi scripts can be done this way:
+After that, running Luiggi scripts can be done this way:
 
 ```sh
-npm run luigi examples/words/words.luigi
+npm run luiggi examples/words/words.luiggi
 ```
 
 ### Linux
@@ -548,10 +548,10 @@ Once these dependencies are met, simply run the follow command:
 npm install
 ```
 
-After that, running Luigi scripts can be done this way:
+After that, running Luiggi scripts can be done this way:
 
 ```sh
-npm run luigi examples/words/words.luigi
+npm run luiggi examples/words/words.luiggi
 ```
 
 ### macOS
@@ -569,15 +569,15 @@ Once these dependencies are met, simply run the follow command:
 npm install
 ```
 
-After that, running Luigi scripts can be done this way:
+After that, running Luiggi scripts can be done this way:
 
 ```sh
-npm run luigi examples/words/words.luigi
+npm run luiggi examples/words/words.luiggi
 ```
 
 ## Build modified Node.js binary (harder)
 
-Luigi uses a modified Node.js LTS binary that include a few additional modules, you need to build it first.
+Luiggi uses a modified Node.js LTS binary that include a few additional modules, you need to build it first.
 
 With this version, you will __soon__ be able to build self-contained redistributable binaries of your games.
 
@@ -599,7 +599,7 @@ npm run build # Add `-- --no_asm` if you havne't installed and exposed NASM in p
 After that, you can run the modified binary like this:
 
 ```sh
-luigi.exe src/luigi/luigi.js examples/mighty.luigi
+luiggi.exe src/luiggi/luiggi.js examples/mighty.luiggi
 ```
 
 ### Linux
@@ -621,7 +621,7 @@ npm run build
 After that, you can run the modified binary like this:
 
 ```sh
-./luigi src/luigi/luigi.js examples/mighty.luigi
+./luiggi src/luiggi/luiggi.js examples/mighty.luiggi
 ```
 
 ### macOS
@@ -642,7 +642,7 @@ npm run build
 After that, you can run the modified binary like this:
 
 ```sh
-./luigi src/luigi/luigi.js examples/mighty.luigi
+./luiggi src/luiggi/luiggi.js examples/mighty.luiggi
 ```
 
 # Examples

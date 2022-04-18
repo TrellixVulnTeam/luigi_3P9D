@@ -8,14 +8,14 @@ node_modules/
 /package-lock.json
 /cnoke/package-lock.json
 /koffi/package-lock.json
-/luigi/package-lock.json
+/luiggi/package-lock.json
 
-/luigi/vendor/node/deps/*.props
-/luigi/vendor/node/deps/*.xml
-/luigi/vendor/node/deps/*.targets
-/luigi/vendor/node/**/*.o
-/luigi/luigi
-/luigi/luigi.exe
+/luiggi/vendor/node/deps/*.props
+/luiggi/vendor/node/deps/*.xml
+/luiggi/vendor/node/deps/*.targets
+/luiggi/vendor/node/**/*.o
+/luiggi/luiggi
+/luiggi/luiggi.exe
 
 /koffi/test/*.zst
 /koffi/test/qemu/*

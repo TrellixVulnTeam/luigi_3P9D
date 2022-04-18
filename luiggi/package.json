@@ -1,20 +1,20 @@
 {
-  "name": "luigi",
+  "name": "luiggi",
   "version": "0.9.8",
   "description": "Educational toy programming language implemented in JS",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Koromix/luigi.git"
+    "url": "https://github.com/Koromix/luiggi.git"
   },
   "author": "Niels Martignène <niels.martignene@protonmail.com>",
   "main": "src/index.js",
   "bin": {
-    "luigi": "src/luigi.js"
+    "luiggi": "src/luiggi.js"
   },
   "scripts": {
     "install": "cnoke",
 
-    "luigi": "node src/luigi.js",
+    "luiggi": "node src/luiggi.js",
     "build": "node src/build.js"
   },
   "license": "AGPL-3.0",

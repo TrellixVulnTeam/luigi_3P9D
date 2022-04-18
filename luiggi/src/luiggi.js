@@ -18,7 +18,7 @@
 const process = require('process');
 const fs = require('fs');
 const path = require('path');
-const luigi = require('./index.js');
+const luiggi = require('./index.js');
 
 function main() {
     if (process.argv.length < 3) {
@@ -33,7 +33,7 @@ function main() {
         let code = fs.readFileSync(filename).toString('utf-8');
         process.chdir(dirname);
 
-        luigi.run(code);
+        luiggi.run(code);
     } catch (err) {
         console.error(err.message);
     }
@@ -41,6 +41,6 @@ function main() {
 main();
 
 function print_usage() {
-    let usage = `Usage: luigi <script>`;
+    let usage = `Usage: luiggi <script>`;
     console.log(usage);
 }

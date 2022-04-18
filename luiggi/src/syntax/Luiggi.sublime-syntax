@@ -1,22 +1,22 @@
 %YAML 1.2
 ---
-name: Luigi
-file_extensions: [luigi]
-scope: source.luigi
+name: Luiggi
+file_extensions: [luiggi]
+scope: source.luiggi
 
 contexts:
   main:
     - match: \#.*
-      scope: comment.line.luigi
+      scope: comment.line.luiggi
     - match: \b(if|then|else|end|while|for|in|to|break|continue|return)\b
-      scope: keyword.control.luigi
+      scope: keyword.control.luiggi
     - match: \bfunc\b
-      scope: keyword.control.luigi
+      scope: keyword.control.luiggi
       push: function
     - match: (\.\.?|<=?|>=?|!=?|[*\/+\-=])
-      scope: keyword.operator.luigi
+      scope: keyword.operator.luiggi
     - match: \b(and|or|not)\b
-      scope: keyword.operator.luigi
+      scope: keyword.operator.luiggi
     - match: '"'
       push: string1
     - match: "'"
@@ -24,19 +24,19 @@ contexts:
     - match: \(
       push: brackets
     - match: \)
-      scope: invalid.illegal.luigi
+      scope: invalid.illegal.luiggi
     - match: \b(true|false|null)\b
-      scope: constant.language.luigi
+      scope: constant.language.luiggi
     - match: \b[0-9]+(\.[0-9_]*)?\b
-      scope: constant.numeric.luigi
+      scope: constant.numeric.luiggi
     - match: \b([[:alpha:]_][[:alnum:]_]*) *\(\b
       captures:
-      1: variable.function.luigi
+      1: variable.function.luiggi
       push: brackets
 
   function:
     - match: \b[[:alpha:]_][[:alnum:]_]*\b
-      scope: entity.name.function.luigi
+      scope: entity.name.function.luiggi
       pop: true
 
   brackets:
@@ -45,14 +45,14 @@ contexts:
     - include: main
 
   string1:
-    - meta_scope: string.quoted.double.luigi
+    - meta_scope: string.quoted.double.luiggi
     - match: \\.
-      scope: constant.character.escape.luigi
+      scope: constant.character.escape.luiggi
     - match: '"'
       pop: true
   string2:
-    - meta_scope: string.quoted.simple.luigi
+    - meta_scope: string.quoted.simple.luiggi
     - match: \\.
-      scope: constant.character.escape.luigi
+      scope: constant.character.escape.luiggi
     - match: "'"
       pop: true
