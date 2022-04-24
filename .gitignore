@@ -20,6 +20,8 @@ node_modules/
 /koffi/test/*.zst
 /koffi/test/qemu/*
 !/koffi/test/qemu/.gitkeep
+/koffi/benchmark/atoi_cc
+/koffi/benchmark/atoi_cc.exe
 /koffi/benchmark/raylib_cc
 /koffi/benchmark/raylib_cc.exe
 /koffi/benchmark/raylib.dll
