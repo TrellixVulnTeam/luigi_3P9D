@@ -21,4 +21,5 @@ node_modules/
 /koffi/test/qemu/*
 !/koffi/test/qemu/.gitkeep
 /koffi/benchmark/raylib_c
+/koffi/benchmark/raylib_c.exe
 /koffi/benchmark/tmp
