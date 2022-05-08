@@ -19,7 +19,7 @@
   },
   "license": "AGPL-3.0",
   "dependencies": {
-    "cnoke": "^1.0.4",
+    "cnoke": "^1.0.5",
     "koffi": "^0.9.36"
   },
   "files": [
