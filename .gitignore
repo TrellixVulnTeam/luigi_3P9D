@@ -17,9 +17,9 @@ node_modules/
 /luiggi/luiggi
 /luiggi/luiggi.exe
 
-/koffi/test/*.zst
-/koffi/test/qemu/*
-!/koffi/test/qemu/.gitkeep
+/koffi/qemu/*.zst
+/koffi/qemu/qemu/*
+!/koffi/qemu/qemu/.gitkeep
 /koffi/benchmark/atoi_cc
 /koffi/benchmark/atoi_cc.exe
 /koffi/benchmark/raylib_cc
