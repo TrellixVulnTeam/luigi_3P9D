@@ -15,7 +15,7 @@
     "install": "cnoke",
 
     "luiggi": "node src/luiggi.js",
-    "build": "node src/build.js"
+    "build": "node vendor/node/build.js"
   },
   "license": "AGPL-3.0",
   "dependencies": {

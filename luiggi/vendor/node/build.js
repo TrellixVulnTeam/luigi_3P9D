@@ -20,7 +20,7 @@ const path = require('path');
 
 function main() {
     let script_dir = path.dirname(__filename);
-    process.chdir(path.join(script_dir, '..'));
+    process.chdir(path.join(script_dir, '../..'));
 
     let openssl_no_asm = false;
 
