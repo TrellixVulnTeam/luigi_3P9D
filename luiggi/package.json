@@ -1,6 +1,6 @@
 {
   "name": "luiggi",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "description": "Educational toy programming language implemented in JS",
   "repository": {
     "type": "git",
