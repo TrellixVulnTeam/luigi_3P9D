@@ -13,7 +13,7 @@
 
 'use strict';
 
-const token_types = require('./en_tokens.js');
+const token_types = require('./tokens.js');
 
 let tokens;
 

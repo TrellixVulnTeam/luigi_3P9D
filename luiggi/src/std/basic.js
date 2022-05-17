@@ -13,7 +13,7 @@
 
 'use strict';
 
-const { is_object, Func, get_type } = require('./lu_types.js');
+const { is_object, Func, get_type } = require('../types.js');
 
 // General
 

@@ -13,11 +13,11 @@
 
 'use strict';
 
-const token_types = require('./en_tokens.js');
-const opcodes = require('./en_opcodes.js');
-const { Func } = require('./lu_types.js');
-const std_basic = require('./std_basic.js');
-const std_raylib = require('./std_raylib.js');
+const token_types = require('./tokens.js');
+const opcodes = require('./opcodes.js');
+const { Func } = require('./types.js');
+const std_basic = require('./std/basic.js');
+const std_raylib = require('./std/raylib.js');
 
 let functions;
 let default_func;

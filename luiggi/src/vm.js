@@ -13,8 +13,8 @@
 
 'use strict';
 
-const opcodes = require('./en_opcodes.js');
-const { is_object, Func } = require('./lu_types.js');
+const opcodes = require('./opcodes.js');
+const { is_object, Func } = require('./types.js');
 
 let functions;
 let globals;

@@ -24,6 +24,7 @@
   },
   "files": [
     "examples",
+    "misc",
     "src",
     "vendor/raylib",
     "LICENSE.txt",

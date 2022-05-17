@@ -24,7 +24,7 @@ const koffi = (() => {
         return require(name);
     }
 })();
-const { run_function } = require('./lu_vm.js');
+const { run_function } = require('../vm.js');
 
 const Image = koffi.struct('Image', {
     data: koffi.pointer('void'),
@@ -322,7 +322,7 @@ function init() {
     SetWindowState(StateFlags.WINDOW_HIDDEN);
     InitWindow(width, height, 'Luiggi');
 
-    let filename = path.join(path.dirname(__filename), 'std_opensans.ttf');
+    let filename = path.join(path.dirname(__filename), 'opensans.ttf');
     default_font = LoadFont(filename);
 }
 init();

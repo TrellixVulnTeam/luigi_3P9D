@@ -13,9 +13,9 @@
 
 'use strict';
 
-const { scan } = require('./lu_lexer.js');
-const { parse } = require('./lu_parser.js');
-const { execute } = require('./lu_vm.js');
+const { scan } = require('./lexer.js');
+const { parse } = require('./parser.js');
+const { execute } = require('./vm.js');
 
 exports.scan = scan;
 exports.parse = parse;
