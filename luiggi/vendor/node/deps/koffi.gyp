@@ -40,6 +40,7 @@
         '../../../../koffi/src/abi_x86.cc',
         '../../../../koffi/src/call.cc',
         '../../../../koffi/src/ffi.cc',
+        '../../../../koffi/src/parser.cc',
         '../../../../koffi/src/util.cc',
         '../../../../koffi/vendor/libcc/libcc.cc',
       ],
