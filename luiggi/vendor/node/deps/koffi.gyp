@@ -9,7 +9,7 @@
         'FELIX_TARGET=koffi',
       ],
       'cflags_cc!': [ '-std=gnu++0x' ],
-      'cflags_cc': [ '-std=c++17 -fno-exceptions -Wno-missing-field-initializers', ],
+      'cflags_cc': [ '-std=c++17 -fno-exceptions -Wno-missing-field-initializers -Wno-class-memaccess', ],
       'xcode_settings': {
         'CLANG_CXX_LANGUAGE_STANDARD': 'gnu++17',
       },
