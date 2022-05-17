@@ -33,8 +33,12 @@
         'include_dirs': [ 'src' ]
       },
       'sources': [
-        '../../../../koffi/src/call_x64_sysv.cc',
-        '../../../../koffi/src/call_x64_win.cc',
+        '../../../../koffi/src/abi_arm32.cc',
+        '../../../../koffi/src/abi_arm64.cc',
+        '../../../../koffi/src/abi_x64_sysv.cc',
+        '../../../../koffi/src/abi_x64_win.cc',
+        '../../../../koffi/src/abi_x86.cc',
+        '../../../../koffi/src/call.cc',
         '../../../../koffi/src/ffi.cc',
         '../../../../koffi/src/util.cc',
         '../../../../koffi/vendor/libcc/libcc.cc',
@@ -69,17 +73,17 @@
         }],
         [ 'target_arch=="x64" and OS!="win"', {
           'sources': [
-            '../../../../koffi/src/call_x64_sysv_fwd.S',
+            '../../../../koffi/src/abi_x64_sysv_fwd.S',
           ],
         }],
         [ 'target_arch=="arm64" or target_arch=="aarch64"', {
           'sources': [
-            '../../../../koffi/src/call_arm64_fwd.S',
+            '../../../../koffi/src/abi_arm64_fwd.S',
           ],
         }],
         [ 'target_arch=="ia32" and OS=="win"', {
           'sources': [
-            '../../../../koffi/src/call_x86_fwd.asm',
+            '../../../../koffi/src/abi_x86_fwd.asm',
           ],
           'rules': [
             {
