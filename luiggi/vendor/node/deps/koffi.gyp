@@ -35,6 +35,7 @@
       'sources': [
         '../../../../koffi/src/abi_arm32.cc',
         '../../../../koffi/src/abi_arm64.cc',
+        '../../../../koffi/src/abi_riscv64.cc',
         '../../../../koffi/src/abi_x64_sysv.cc',
         '../../../../koffi/src/abi_x64_win.cc',
         '../../../../koffi/src/abi_x86.cc',
@@ -114,6 +115,11 @@
         [ 'target_arch=="arm" or target_arch=="armv7"', {
           'sources': [
             '../../../../koffi/src/call_arm32_fwd.S',
+          ],
+        }],
+        [ 'target_arch=="riscv64"', {
+          'sources': [
+            '../../../../koffi/src/abi_riscv64_fwd.S',
           ],
         }],
       ]
