@@ -237,7 +237,7 @@ You can define a function with the following syntax:
 
 ```nim
 func sum(x, y)
-  return x + y
+    return x + y
 end
 ```
 
