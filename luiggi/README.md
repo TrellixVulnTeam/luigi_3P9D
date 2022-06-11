@@ -630,7 +630,7 @@ After that, you can run the modified binary like this:
 * Xcode Command Line Tools >= 11 for macOS
 * [Ninja](https://ninja-build.org/) build system
 
-macOS users can install the `Xcode Command Line Tools` by running `xcode-select --install`. Alternatively, if you already have the full Xcode installed, you can find them under the menu `Xcode -> Open Developer Tool -> More Developer Tools...`. This step will install `clang`, clang++`, and `make`.
+macOS users can install the `Xcode Command Line Tools` by running `xcode-select --install`. Alternatively, if you already have the full Xcode installed, you can find them under the menu `Xcode -> Open Developer Tool -> More Developer Tools...`. This step will install `clang`, `clang++`, and `make`.
 
 Once these dependencies are met, open a command prompt in the repository and run the following command:
 
