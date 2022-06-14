@@ -26,3 +26,4 @@ node_modules/
 /koffi/benchmark/raylib_cc.exe
 /koffi/benchmark/raylib.dll
 /koffi/benchmark/tmp
+/koffi/doc/dist/doctrees
