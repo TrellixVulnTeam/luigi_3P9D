@@ -1,10 +1,17 @@
+import json
+import os
+
 # -- Project information -----------------------------------------------------
 
 project = 'Luiggi'
 copyright = '2022, Niels Martignène'
 author = 'Niels Martignène'
-version = '0.9.12'
-revision = '0.9.12'
+
+with open(os.path.dirname(__file__) + '/../package.json') as f:
+    config = json.load(f)
+
+    version = config['version']
+    revision = config['version']
 
 # -- General configuration ---------------------------------------------------
 
@@ -20,7 +27,7 @@ exclude_patterns = []
 
 # -- Options for HTML output -------------------------------------------------
 
-html_title = 'Luiggi'
+html_title = project
 
 html_theme = 'furo'
 
