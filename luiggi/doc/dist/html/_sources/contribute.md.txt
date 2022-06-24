@@ -6,12 +6,6 @@ Use the official repository (named Luigi, because this is a monorepo containing 
 
 Go here: https://github.com/Koromix/luigi/issues
 
-## Code style
-
-Luiggi is programmed in a mix of C++ and assembly code (architecture-specific code). It uses [node-addon-api](https://github.com/nodejs/node-addon-api) (C++ N-API wrapper) to interact with Node.js.
-
-My personal preference goes to a rather C-like C++ style, with careful use of templates (mainly for containers) and little object-oriented programming. I strongly prefer tagged unions and code locality over inheritance and virtual methods. Exceptions are disabled.
-
 ## Build from source
 
 There are two ways: the first uses NPM and allows to run Luiggi code esily using Node.js, but will not give you the ability to produce redistribuable executable files.
@@ -155,3 +149,9 @@ After that, you can run the modified binary like this:
 ```sh
 ./luiggi luiggi.js examples/mighty.luiggi
 ```
+
+## Code style
+
+Luiggi is programmed in a mix of C++ and assembly code (architecture-specific code). It uses [node-addon-api](https://github.com/nodejs/node-addon-api) (C++ N-API wrapper) to interact with Node.js.
+
+My personal preference goes to a rather C-like C++ style, with careful use of templates (mainly for containers) and little object-oriented programming. I strongly prefer tagged unions and code locality over inheritance and virtual methods. Exceptions are disabled.
