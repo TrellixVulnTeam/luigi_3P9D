@@ -9,7 +9,7 @@
   "author": "Niels Martignène <niels.martignene@protonmail.com>",
   "main": "src/index.js",
   "bin": {
-    "luiggi": "src/luiggi.js"
+    "luiggi": "luiggi.js"
   },
   "scripts": {
     "install": "cnoke",
