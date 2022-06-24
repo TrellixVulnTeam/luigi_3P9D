@@ -16,6 +16,7 @@ node_modules/
 /luiggi/vendor/node/**/*.o
 /luiggi/luiggi
 /luiggi/luiggi.exe
+/luiggi/doc/dist/doctrees
 
 /koffi/qemu/*.zst
 /koffi/qemu/qemu/*
