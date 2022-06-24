@@ -233,7 +233,7 @@
 </pre></div>
 </div>
 <p>After that, running Luiggi scripts can be done this way:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>npm run luiggi examples/words/words.luiggi
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>node luiggi.js examples/words/words.luiggi
 </pre></div>
 </div>
 </section>
@@ -252,7 +252,7 @@
 </pre></div>
 </div>
 <p>After that, running Luiggi scripts can be done this way:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>npm run luiggi examples/words/words.luiggi
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>node luiggi.js examples/words/words.luiggi
 </pre></div>
 </div>
 </section>
@@ -270,13 +270,13 @@
 </pre></div>
 </div>
 <p>After that, running Luiggi scripts can be done this way:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>npm run luiggi examples/words/words.luiggi
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>node luiggi.js examples/words/words.luiggi
 </pre></div>
 </div>
 </section>
 </section>
-<section id="build-modified-node-js-binary-harder">
-<h3>Build modified Node.js binary (harder)<a class="headerlink" href="#build-modified-node-js-binary-harder" title="Permalink to this heading">#</a></h3>
+<section id="modified-node-js-binary-harder">
+<h3>Modified Node.js binary (harder)<a class="headerlink" href="#modified-node-js-binary-harder" title="Permalink to this heading">#</a></h3>
 <p>Luiggi uses a modified Node.js LTS binary that include a few additional modules, you need to build it first.</p>
 <p>With this version, you will <strong>soon</strong> be able to build self-contained redistributable binaries of your games.</p>
 <section id="id1">
@@ -293,7 +293,7 @@ npm run build <span class="c1"># Add `-- --no_asm` if you havne&#39;t installed 
 </pre></div>
 </div>
 <p>After that, you can run the modified binary like this:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>luiggi.exe src/luiggi/luiggi.js examples/mighty.luiggi
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>luiggi.exe luiggi.js examples/mighty.luiggi
 </pre></div>
 </div>
 </section>
@@ -312,7 +312,7 @@ npm run build
 </pre></div>
 </div>
 <p>After that, you can run the modified binary like this:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./luiggi src/luiggi/luiggi.js examples/mighty.luiggi
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./luiggi luiggi.js examples/mighty.luiggi
 </pre></div>
 </div>
 </section>
@@ -330,7 +330,7 @@ npm run build
 </pre></div>
 </div>
 <p>After that, you can run the modified binary like this:</p>
-<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./luiggi src/luiggi/luiggi.js examples/mighty.luiggi
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>./luiggi luiggi.js examples/mighty.luiggi
 </pre></div>
 </div>
 </section>
@@ -397,7 +397,7 @@ npm run build
 <li><a class="reference internal" href="#macos">macOS</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#build-modified-node-js-binary-harder">Build modified Node.js binary (harder)</a><ul>
+<li><a class="reference internal" href="#modified-node-js-binary-harder">Modified Node.js binary (harder)</a><ul>
 <li><a class="reference internal" href="#id1">Windows</a></li>
 <li><a class="reference internal" href="#id2">Linux</a></li>
 <li><a class="reference internal" href="#id3">macOS</a></li>

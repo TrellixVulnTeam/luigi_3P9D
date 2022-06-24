@@ -202,10 +202,55 @@
         <article role="main">
           <section id="get-started">
 <h1>Get started<a class="headerlink" href="#get-started" title="Permalink to this heading">#</a></h1>
-<section id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">#</a></h2>
-<p>You can find several examples in the <em>examples/</em> subdirectory, including a small game in <em>examples/words/</em>.</p>
-<p>You are free to study and modify them as long as you respect the conditions of the AGPL 3.0 license.</p>
+<section id="install-dependencies">
+<h2>Install dependencies<a class="headerlink" href="#install-dependencies" title="Permalink to this heading">#</a></h2>
+<p>First, make sure the various dependencies are met for your OS.</p>
+<section id="windows">
+<h3>Windows<a class="headerlink" href="#windows" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://nodejs.org/">Node 16 LTS</a>, but a newer version should work too</p></li>
+<li><p><a class="reference external" href="https://www.python.org/downloads/">Python 3.8</a> or newer</p></li>
+<li><p>The “Desktop development with C++” workload from <a class="reference external" href="https://visualstudio.microsoft.com/downloads/">Visual Studio 2022 or 2019</a> or the “C++ build tools” workload from the <a class="reference external" href="https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022">Build Tools</a>, with the default optional components.</p></li>
+<li><p><a class="reference external" href="https://cmake.org/">CMake meta build system</a></p></li>
+</ul>
+</section>
+<section id="linux">
+<h3>Linux<a class="headerlink" href="#linux" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://nodejs.org/">Node 16 LTS</a>, but a newer version should work too</p></li>
+<li><p>Python 3.8 or newer</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">gcc</span></code> and <code class="docutils literal notranslate"><span class="pre">g++</span></code> &gt;= 8.3 or newer</p></li>
+<li><p>GNU Make 3.81 or newer</p></li>
+<li><p><a class="reference external" href="https://cmake.org/">CMake meta build system</a></p></li>
+</ul>
+</section>
+<section id="macos">
+<h3>macOS<a class="headerlink" href="#macos" title="Permalink to this heading">#</a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://nodejs.org/">Node 16 LTS</a>, but a newer version should work too</p></li>
+<li><p>Python 3.8 or newer</p></li>
+<li><p>Xcode Command Line Tools &gt;= 11 for macOS</p></li>
+<li><p><a class="reference external" href="https://cmake.org/">CMake meta build system</a></p></li>
+</ul>
+</section>
+</section>
+<section id="build-from-source">
+<h2>Build from source<a class="headerlink" href="#build-from-source" title="Permalink to this heading">#</a></h2>
+<p>Once these dependencies are met, start by cloning the repository with <a class="reference external" href="https://git-scm.com/">Git</a>, and then run <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">install</span></code>:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>git clone https://github.com/Koromix/luigi
+<span class="nb">cd</span> luigi/luiggi
+npm install
+</pre></div>
+</div>
+</section>
+<section id="run-examples">
+<h2>Run examples<a class="headerlink" href="#run-examples" title="Permalink to this heading">#</a></h2>
+<p>You can find several examples in the <code class="docutils literal notranslate"><span class="pre">examples/</span></code> subdirectory, including a small game in <code class="docutils literal notranslate"><span class="pre">examples/words/</span></code>.</p>
+<p>To run the Mighty screensaver example, run the following command:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>node luiggi.js examples/mighty.luiggi
+</pre></div>
+</div>
+<p>You are free to study and modify these examples as you respect the conditions of the AGPL 3.0 license.</p>
 </section>
 </section>
 
@@ -267,7 +312,14 @@
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Get started</a><ul>
-<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#install-dependencies">Install dependencies</a><ul>
+<li><a class="reference internal" href="#windows">Windows</a></li>
+<li><a class="reference internal" href="#linux">Linux</a></li>
+<li><a class="reference internal" href="#macos">macOS</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#build-from-source">Build from source</a></li>
+<li><a class="reference internal" href="#run-examples">Run examples</a></li>
 </ul>
 </li>
 </ul>

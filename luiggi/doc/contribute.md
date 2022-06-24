@@ -40,7 +40,7 @@ npm install
 After that, running Luiggi scripts can be done this way:
 
 ```sh
-npm run luiggi examples/words/words.luiggi
+node luiggi.js examples/words/words.luiggi
 ```
 
 #### Linux
@@ -62,7 +62,7 @@ npm install
 After that, running Luiggi scripts can be done this way:
 
 ```sh
-npm run luiggi examples/words/words.luiggi
+node luiggi.js examples/words/words.luiggi
 ```
 
 #### macOS
@@ -83,10 +83,10 @@ npm install
 After that, running Luiggi scripts can be done this way:
 
 ```sh
-npm run luiggi examples/words/words.luiggi
+node luiggi.js examples/words/words.luiggi
 ```
 
-### Build modified Node.js binary (harder)
+### Modified Node.js binary (harder)
 
 Luiggi uses a modified Node.js LTS binary that include a few additional modules, you need to build it first.
 
@@ -110,7 +110,7 @@ npm run build # Add `-- --no_asm` if you havne't installed and exposed NASM in p
 After that, you can run the modified binary like this:
 
 ```sh
-luiggi.exe src/luiggi/luiggi.js examples/mighty.luiggi
+luiggi.exe luiggi.js examples/mighty.luiggi
 ```
 
 #### Linux
@@ -132,7 +132,7 @@ npm run build
 After that, you can run the modified binary like this:
 
 ```sh
-./luiggi src/luiggi/luiggi.js examples/mighty.luiggi
+./luiggi luiggi.js examples/mighty.luiggi
 ```
 
 #### macOS
@@ -153,5 +153,5 @@ npm run build
 After that, you can run the modified binary like this:
 
 ```sh
-./luiggi src/luiggi/luiggi.js examples/mighty.luiggi
+./luiggi luiggi.js examples/mighty.luiggi
 ```

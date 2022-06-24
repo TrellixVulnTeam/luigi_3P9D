@@ -4,15 +4,17 @@ Luiggi |version|
 Overview
 --------
 
-Luiggi is an educational toy programming language implemented in JS, with four main goals:
+Luiggi is an **educational toy programming language** implemented in JS, with four main goals:
 
 - Show a simple and relatively efficient implementation of a programming language:
-  - Simple lexer (tokenizer) implemented directly in JS.
-  - Simple parser and bytecode compiler (without any intermediate AST).
-  - Simple virtual machine, reusing JS data structures.
-- Use a simple syntax reminescent of Python and BASIC, with minimal overhead.
-- Provide a ready-to-use standard library with everything needed to implement simple 2D games (based on Raylib).
-- Easy to use compilation to desktop (Windows, Linux, macOS) and web-ready WASM binaries, by packing the bytecode interpreter and user code.
+
+  - Simple lexer (tokenizer) implemented directly in JS
+  - Simple parser and bytecode compiler (without any intermediate AST)
+  - Simple virtual machine, reusing JS data structures
+
+- Use a simple syntax reminescent of Python and BASIC, with minimal overhead
+- Provide a ready-to-use standard library with everything needed to implement simple 2D games (based on `Raylib <https://raylib.com/>`_)
+- Easy to use compilation to desktop (Windows, Linux, macOS) and web-ready WASM binaries, by packing the bytecode interpreter and user code
 
 The language uses dynamic typing for implementation simplicity.
 
