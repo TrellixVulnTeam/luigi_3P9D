@@ -96,14 +96,12 @@ let lib = (() => {
     if (koffi.internal) {
         filename = null;
     } else {
-        filename = require.resolve('koffi');
-
         if (process.platform == 'win32') {
-            filename = path.join(path.dirname(filename), '../../luiggi/build/raylib.dll');
+            filename = path.join(path.dirname(__filename), '../../build/raylib.dll');
         } else if (process.platform == 'darwin') {
-            filename = path.join(path.dirname(filename), '../../luiggi/build/raylib.dylib');
+            filename = path.join(path.dirname(__filename), '../../build/raylib.dylib');
         } else {
-            filename = path.join(path.dirname(filename), '../../luiggi/build/raylib.so');
+            filename = path.join(path.dirname(__filename), '../../build/raylib.so');
         }
     }
 
