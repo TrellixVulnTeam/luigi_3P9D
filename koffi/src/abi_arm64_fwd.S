@@ -41,6 +41,7 @@
 # Save RSP in r29 (non-volatile), and use carefully assembled stack provided by caller.
 .macro prologue
     .cfi_startproc
+    hint #34
     stp x29, x30, [sp, -16]!
     .cfi_def_cfa sp, 16
     .cfi_offset 29, 16
@@ -162,6 +163,7 @@ SYMBOL(ForwardCallXDDDD):
 # After the call, simply load these registers from the output struct.
 .macro trampoline id
     .cfi_startproc
+    hint #34
     stp x29, x30, [sp, -16]!
     .cfi_def_cfa sp, 16
     .cfi_offset 29, 16
@@ -192,6 +194,7 @@ SYMBOL(ForwardCallXDDDD):
 # Same thing, but also forwards the floating-point argument registers and loads them at the end.
 .macro trampoline_vec id
     .cfi_startproc
+    hint #34
     stp x29, x30, [sp, -16]!
     .cfi_def_cfa sp, 16
     .cfi_offset 29, 16
@@ -298,6 +301,7 @@ SYMBOL(TrampolineX15):
 # The first three parameters (x0, x1, x2) are passed through untouched.
 SYMBOL(CallSwitchStack):
     .cfi_startproc
+    hint #34
     stp x29, x30, [sp, -16]!
     .cfi_def_cfa sp, 16
     .cfi_offset 29, 16
