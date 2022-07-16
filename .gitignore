@@ -16,7 +16,7 @@ node_modules/
 /luiggi/vendor/node/**/*.o
 /luiggi/luiggi
 /luiggi/luiggi.exe
-/luiggi/doc/dist/doctrees
+/luiggi/doc/dist
 
 /koffi/qemu/*.zst
 /koffi/qemu/qemu/*
@@ -27,4 +27,4 @@ node_modules/
 /koffi/benchmark/raylib_cc.exe
 /koffi/benchmark/raylib.dll
 /koffi/benchmark/tmp
-/koffi/doc/dist/doctrees
+/koffi/doc/dist
