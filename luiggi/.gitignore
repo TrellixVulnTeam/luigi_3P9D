@@ -1,0 +1,15 @@
+*.sln
+*.vcxproj*
+*.target.mk
+
+build
+node_modules
+
+/package-lock.json
+/vendor/node/deps/*.props
+/vendor/node/deps/*.xml
+/vendor/node/deps/*.targets
+/vendor/node/**/*.o
+/luiggi
+/luiggi.exe
+/doc/dist
