@@ -23,7 +23,7 @@ const printf = lib.func('printf', 'int', ['str', '...']);
 const atoi = lib.func('atoi', 'int', ['str']);
 ```
 
-Koffi automatically tries mangled names for non-standard x86 calling conventions. See the section [on standard calls](#synchronous-calls) for more information on this subject.
+Koffi automatically tries mangled names for non-standard x86 calling conventions. See the section on [calling conventions](#calling-conventions) for more information on this subject.
 
 ### C-like prototypes
 
@@ -36,7 +36,7 @@ const atoi = lib.func('int atoi(str)'); // The parameter name is not used by Kof
 
 You can use `()` or `(void)` for functions that take no argument.
 
-## Synchronous calls
+## Calling conventions
 
 By default, calling a C function happens synchronously.
 
@@ -220,7 +220,7 @@ console.log(ret);
 //   42
 ```
 
-On x86 platforms, only Cdecl and Stdcall callbacks are supported.
+You need to specify the correct [calling convention](#calling-conventions) on x86 platforms, or the behavior is undefined (Node will probably crash). Only *cdecl* and *stdcall* callbacks are supported.
 
 ## Thread safety
 
