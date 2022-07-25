@@ -1,4 +1,4 @@
-# Function calls
+# Functions
 
 ## Function definitions
 
@@ -36,7 +36,9 @@ const atoi = lib.func('int atoi(str)'); // The parameter name is not used by Kof
 
 You can use `()` or `(void)` for functions that take no argument.
 
-## Calling conventions
+## Function calls
+
+### Calling conventions
 
 By default, calling a C function happens synchronously.
 
@@ -62,7 +64,7 @@ const MessageBoxA_1 = lib.stdcall('MessageBoxA', 'int', ['void *', 'str', 'str',
 const MessageBoxA_2 = lib.func('int __stdcall MessageBoxA(void *hwnd, str text, str caption, uint type)');
 ```
 
-## Asynchronous calls
+### Asynchronous calls
 
 You can issue asynchronous calls by calling the function through its async member. In this case, you need to provide a callback function as the last argument, with `(err, res)` parameters.
 
@@ -88,7 +90,7 @@ You can easily convert this callback-style async function to a promise-based ver
 
 Variadic functions cannot be called asynchronously.
 
-## Variadic functions
+### Variadic functions
 
 Variadic functions are declared with an ellipsis as the last argument.
 
