@@ -97,11 +97,11 @@ let lib = (() => {
         filename = null;
     } else {
         if (process.platform == 'win32') {
-            filename = path.join(path.dirname(__filename), '../../build/raylib.dll');
+            filename = path.join(__dirname, '../../build/raylib.dll');
         } else if (process.platform == 'darwin') {
-            filename = path.join(path.dirname(__filename), '../../build/raylib.dylib');
+            filename = path.join(__dirname, '../../build/raylib.dylib');
         } else {
-            filename = path.join(path.dirname(__filename), '../../build/raylib.so');
+            filename = path.join(__dirname, '../../build/raylib.so');
         }
     }
 
@@ -320,7 +320,7 @@ function init() {
     SetWindowState(StateFlags.WINDOW_HIDDEN);
     InitWindow(width, height, 'Luiggi');
 
-    let filename = path.join(path.dirname(__filename), 'opensans.ttf');
+    let filename = path.join(__dirname, 'opensans.ttf');
     default_font = LoadFont(filename);
 }
 init();
