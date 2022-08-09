@@ -12,4 +12,3 @@ node_modules
 /vendor/node/**/*.o
 /luiggi
 /luiggi.exe
-/doc/dist
